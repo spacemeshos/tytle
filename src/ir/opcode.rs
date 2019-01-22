@@ -1,4 +1,5 @@
-enum Opcode {
+#[derive(Debug, PartialEq)]
+pub enum Opcode {
     FD,  // Forward
     BK,  // Backward
     RT,  // Right
