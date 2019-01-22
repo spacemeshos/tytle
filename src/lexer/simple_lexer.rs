@@ -6,6 +6,7 @@ use std::str::Chars;
 pub struct SimpleLexer<'a> {
     code_size: usize,
     code_chars: Chars<'a>,
+    tokens_buffer: Vec<Token>,
 }
 
 impl<'a> SimpleLexer<'a> {
@@ -13,28 +14,65 @@ impl<'a> SimpleLexer<'a> {
         Self {
             code_chars: code.chars(),
             code_size: code.len(),
+            tokens_buffer: Vec::new(),
         }
     }
 }
 
 impl<'a> Lexer for SimpleLexer<'a> {
     fn next_token(&mut self) -> Token {
+        if self.tokens_buffer.len() == 0 {
+            self.collect_more_tokens();
+        }
+
+        self.get_next_buffered_token()
+    }
+}
+
+impl<'a> SimpleLexer<'a> {
+    fn collect_more_tokens(&mut self) {
         let mut token = Vec::new();
 
         while let Some(ch) = self.code_chars.next() {
             match ch {
-                ' ' | '\n' => match token.len() {
+                '\n' => {
+                    if token.len() > 0 {
+                        self.buffer_token(&token);
+                    }
+                    self.buffer_newline_token();
+
+                    return;
+                }
+                ' ' => match token.len() {
                     0 => continue,
-                    _ => return Token::VALUE(token.iter().collect()),
+                    _ => {
+                        self.buffer_token(&token);
+                        return;
+                    }
                 },
                 _ => token.push(ch),
             }
         }
 
-        match token.len() {
-            0 => Token::EOF,
-            _ => Token::VALUE(token.iter().collect()),
+        self.buffer_token(&token)
+    }
+
+    fn buffer_newline_token(&mut self) {
+        self.tokens_buffer.insert(0, Token::NEWLINE);
+    }
+
+    fn buffer_token(&mut self, token_chars: &Vec<char>) {
+        match token_chars.len() {
+            0 => self.tokens_buffer.insert(0, Token::EOF),
+            _ => {
+                let value = token_chars.iter().collect();
+                self.tokens_buffer.insert(0, Token::VALUE(value));
+            }
         }
+    }
+
+    fn get_next_buffered_token(&mut self) -> Token {
+        self.tokens_buffer.pop().unwrap()
     }
 }
 
@@ -50,8 +88,26 @@ mod tests {
     }
 
     #[test]
+    fn just_spaces() {
+        let mut lexer = SimpleLexer::new("   ");
+        let tok = lexer.next_token();
+        assert_eq!(tok, Token::EOF)
+    }
+
+    #[test]
     fn one_line_1_token() {
         let mut lexer = SimpleLexer::new("1");
+
+        let tok1 = lexer.next_token();
+        let tok2 = lexer.next_token();
+
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+        assert_eq!(tok2, Token::EOF)
+    }
+
+    #[test]
+    fn one_line_1_token_with_spaces() {
+        let mut lexer = SimpleLexer::new(" 1  ");
 
         let tok1 = lexer.next_token();
         let tok2 = lexer.next_token();
@@ -110,12 +166,14 @@ mod tests {
         let tok3 = lexer.next_token();
         let tok4 = lexer.next_token();
         let tok5 = lexer.next_token();
+        let tok6 = lexer.next_token();
 
         assert_eq!(tok1, Token::VALUE("1".to_string()));
         assert_eq!(tok2, Token::VALUE("22".to_string()));
-        assert_eq!(tok3, Token::VALUE("333".to_string()));
-
-        assert_eq!(tok4, Token::VALUE("4444".to_string()));
-        assert_eq!(tok5, Token::EOF)
+        assert_eq!(tok3, Token::NEWLINE);
+        // assert_eq!(tok4, Token::VALUE("333".to_string()));
+        //
+        // assert_eq!(tok5, Token::VALUE("4444".to_string()));
+        // assert_eq!(tok6, Token::EOF)
     }
 }
