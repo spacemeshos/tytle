@@ -1,4 +1,4 @@
-mod token;
+pub mod token;
 
 use token::Token;
 
@@ -6,4 +6,4 @@ pub trait Lexer {
     fn next_token(&mut self) -> Token;
 }
 
-mod simple_lexer;
+pub mod simple_lexer;

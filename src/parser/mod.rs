@@ -1,5 +1,5 @@
-use std::default::Default;
 use crate::ir::instruction::Instruction;
+use std::default::Default;
 
 #[derive(Debug, PartialEq)]
 pub struct Ast {
@@ -8,11 +8,13 @@ pub struct Ast {
 
 impl Default for Ast {
     fn default() -> Self {
-        Ast { instructions: Vec::new() }
+        Ast {
+            instructions: Vec::new(),
+        }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ParseError {
     message: String,
 }

@@ -6,7 +6,6 @@ use std::str::Chars;
 pub struct SimpleLexer<'a> {
     code_size: usize,
     code_chars: Chars<'a>,
-    buffer: Vec<char>,
 }
 
 impl<'a> SimpleLexer<'a> {
@@ -14,7 +13,6 @@ impl<'a> SimpleLexer<'a> {
         Self {
             code_chars: code.chars(),
             code_size: code.len(),
-            buffer: Vec::new(),
         }
     }
 }
@@ -105,7 +103,7 @@ mod tests {
 
     #[test]
     fn two_lines() {
-        let mut lexer = SimpleLexer::new("1 2 \n 3 4");
+        let mut lexer = SimpleLexer::new("1 22 \n 333 4444");
 
         let tok1 = lexer.next_token();
         let tok2 = lexer.next_token();
@@ -114,10 +112,10 @@ mod tests {
         let tok5 = lexer.next_token();
 
         assert_eq!(tok1, Token::VALUE("1".to_string()));
-        assert_eq!(tok2, Token::VALUE("2".to_string()));
-        assert_eq!(tok3, Token::VALUE("3".to_string()));
+        assert_eq!(tok2, Token::VALUE("22".to_string()));
+        assert_eq!(tok3, Token::VALUE("333".to_string()));
 
-        assert_eq!(tok4, Token::VALUE("4".to_string()));
+        assert_eq!(tok4, Token::VALUE("4444".to_string()));
         assert_eq!(tok5, Token::EOF)
     }
 }

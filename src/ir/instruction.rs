@@ -1,7 +1,8 @@
 use crate::ir::opcode::Opcode;
+use crate::ir::operand::Operand;
 
 #[derive(Debug, PartialEq)]
 pub struct Instruction {
-    opcode: Opcode,
-    operands: Vec<String>,
+    pub opcode: Opcode,
+    pub operands: Vec<Operand>,
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused)]
 
-mod ir;
-mod lexer;
-mod parser;
+pub mod ir;
+pub mod lexer;
+pub mod parser;
