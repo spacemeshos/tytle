@@ -14,7 +14,7 @@ impl<'a> SimpleLexer<'a> {
         Self {
             code_chars: code.chars(),
             code_size: code.len(),
-            tokens_buffer: Vec::new(),
+            tokens_buffer: Default::default(),
         }
     }
 }

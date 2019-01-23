@@ -24,13 +24,8 @@ impl Parser for SimpleParser {
             match lexer.next_token() {
                 Token::EOF => eof = true,
                 Token::NEWLINE => continue,
-                Token::VALUE(value) => match value.as_str() {
-                    "FORWARD" => {
-                        let fd_inst = Self::parse_forward(&mut lexer)?;
-                        insts.push(fd_inst);
-                    }
-                    _ => unimplemented!(),
-                },
+                Token::VALUE(value) => Self::parse_token_value(&value, &mut lexer, &mut insts)?,
+                _ => unreachable!(),
             }
         }
 
@@ -43,20 +38,46 @@ impl Parser for SimpleParser {
 }
 
 impl SimpleParser {
-    fn parse_forward(lexer: &mut SimpleLexer) -> Result<Instruction, ParseError> {
+    fn parse_token_value(
+        value: &str,
+        lexer: &mut impl Lexer,
+        insts: &mut Vec<Instruction>,
+    ) -> Result<(), ParseError> {
+        if Self::is_direction(&value) {
+            let opcode = Self::translate_direction_opcode(&value);
+            let inst = Self::parse_direction(lexer, opcode)?;
+            insts.push(inst);
+        }
+
+        Ok(())
+    }
+
+    fn parse_direction(lexer: &mut impl Lexer, opcode: Opcode) -> Result<Instruction, ParseError> {
         let num_as_str = Self::expect_number(lexer)?;
 
-        Self::expect_end_of_cmd(lexer)?;
+        Self::expect_end_cmd(lexer)?;
 
         let inst = Instruction {
-            opcode: Opcode::FD,
+            opcode: opcode,
             operands: vec![Operand::Int(num_as_str)],
         };
 
         Ok(inst)
     }
 
-    fn expect_end_of_cmd(lexer: &mut SimpleLexer) -> Result<(), ParseError> {
+    fn is_direction(val: &str) -> bool {
+        true
+    }
+
+    fn translate_direction_opcode(val: &str) -> Opcode {
+        match val {
+            "FORWARD" => Opcode::FD,
+            "BACKWARD" => Opcode::BK,
+            _ => unimplemented!(),
+        }
+    }
+
+    fn expect_end_cmd(lexer: &mut impl Lexer) -> Result<(), ParseError> {
         let token = lexer.next_token();
 
         match token {
@@ -67,7 +88,7 @@ impl SimpleParser {
         }
     }
 
-    fn expect_number(lexer: &mut SimpleLexer) -> Result<String, ParseError> {
+    fn expect_number(lexer: &mut impl Lexer) -> Result<String, ParseError> {
         let token = lexer.next_token();
 
         match token {
@@ -124,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    pub fn valid_forward() {
+    pub fn forward_with_number_operand() {
         let ast = SimpleParser::parse("FORWARD 100").unwrap();
 
         let insts = vec![inst!(FD Int(100))];
@@ -166,5 +187,14 @@ mod tests {
                 message: "command is too long".to_string()
             })
         );
+    }
+
+    #[test]
+    pub fn backwrad_with_number_operand() {
+        let ast = SimpleParser::parse("BACKWARD 100").unwrap();
+
+        let insts = vec![inst!(BK Int(100))];
+
+        assert_eq!(ast.instructions, insts);
     }
 }
