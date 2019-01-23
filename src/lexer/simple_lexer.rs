@@ -171,9 +171,9 @@ mod tests {
         assert_eq!(tok1, Token::VALUE("1".to_string()));
         assert_eq!(tok2, Token::VALUE("22".to_string()));
         assert_eq!(tok3, Token::NEWLINE);
-        // assert_eq!(tok4, Token::VALUE("333".to_string()));
-        //
-        // assert_eq!(tok5, Token::VALUE("4444".to_string()));
-        // assert_eq!(tok6, Token::EOF)
+        assert_eq!(tok4, Token::VALUE("333".to_string()));
+
+        assert_eq!(tok5, Token::VALUE("4444".to_string()));
+        assert_eq!(tok6, Token::EOF)
     }
 }

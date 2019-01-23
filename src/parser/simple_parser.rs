@@ -40,11 +40,20 @@ impl SimpleParser {
         lexer: &mut impl Lexer,
         insts: &mut Vec<Instruction>,
     ) -> Result<(), ParseError> {
-        if Self::is_direction(&value) {
-            let opcode = Self::translate_direction_opcode(&value);
-            let inst = Self::parse_direction(lexer, opcode)?;
-            insts.push(inst);
-        }
+        let inst =
+            if Self::is_operandless_cmd(&value) {
+                let opcode = Self::translate_opcode(&value);
+                Instruction::build_opcode_instruction(opcode)
+            } else if Self::is_direction_cmd(&value) {
+                let opcode = Self::translate_opcode(&value);
+                Self::parse_direction(lexer, opcode)?
+            }
+            else {
+                unreachable!("should never get here")
+            };
+
+        insts.push(inst);
+
 
         Ok(())
     }
@@ -62,16 +71,28 @@ impl SimpleParser {
         Ok(inst)
     }
 
-    fn is_direction(val: &str) -> bool {
-        true
+    fn is_operandless_cmd(val: &str) -> bool {
+        match val {
+            "PENUP" | "PENDOWN" => true,
+            _ => false
+        }
     }
 
-    fn translate_direction_opcode(val: &str) -> Opcode {
+    fn is_direction_cmd(val: &str) -> bool {
+        match val {
+            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => true,
+            _ => false
+        }
+    }
+
+    fn translate_opcode(val: &str) -> Opcode {
         match val {
             "FORWARD" => Opcode::FD,
             "BACKWARD" => Opcode::BK,
             "RIGHT" => Opcode::RT,
             "LEFT" => Opcode::LT,
+            "PENUP" => Opcode::PU,
+            "PENDOWN" => Opcode::PD,
             _ => unimplemented!(),
         }
     }
@@ -203,7 +224,8 @@ mod tests {
 
     #[test]
     pub fn multiple_directions_commands() {
-        let ast = SimpleParser::parse("LEFT 100 \n RIGHT 200 \n FORWARD 300 \n BACKWARD 400 ").unwrap();
+        let ast =
+            SimpleParser::parse("LEFT 100 \n RIGHT 200 \n FORWARD 300 \n BACKWARD 400 ").unwrap();
 
         let insts = vec![
             inst!(LT Int(100)),
@@ -211,6 +233,22 @@ mod tests {
             inst!(FD Int(300)),
             inst!(BK Int(400)),
         ];
+
+        assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn pen_up() {
+        let ast = SimpleParser::parse("PENUP").unwrap();
+        let insts = vec![inst!(PU)];
+
+        assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn pen_down() {
+        let ast = SimpleParser::parse("PENDOWN").unwrap();
+        let insts = vec![inst!(PD)];
 
         assert_eq!(ast.instructions, insts);
     }
