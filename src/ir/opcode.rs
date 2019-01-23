@@ -1,21 +1,22 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
-    FD,  // Forward
-    BK,  // Backward
-    RT,  // Right
-    LT,  // Left
-    PU,  // PenUp
-    PD,  // PenDown
-    HT,  // HideTurtle
-    ST,  // ShowTurtle
-    PE,  // PenErase
-    RPT, // Repeat
-    CS,  // ClearScreen
+    FD, // Forward
+    BK, // Backward
+    RT, // Right
+    LT, // Left
+    PU, // PenUp
+    PD, // PenDown
 
-    XCOR,
-    YCOR,
-    SETPOS,
-    DISTANCE,
+        // HT, // HideTurtle
+        // ST, // ShowTurtle
+        // PE,  // PenErase
+        // RPT, // Repeat
+        // CS,  // ClearScreen
 
-    SETPEN, // SetPen
+        // XCOR,
+        // YCOR,
+        // SETPOS,
+        // DISTANCE,
+
+        // SETPEN, // SetPen
 }

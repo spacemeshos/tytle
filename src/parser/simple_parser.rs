@@ -16,12 +16,13 @@ impl Parser for SimpleParser {
         let mut eof = false;
 
         let mut insts = Vec::new();
-
         while !eof {
             match lexer.next_token() {
-                Token::EOF => eof = true,
-                Token::NEWLINE => continue,
-                Token::VALUE(value) => Self::parse_token_value(&value, &mut lexer, &mut insts)?,
+                (Token::EOF, _) => eof = true,
+                (Token::NEWLINE, _) => continue,
+                (Token::VALUE(value), _) => {
+                    Self::parse_token_value(&value, &mut lexer, &mut insts)?
+                }
                 _ => unreachable!(),
             }
         }
@@ -96,25 +97,26 @@ impl SimpleParser {
     }
 
     fn expect_end_of_cmd(lexer: &mut impl Lexer) -> Result<(), ParseError> {
-        let token = lexer.next_token();
+        let (token, location) = lexer.next_token();
 
         match token {
             Token::NEWLINE | Token::EOF => Ok(()),
-            _ => Err(ParseError::new("command is too long")),
+            _ => Err(ParseError::new("command is too long", location)),
         }
     }
 
     fn expect_number(lexer: &mut impl Lexer) -> Result<String, ParseError> {
-        let token = lexer.next_token();
+        let (token, location) = lexer.next_token();
 
         match token {
             Token::VALUE(string) => match string.parse::<isize>() {
                 Ok(d) => Ok(string),
-                Err(_) => Err(ParseError {
-                    message: format!("expected a number, received: {}", string),
-                }),
+                Err(_) => Err(ParseError::new(
+                    &format!("expected a number, received: {}", string),
+                    location,
+                )),
             },
-            _ => Err(ParseError::new("missing number")),
+            _ => Err(ParseError::new("missing number", location)),
         }
     }
 }
@@ -122,10 +124,20 @@ impl SimpleParser {
 #[cfg(test)]
 mod tests {
     use crate::ir::{instruction::Instruction, opcode::Opcode, operand::Operand};
+    use crate::lexer::location::Location;
     use crate::parser::{simple_parser::SimpleParser, Ast, ParseError, Parser, ParserResult};
 
-    fn parse_err(msg: &str) -> ParseError {
-        ParseError::new(msg)
+    macro_rules! parse_err {
+        ($msg:expr, $line:expr, $col:expr) => {{
+            ParseError::new($msg, Location($line, $col))
+        }};
+    }
+
+    macro_rules! assert_parse_err {
+        ($actual: tt, $msg:expr, $line:expr, $col:expr) => {{
+            let expected = parse_err!($msg, $line, $col);
+            assert_eq!($actual, Err(expected));
+        }};
     }
 
     macro_rules! inst {
@@ -159,7 +171,6 @@ mod tests {
     #[test]
     pub fn forward_with_number_operand() {
         let ast = SimpleParser::parse("FORWARD 100").unwrap();
-
         let insts = vec![inst!(FD Int(100))];
 
         assert_eq!(ast.instructions, insts);
@@ -168,28 +179,24 @@ mod tests {
     #[test]
     pub fn forward_with_non_number_operand() {
         let res = SimpleParser::parse("FORWARD ABC");
-
-        assert_eq!(res, Err(parse_err("expected a number, received: ABC")))
+        assert_parse_err!(res, "expected a number, received: ABC", 1, 9)
     }
 
     #[test]
     pub fn forward_without_operands() {
         let res = SimpleParser::parse("FORWARD");
-
-        assert_eq!(res, Err(parse_err("missing number")));
+        assert_parse_err!(res, "missing number", 2, 1);
     }
 
     #[test]
     pub fn forward_with_2_integer_operands() {
         let res = SimpleParser::parse("FORWARD 100 200");
-
-        assert_eq!(res, Err(parse_err("command is too long")));
+        assert_parse_err!(res, "command is too long", 1, 13);
     }
 
     #[test]
     pub fn backward_with_number_operand() {
         let ast = SimpleParser::parse("BACKWARD 100").unwrap();
-
         let insts = vec![inst!(BK Int(100))];
 
         assert_eq!(ast.instructions, insts);
@@ -198,14 +205,12 @@ mod tests {
     #[test]
     pub fn backward_with_non_number_operand() {
         let res = SimpleParser::parse("BACKWARD ABC");
-
-        assert_eq!(res, Err(parse_err("expected a number, received: ABC")));
+        assert_parse_err!(res, "expected a number, received: ABC", 1, 10);
     }
 
     #[test]
     pub fn right_with_number_operand() {
         let ast = SimpleParser::parse("RIGHT 100").unwrap();
-
         let insts = vec![inst!(RT Int(100))];
 
         assert_eq!(ast.instructions, insts);
@@ -214,7 +219,6 @@ mod tests {
     #[test]
     pub fn left_with_number_operand() {
         let ast = SimpleParser::parse("LEFT 100").unwrap();
-
         let insts = vec![inst!(LT Int(100))];
 
         assert_eq!(ast.instructions, insts);
@@ -246,8 +250,7 @@ mod tests {
     #[test]
     pub fn pen_up_invalid() {
         let res = SimpleParser::parse("PENUP 100");
-
-        assert_eq!(res, Err(ParseError::new("command is too long")))
+        assert_parse_err!(res, "command is too long", 1, 7);
     }
 
     #[test]
@@ -261,6 +264,6 @@ mod tests {
     #[test]
     pub fn pen_down_invalid() {
         let res = SimpleParser::parse("PENDOWN 100");
-        assert_eq!(res, Err(ParseError::new("command is too long")))
+        assert_parse_err!(res, "command is too long", 1, 9);
     }
 }
