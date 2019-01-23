@@ -1,8 +1,5 @@
-use super::super::ir::instruction::Instruction;
-use super::super::ir::opcode::Opcode;
-use super::super::ir::operand::Operand;
-use crate::lexer::simple_lexer::SimpleLexer;
-use crate::lexer::{token::Token, Lexer};
+use super::super::ir::{instruction::Instruction, opcode::Opcode, operand::Operand};
+use crate::lexer::{simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Ast, ParseError, Parser, ParserResult};
 
 pub struct SimpleParser;
@@ -73,6 +70,8 @@ impl SimpleParser {
         match val {
             "FORWARD" => Opcode::FD,
             "BACKWARD" => Opcode::BK,
+            "RIGHT" => Opcode::RT,
+            "LEFT" => Opcode::LT,
             _ => unimplemented!(),
         }
     }
@@ -182,5 +181,37 @@ mod tests {
         let res = SimpleParser::parse("BACKWARD ABC");
 
         assert_eq!(res, Err(parse_err("expected a number, received: ABC")));
+    }
+
+    #[test]
+    pub fn right_with_number_operand() {
+        let ast = SimpleParser::parse("RIGHT 100").unwrap();
+
+        let insts = vec![inst!(RT Int(100))];
+
+        assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn left_with_number_operand() {
+        let ast = SimpleParser::parse("LEFT 100").unwrap();
+
+        let insts = vec![inst!(LT Int(100))];
+
+        assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn multiple_directions_commands() {
+        let ast = SimpleParser::parse("LEFT 100 \n RIGHT 200 \n FORWARD 300 \n BACKWARD 400 ").unwrap();
+
+        let insts = vec![
+            inst!(LT Int(100)),
+            inst!(RT Int(200)),
+            inst!(FD Int(300)),
+            inst!(BK Int(400)),
+        ];
+
+        assert_eq!(ast.instructions, insts);
     }
 }
