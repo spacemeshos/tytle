@@ -40,20 +40,18 @@ impl SimpleParser {
         lexer: &mut impl Lexer,
         insts: &mut Vec<Instruction>,
     ) -> Result<(), ParseError> {
-        let inst =
-            if Self::is_operandless_cmd(&value) {
-                let opcode = Self::translate_opcode(&value);
-                Instruction::build_opcode_instruction(opcode)
-            } else if Self::is_direction_cmd(&value) {
-                let opcode = Self::translate_opcode(&value);
-                Self::parse_direction(lexer, opcode)?
-            }
-            else {
-                unreachable!("should never get here")
-            };
+        let inst = if Self::is_operandless_cmd(&value) {
+            let opcode = Self::translate_opcode(&value);
+            Self::expect_end_of_cmd(lexer)?;
+            Instruction::build_opcode_instruction(opcode)
+        } else if Self::is_direction_cmd(&value) {
+            let opcode = Self::translate_opcode(&value);
+            Self::parse_direction(lexer, opcode)?
+        } else {
+            unreachable!("should never get here")
+        };
 
         insts.push(inst);
-
 
         Ok(())
     }
@@ -61,7 +59,7 @@ impl SimpleParser {
     fn parse_direction(lexer: &mut impl Lexer, opcode: Opcode) -> Result<Instruction, ParseError> {
         let num_as_str = Self::expect_number(lexer)?;
 
-        Self::expect_end_cmd(lexer)?;
+        Self::expect_end_of_cmd(lexer)?;
 
         let inst = Instruction {
             opcode: opcode,
@@ -74,14 +72,14 @@ impl SimpleParser {
     fn is_operandless_cmd(val: &str) -> bool {
         match val {
             "PENUP" | "PENDOWN" => true,
-            _ => false
+            _ => false,
         }
     }
 
     fn is_direction_cmd(val: &str) -> bool {
         match val {
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -97,7 +95,7 @@ impl SimpleParser {
         }
     }
 
-    fn expect_end_cmd(lexer: &mut impl Lexer) -> Result<(), ParseError> {
+    fn expect_end_of_cmd(lexer: &mut impl Lexer) -> Result<(), ParseError> {
         let token = lexer.next_token();
 
         match token {
@@ -246,10 +244,23 @@ mod tests {
     }
 
     #[test]
+    pub fn pen_up_invalid() {
+        let res = SimpleParser::parse("PENUP 100");
+
+        assert_eq!(res, Err(ParseError::new("command is too long")))
+    }
+
+    #[test]
     pub fn pen_down() {
         let ast = SimpleParser::parse("PENDOWN").unwrap();
         let insts = vec![inst!(PD)];
 
         assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn pen_down_invalid() {
+        let res = SimpleParser::parse("PENDOWN 100");
+        assert_eq!(res, Err(ParseError::new("command is too long")))
     }
 }
