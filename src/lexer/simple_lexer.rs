@@ -36,10 +36,8 @@ impl<'a> SimpleLexer<'a> {
         while let Some(ch) = self.code_chars.next() {
             match ch {
                 '\n' => {
-                    if token.len() > 0 {
-                        self.buffer_token(&token);
-                    }
-                    self.buffer_newline_token();
+                    self.buffer_token(&token);
+                    self.buffer_newline();
 
                     return;
                 }
@@ -54,20 +52,22 @@ impl<'a> SimpleLexer<'a> {
             }
         }
 
-        self.buffer_token(&token)
+        self.buffer_token(&token);
+        self.buffer_eof();
     }
 
-    fn buffer_newline_token(&mut self) {
+    fn buffer_newline(&mut self) {
         self.tokens_buffer.insert(0, Token::NEWLINE);
     }
 
+    fn buffer_eof(&mut self) {
+        self.tokens_buffer.insert(0, Token::EOF);
+    }
+
     fn buffer_token(&mut self, token_chars: &Vec<char>) {
-        match token_chars.len() {
-            0 => self.tokens_buffer.insert(0, Token::EOF),
-            _ => {
-                let value = token_chars.iter().collect();
-                self.tokens_buffer.insert(0, Token::VALUE(value));
-            }
+        if token_chars.len() > 0 {
+            let value = token_chars.iter().collect();
+            self.tokens_buffer.insert(0, Token::VALUE(value));
         }
     }
 
