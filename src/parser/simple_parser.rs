@@ -82,9 +82,7 @@ impl SimpleParser {
 
         match token {
             Token::NEWLINE | Token::EOF => Ok(()),
-            _ => Err(ParseError {
-                message: "command is too long".to_string(),
-            }),
+            _ => Err(ParseError::new("command is too long")),
         }
     }
 
@@ -98,23 +96,19 @@ impl SimpleParser {
                     message: format!("expected a number, received: {}", string),
                 }),
             },
-            _ => Err(ParseError {
-                message: "missing number".to_string(),
-            }),
+            _ => Err(ParseError::new("missing number")),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ir::instruction::Instruction;
-    use crate::ir::opcode::Opcode;
-    use crate::ir::operand::Operand;
-    use crate::parser::simple_parser::SimpleParser;
-    use crate::parser::Ast;
-    use crate::parser::ParseError;
-    use crate::parser::Parser;
-    use crate::parser::ParserResult;
+    use crate::ir::{instruction::Instruction, opcode::Opcode, operand::Operand};
+    use crate::parser::{simple_parser::SimpleParser, Ast, ParseError, Parser, ParserResult};
+
+    fn parse_err(msg: &str) -> ParseError {
+        ParseError::new(msg)
+    }
 
     macro_rules! inst {
         ($opcode:ident $($op_type:ident($op_value:expr)),*) => {{
@@ -157,44 +151,36 @@ mod tests {
     pub fn forward_with_non_number_operand() {
         let res = SimpleParser::parse("FORWARD ABC");
 
-        assert_eq!(
-            res,
-            Err(ParseError {
-                message: "expected a number, received: ABC".to_string()
-            })
-        )
+        assert_eq!(res, Err(parse_err("expected a number, received: ABC")))
     }
 
     #[test]
     pub fn forward_without_operands() {
         let res = SimpleParser::parse("FORWARD");
 
-        assert_eq!(
-            res,
-            Err(ParseError {
-                message: "missing number".to_string()
-            })
-        );
+        assert_eq!(res, Err(parse_err("missing number")));
     }
 
     #[test]
     pub fn forward_with_2_integer_operands() {
         let res = SimpleParser::parse("FORWARD 100 200");
 
-        assert_eq!(
-            res,
-            Err(ParseError {
-                message: "command is too long".to_string()
-            })
-        );
+        assert_eq!(res, Err(parse_err("command is too long")));
     }
 
     #[test]
-    pub fn backwrad_with_number_operand() {
+    pub fn backward_with_number_operand() {
         let ast = SimpleParser::parse("BACKWARD 100").unwrap();
 
         let insts = vec![inst!(BK Int(100))];
 
         assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn backward_with_non_number_operand() {
+        let res = SimpleParser::parse("BACKWARD ABC");
+
+        assert_eq!(res, Err(parse_err("expected a number, received: ABC")));
     }
 }

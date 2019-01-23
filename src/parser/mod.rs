@@ -19,6 +19,14 @@ pub struct ParseError {
     message: String,
 }
 
+impl ParseError {
+    fn new(message: &str) -> Self {
+        Self {
+            message: message.to_string(),
+        }
+    }
+}
+
 type ParserResult = Result<Ast, ParseError>;
 
 pub trait Parser {
