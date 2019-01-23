@@ -44,7 +44,7 @@ impl SimpleParser {
         let inst = if Self::is_operandless_cmd(&value) {
             let opcode = Self::translate_opcode(&value);
             Self::expect_end_of_cmd(lexer)?;
-            Instruction::build_opcode_instruction(opcode)
+            Instruction::from(opcode)
         } else if Self::is_direction_cmd(&value) {
             let opcode = Self::translate_opcode(&value);
             Self::parse_direction(lexer, opcode)?

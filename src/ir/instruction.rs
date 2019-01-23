@@ -7,8 +7,8 @@ pub struct Instruction {
     pub operands: Vec<Operand>,
 }
 
-impl Instruction {
-    pub fn build_opcode_instruction(opcode: Opcode) -> Self {
+impl From<Opcode> for Instruction {
+    fn from(opcode: Opcode) -> Self {
         Self {
             opcode: opcode,
             operands: Vec::new(),
