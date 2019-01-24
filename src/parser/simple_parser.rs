@@ -20,9 +20,7 @@ impl Parser for SimpleParser {
             match lexer.next_token() {
                 (Token::EOF, _) => eof = true,
                 (Token::NEWLINE, _) => continue,
-                (Token::VALUE(value), _) => {
-                    Self::parse_token_value(&value, &mut lexer, &mut insts)?
-                }
+                (Token::VALUE(value), _) => Self::parse_statement(&value, &mut lexer, &mut insts)?,
                 _ => unreachable!(),
             }
         }
@@ -36,7 +34,7 @@ impl Parser for SimpleParser {
 }
 
 impl SimpleParser {
-    fn parse_token_value(
+    fn parse_statement(
         value: &str,
         lexer: &mut impl Lexer,
         insts: &mut Vec<Instruction>,
@@ -51,6 +49,7 @@ impl SimpleParser {
                 let opcode = Self::translate_opcode(&value);
                 Self::parse_direction(lexer, opcode)?
             }
+            "REPEAT" => unimplemented!(),
             _ => unreachable!("should never get here"),
         };
 
