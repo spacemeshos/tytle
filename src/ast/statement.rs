@@ -55,11 +55,20 @@ pub struct IfStmt {
     false_block: Option<BlockStatement>,
 }
 
+pub enum CommandStmt {
+    PenUp,
+    PenDown,
+    ShowTurtle,
+    HideTurtle,
+    PenErase,
+}
+
 pub struct BlockStatement {
     stmts: Vec<Statement>,
 }
 
 pub enum Statement {
+    Command(CommandStmt),
     Direction(DirectionStmt),
     Repeat(RepeatStmt),
     If(IfStmt),

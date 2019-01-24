@@ -1,19 +1,5 @@
-use crate::ir::instruction::Instruction;
+use crate::ast::program::Program;
 use crate::lexer::location::Location;
-use std::default::Default;
-
-#[derive(Debug, PartialEq)]
-pub struct Ast {
-    pub instructions: Vec<Instruction>,
-}
-
-impl Default for Ast {
-    fn default() -> Self {
-        Ast {
-            instructions: Vec::new(),
-        }
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct ParseError {
@@ -30,10 +16,10 @@ impl ParseError {
     }
 }
 
-type ParserResult = Result<Ast, ParseError>;
+type ParserResult = Result<Program, ParseError>;
 
 pub trait Parser {
-    fn parse(code: &str) -> ParserResult;
+    fn parse(&mut self, code: &str) -> ParserResult;
 }
 
-mod simple_parser;
+mod program_parser;
