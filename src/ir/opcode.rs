@@ -7,8 +7,9 @@ pub enum Opcode {
     PU, // PenUp
     PD, // PenDown
 
-        // HT, // HideTurtle
-        // ST, // ShowTurtle
+    ST, // ShowTurtle
+    HT, // HideTurtle
+
         // PE,  // PenErase
         // RPT, // Repeat
         // CS,  // ClearScreen

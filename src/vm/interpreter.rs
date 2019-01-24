@@ -31,6 +31,18 @@ impl Interpreter {
             return;
         }
 
-        let inst = inst.unwrap();
+        let inst: Instruction = inst.unwrap();
+
+        match inst.opcode {
+            _ => panic!()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn turtle_starts_at_0_0() {
+
     }
 }

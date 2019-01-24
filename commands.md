@@ -6,3 +6,5 @@
 * **LEFT** _num_
 * **PENUP**
 * **PENDOWN**
+* **HIDETURTLE**
+* **SHOWTURTLE**

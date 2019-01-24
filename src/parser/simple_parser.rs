@@ -41,15 +41,17 @@ impl SimpleParser {
         lexer: &mut impl Lexer,
         insts: &mut Vec<Instruction>,
     ) -> Result<(), ParseError> {
-        let inst = if Self::is_operandless_cmd(&value) {
-            let opcode = Self::translate_opcode(&value);
-            Self::expect_end_of_cmd(lexer)?;
-            Instruction::from(opcode)
-        } else if Self::is_direction_cmd(&value) {
-            let opcode = Self::translate_opcode(&value);
-            Self::parse_direction(lexer, opcode)?
-        } else {
-            unreachable!("should never get here")
+        let inst = match value {
+            "PENUP" | "PENDOWN" | "SHOWTURTLE" | "HIDETURTLE" => {
+                let opcode = Self::translate_opcode(&value);
+                Self::expect_end_of_cmd(lexer)?;
+                Instruction::from(opcode)
+            }
+            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => {
+                let opcode = Self::translate_opcode(&value);
+                Self::parse_direction(lexer, opcode)?
+            }
+            _ => unreachable!("should never get here"),
         };
 
         insts.push(inst);
@@ -70,20 +72,6 @@ impl SimpleParser {
         Ok(inst)
     }
 
-    fn is_operandless_cmd(val: &str) -> bool {
-        match val {
-            "PENUP" | "PENDOWN" => true,
-            _ => false,
-        }
-    }
-
-    fn is_direction_cmd(val: &str) -> bool {
-        match val {
-            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => true,
-            _ => false,
-        }
-    }
-
     fn translate_opcode(val: &str) -> Opcode {
         match val {
             "FORWARD" => Opcode::FD,
@@ -92,6 +80,8 @@ impl SimpleParser {
             "LEFT" => Opcode::LT,
             "PENUP" => Opcode::PU,
             "PENDOWN" => Opcode::PD,
+            "SHOWTURTLE" => Opcode::ST,
+            "HIDETURTLE" => Opcode::HT,
             _ => unimplemented!(),
         }
     }
@@ -265,5 +255,21 @@ mod tests {
     pub fn pen_down_invalid() {
         let res = SimpleParser::parse("PENDOWN 100");
         assert_parse_err!(res, "command is too long", 1, 9);
+    }
+
+    #[test]
+    pub fn show_turtle() {
+        let ast = SimpleParser::parse("SHOWTURTLE").unwrap();
+        let insts = vec![inst!(ST)];
+
+        assert_eq!(ast.instructions, insts);
+    }
+
+    #[test]
+    pub fn hide_turtle() {
+        let ast = SimpleParser::parse("HIDETURTLE").unwrap();
+        let insts = vec![inst!(HT)];
+
+        assert_eq!(ast.instructions, insts);
     }
 }
