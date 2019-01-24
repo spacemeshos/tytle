@@ -11,13 +11,13 @@ pub struct ShowExpr {
 }
 
 pub struct OutputExpr {
-    expr: Expression,
+    pub expr: Expression,
 }
 
 pub struct ProcedureStmt {
-    loction: Option<Location>,
-    name: String,
-    block: BlockStatement,
+    pub loction: Option<Location>,
+    pub name: String,
+    pub block: BlockStatement,
 }
 
 pub enum SymbolKind {
@@ -26,33 +26,33 @@ pub enum SymbolKind {
 }
 
 pub struct Symbol {
-    name: String,
-    kind: SymbolKind,
+    pub name: String,
+    pub kind: SymbolKind,
 }
 
 pub struct MakeStmt {
-    symbol: Symbol,
-    expr: Box<Expression>,
+    pub symbol: Symbol,
+    pub expr: Box<Expression>,
 }
 
 pub struct LocalStmt {
-    symbol: SymbolKind,
+    pub symbol: SymbolKind,
 }
 
 pub struct RepeatStmt {
-    count: Expression,
-    block: BlockStatement,
+    pub count_expr: Expression,
+    pub block: BlockStatement,
 }
 
 pub struct DirectionStmt {
-    direction: Direction,
-    distance_expr: Expression,
+    pub direction: Direction,
+    pub distance_expr: Expression,
 }
 
 pub struct IfStmt {
-    condition: Box<Expression>,
-    true_block: BlockStatement,
-    false_block: Option<BlockStatement>,
+    pub cond_expr: Box<Expression>,
+    pub true_block: BlockStatement,
+    pub false_block: Option<BlockStatement>,
 }
 
 pub enum CommandStmt {
@@ -64,7 +64,21 @@ pub enum CommandStmt {
 }
 
 pub struct BlockStatement {
-    stmts: Vec<Statement>,
+    pub stmts: Vec<Statement>,
+}
+
+impl Default for BlockStatement {
+    fn default() -> Self {
+        Self {
+            stmts: Default::default(),
+        }
+    }
+}
+
+impl BlockStatement {
+    pub fn add_statement(&mut self, stmt: Statement) {
+        self.stmts.push(stmt);
+    }
 }
 
 pub enum Statement {
