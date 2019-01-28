@@ -32,7 +32,7 @@ impl ProgramParser {
         while let Some(stmt) = Self::parse_statement(lexer) {
             match stmt {
                 Statement::Nop => continue,
-                _ => program.statements.push(stmt)
+                _ => program.statements.push(stmt),
             }
         }
 
