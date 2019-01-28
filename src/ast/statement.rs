@@ -2,17 +2,20 @@ use crate::ast::direction::Direction;
 use crate::ir::instruction::Instruction;
 use crate::lexer::location::Location;
 
-pub struct Expression {
-    //
+pub struct IntExpr {
+    pub value: usize,
 }
 
 pub struct ShowExpr {
-    varname: String,
+    pub varname: String,
 }
 
-pub struct OutputExpr {
-    pub expr: Expression,
+pub enum Expression {
+    Int(IntExpr),
+    Show(ShowExpr),
 }
+
+pub struct OutputExpr {}
 
 pub struct ProcedureStmt {
     pub loction: Option<Location>,

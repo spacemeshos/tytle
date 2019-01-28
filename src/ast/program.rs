@@ -5,33 +5,35 @@ use crate::ast::variable::Variable;
 use std::collections::HashMap;
 
 pub struct Program {
-    globals: Vec<Variable>,
-    procs: HashMap<String, Procedure>,
+    // globals: Vec<Variable>,
+    // procs: HashMap<String, Procedure>,
+    pub statements: Vec<Statement>,
 }
 
 impl Default for Program {
     fn default() -> Self {
         Self {
-            globals: Default::default(),
-            procs: Default::default(),
+            // globals: Default::default(),
+            // procs: Default::default(),
+            statements: Default::default(),
         }
     }
 }
 
 impl Program {
-    pub fn add_global(&mut self, var: Variable) {
-        self.globals.push(var);
-    }
-
-    pub fn add_procedure(&mut self, proc: Procedure) {
-        self.procs.insert(proc.name.clone(), proc);
-    }
-
-    pub fn get_procedure_by_name(&self, name: &str) -> Option<&Procedure> {
-        None
-    }
-
-    pub fn get_global_by_name(&self, name: &str) -> Option<&Variable> {
-        None
-    }
+    // pub fn add_global(&mut self, var: Variable) {
+    //     self.globals.push(var);
+    // }
+    //
+    // pub fn add_procedure(&mut self, proc: Procedure) {
+    //     self.procs.insert(proc.name.clone(), proc);
+    // }
+    //
+    // pub fn get_procedure_by_name(&self, name: &str) -> Option<&Procedure> {
+    //     None
+    // }
+    //
+    // pub fn get_global_by_name(&self, name: &str) -> Option<&Variable> {
+    //     None
+    // }
 }
