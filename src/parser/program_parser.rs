@@ -9,9 +9,15 @@ use crate::parser::{Parser, ParserResult};
 
 struct ProgramParser;
 
+impl ProgramParser {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
 impl Parser for ProgramParser {
     fn parse(&mut self, code: &str) -> ParserResult {
-        let mut parser = ProgramParser {};
+        let mut parser = Self::new();
         let mut lexer = SimpleLexer::new(code);
 
         let program = parser.parse_program(&mut lexer);
@@ -24,7 +30,10 @@ impl ProgramParser {
         let mut program = Program::default();
 
         while let Some(stmt) = Self::parse_statement(lexer) {
-            program.statements.push(stmt);
+            match stmt {
+                Statement::Nop => continue,
+                _ => program.statements.push(stmt)
+            }
         }
 
         program
@@ -42,7 +51,10 @@ impl ProgramParser {
 
         match token {
             Token::EOF => return None,
-            Token::NEWLINE => panic!(),
+            Token::NEWLINE => {
+                Self::skip_token(lexer);
+                return Some(Statement::Nop);
+            }
             Token::VALUE(val) => match val.as_str() {
                 "REPEAT" => {
                     unimplemented!();
@@ -100,6 +112,8 @@ impl ProgramParser {
     fn parse_expr(lexer: &mut impl Lexer) -> Expression {
         let value = Self::expect_number(lexer);
 
+        Self::expect_newline(lexer);
+
         Expression::Int(IntExpr { value })
     }
 
@@ -110,7 +124,20 @@ impl ProgramParser {
 
         match tok {
             Token::EOF | Token::NEWLINE => panic!("unexpected..."),
-            Token::VALUE(v) => v.parse::<usize>().unwrap()
+            Token::VALUE(v) => v.parse::<usize>().unwrap(),
+        }
+    }
+
+    fn expect_newline(lexer: &mut impl Lexer) {
+        let tok_loc = lexer.pop_current_token();
+
+        if tok_loc.is_some() {
+            let (tok, loc) = tok_loc.unwrap();
+
+            match tok {
+                Token::EOF | Token::NEWLINE => return,
+                _ => panic!("invalid input"),
+            }
         }
     }
 
@@ -182,6 +209,48 @@ mod tests {
                 direction: Direction::Right,
                 distance_expr: Expression::Int(IntExpr { value: 20 }),
             })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_and_then_backward_no_empty_lines() {
+        let actual = ProgramParser.parse("FORWARD 10\nRIGHT 20").unwrap();
+
+        let expected = Program {
+            statements: vec![
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Forward,
+                    distance_expr: Expression::Int(IntExpr { value: 10 }),
+                }),
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Right,
+                    distance_expr: Expression::Int(IntExpr { value: 20 }),
+                }),
+            ],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_and_then_backward_with_empty_lines() {
+        let actual = ProgramParser
+            .parse("\n\nFORWARD 10\n\nRIGHT 20\n\n")
+            .unwrap();
+
+        let expected = Program {
+            statements: vec![
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Forward,
+                    distance_expr: Expression::Int(IntExpr { value: 10 }),
+                }),
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Right,
+                    distance_expr: Expression::Int(IntExpr { value: 20 }),
+                }),
+            ],
         };
 
         assert_eq!(actual, expected);

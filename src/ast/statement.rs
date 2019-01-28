@@ -106,4 +106,5 @@ pub enum Statement {
     If(IfStmt),
     Make(MakeStmt),
     Procedure(ProcedureStmt),
+    Nop,
 }
