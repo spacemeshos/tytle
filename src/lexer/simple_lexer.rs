@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn panics_when_buffer_is_empty_but_eof_has_not_been_reached() {
+    fn panics_when_buffer_is_empty_but_eof_has_not_been_reached_yet() {
         let lexer = SimpleLexer::new("111");
 
         lexer.peek_current_token();
