@@ -3,19 +3,15 @@ use crate::ir::instruction::Instruction;
 use crate::lexer::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct IntExpr {
-    pub value: usize,
+pub enum Expression {
+    Int(usize),
+    Add(Box<Expression>, Box<Expression>),
+    Mul(Box<Expression>, Box<Expression>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ShowExpr {
     pub varname: String,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Int(IntExpr),
-    Show(ShowExpr),
 }
 
 #[derive(Debug, Clone, PartialEq)]

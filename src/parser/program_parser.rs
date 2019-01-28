@@ -1,7 +1,7 @@
 use crate::ast::direction::Direction;
 use crate::ast::program::Program;
 use crate::ast::statement::{
-    BlockStatement, CommandStmt, DirectionStmt, Expression, IfStmt, IntExpr, LocalStmt, MakeStmt,
+    BlockStatement, CommandStmt, DirectionStmt, Expression, IfStmt, LocalStmt, MakeStmt,
     ProcedureStmt, RepeatStmt, ShowExpr, Statement,
 };
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
@@ -87,9 +87,13 @@ impl ProgramParser {
     }
 
     fn parse_direction(direction: &str, lexer: &mut impl Lexer) -> Statement {
+        // skipping the direction token
+        // we already have the value under `direction`
         Self::skip_token(lexer);
 
         let distance_expr = Self::parse_expr(lexer);
+
+        Self::expect_newline(lexer);
 
         let stmt = DirectionStmt {
             distance_expr,
@@ -110,11 +114,29 @@ impl ProgramParser {
     }
 
     fn parse_expr(lexer: &mut impl Lexer) -> Expression {
-        let value = Self::expect_number(lexer);
+        let left_expr = Self::parse_mul_expr(lexer);
 
-        Self::expect_newline(lexer);
+        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
 
-        Expression::Int(IntExpr { value })
+        match tok {
+            Token::VALUE(val) => match val.as_str() {
+                "+" => {
+                    Self::skip_token(lexer); // we skip the `+` token
+
+                    let right_expr = Self::parse_expr(lexer);
+
+                    Expression::Add(Box::new(left_expr), Box::new(right_expr))
+                }
+                _ => panic!(),
+            },
+            _ => left_expr,
+        }
+    }
+
+    fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
+        let num = Self::expect_number(lexer);
+
+        Expression::Int(num)
     }
 
     fn expect_number(lexer: &mut impl Lexer) -> usize {
@@ -165,7 +187,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Int(IntExpr { value: 20 }),
+                distance_expr: Expression::Int(20),
             })],
         };
 
@@ -179,7 +201,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Backward,
-                distance_expr: Expression::Int(IntExpr { value: 20 }),
+                distance_expr: Expression::Int(20),
             })],
         };
 
@@ -193,7 +215,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Left,
-                distance_expr: Expression::Int(IntExpr { value: 20 }),
+                distance_expr: Expression::Int(20),
             })],
         };
 
@@ -207,7 +229,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Right,
-                distance_expr: Expression::Int(IntExpr { value: 20 }),
+                distance_expr: Expression::Int(20),
             })],
         };
 
@@ -222,11 +244,11 @@ mod tests {
             statements: vec![
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Forward,
-                    distance_expr: Expression::Int(IntExpr { value: 10 }),
+                    distance_expr: Expression::Int(10),
                 }),
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Right,
-                    distance_expr: Expression::Int(IntExpr { value: 20 }),
+                    distance_expr: Expression::Int(20),
                 }),
             ],
         };
@@ -244,13 +266,51 @@ mod tests {
             statements: vec![
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Forward,
-                    distance_expr: Expression::Int(IntExpr { value: 10 }),
+                    distance_expr: Expression::Int(10),
                 }),
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Right,
-                    distance_expr: Expression::Int(IntExpr { value: 20 }),
+                    distance_expr: Expression::Int(20),
                 }),
             ],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_only_add_integers_expr_with_spaces() {
+        let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
+
+        let expected = Program {
+            statements: vec![
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Forward,
+                    distance_expr: Expression::Add(
+                        Box::new(Expression::Int(1)),
+                        Box::new(Expression::Int(2)),
+                     ),
+                })
+            ]
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_only_add_integers_expr_without_spaces() {
+        let actual = ProgramParser.parse("FORWARD 1+2").unwrap();
+
+        let expected = Program {
+            statements: vec![
+                Statement::Direction(DirectionStmt {
+                    direction: Direction::Forward,
+                    distance_expr: Expression::Add(
+                        Box::new(Expression::Int(1)),
+                        Box::new(Expression::Int(2)),
+                     ),
+                })
+            ]
         };
 
         assert_eq!(actual, expected);
