@@ -132,23 +132,6 @@ impl ProgramParser {
         }
     }
 
-    fn parse_parens_expr(lexer: &mut impl Lexer) -> Expression {
-        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
-
-        match tok {
-            Token::LPAREN => {
-                Self::skip_token(lexer); // skip the `(`
-
-                let inner_expr = Self::parse_expr(lexer);
-
-                Self::expect_token(lexer, Token::RPAREN);
-
-                inner_expr
-            }
-            _ => Self::parse_literal_expr(lexer),
-        }
-    }
-
     fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
         let lparen_expr = Self::parse_parens_expr(lexer);
 
@@ -166,13 +149,29 @@ impl ProgramParser {
         }
     }
 
+    fn parse_parens_expr(lexer: &mut impl Lexer) -> Expression {
+        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+
+        match tok {
+            Token::LPAREN => {
+                Self::skip_token(lexer); // skip the `(`
+
+                let inner_expr = Self::parse_expr(lexer);
+
+                Self::expect_token(lexer, Token::RPAREN);
+
+                inner_expr
+            }
+            _ => Self::parse_literal_expr(lexer),
+        }
+    }
+
     fn parse_literal_expr(lexer: &mut impl Lexer) -> Expression {
         let pair = Self::pop_current_token(lexer);
 
         let (tok, loc) = pair.unwrap();
 
         match tok {
-            Token::EOF | Token::NEWLINE => panic!("unexpected..."),
             Token::VALUE(v) => {
                 let num = v.parse::<usize>().unwrap();
 
