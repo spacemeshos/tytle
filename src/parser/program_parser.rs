@@ -117,16 +117,6 @@ impl ProgramParser {
         Statement::Direction(stmt)
     }
 
-    fn parse_command(&mut self, val: &str, lexer: &mut impl Lexer) -> CommandStmt {
-        match val {
-            "PENUP" => CommandStmt::PenUp,
-            "PENDOWN" => CommandStmt::PenDown,
-            "SHOWTURTLE" => CommandStmt::ShowTurtle,
-            "HIDETURTLE" => CommandStmt::HideTurtle,
-            _ => panic!(),
-        }
-    }
-
     fn parse_expr(lexer: &mut impl Lexer) -> Expression {
         let left_expr = Self::parse_mul_expr(lexer);
 
@@ -137,11 +127,6 @@ impl ProgramParser {
                 Self::skip_token(lexer); // we skip the `+` token
                 let right_expr = Self::parse_expr(lexer);
                 Expression::Add(Box::new(left_expr), Box::new(right_expr))
-            }
-            Token::MUL => {
-                Self::skip_token(lexer); // we skip the `*` token
-                let right_expr = Self::parse_expr(lexer);
-                Expression::Mul(Box::new(left_expr), Box::new(right_expr))
             }
             _ => left_expr,
         }
