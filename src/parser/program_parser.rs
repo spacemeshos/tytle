@@ -40,8 +40,6 @@ impl ProgramParser {
     }
 
     fn parse_statement(lexer: &mut impl Lexer) -> Option<Statement> {
-        lexer.buffer_more_tokens();
-
         let tok_loc = Self::peek_current_token(lexer);
         if tok_loc.is_none() {
             return None;
@@ -212,7 +210,6 @@ impl ProgramParser {
     }
 
     fn pop_current_token(lexer: &mut impl Lexer) -> Option<(Token, Location)> {
-        lexer.buffer_more_tokens();
         lexer.pop_current_token()
     }
 }

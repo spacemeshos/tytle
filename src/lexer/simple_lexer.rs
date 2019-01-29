@@ -16,13 +16,17 @@ pub struct SimpleLexer<'a> {
 
 impl<'a> SimpleLexer<'a> {
     pub fn new(code: &'a str) -> Self {
-        Self {
+        let mut lexer = Self {
             location: Location::default(),
             code_chars: code.chars(),
             code_size: code.len(),
             reached_eof: false,
             tokens_buffer: Default::default(),
-        }
+        };
+
+        lexer.buffer_more_tokens();
+
+        lexer
     }
 }
 
@@ -36,6 +40,8 @@ impl<'a> Lexer for SimpleLexer<'a> {
     }
 
     fn pop_current_token(&mut self) -> Option<(Token, Location)> {
+        self.buffer_more_tokens();
+
         self.tokens_buffer.pop_front()
     }
 
@@ -184,7 +190,6 @@ mod tests {
     fn empty() {
         let mut lexer = SimpleLexer::new("");
 
-        lexer.buffer_more_tokens();
         let (tok, loc) = lexer.peek_current_token().unwrap();
 
         assert_eq!(*tok, Token::EOF);
@@ -194,8 +199,6 @@ mod tests {
     #[test]
     fn just_spaces() {
         let mut lexer = SimpleLexer::new("   ");
-
-        lexer.buffer_more_tokens();
 
         // peek
         let (tok, loc) = lexer.peek_current_token().unwrap();
@@ -211,8 +214,6 @@ mod tests {
     #[test]
     fn one_line_1_token() {
         let mut lexer = SimpleLexer::new("111");
-
-        lexer.buffer_more_tokens();
 
         // peek
         let (tok1, loc1) = lexer.peek_current_token().unwrap();
@@ -237,8 +238,6 @@ mod tests {
     fn one_line_1_token_with_spaces() {
         let mut lexer = SimpleLexer::new(" 1  ");
 
-        lexer.buffer_more_tokens();
-
         // peek
         let (tok1, loc1) = lexer.peek_current_token().unwrap();
         let (tok2, loc2) = lexer.peek_next_token().unwrap();
@@ -262,8 +261,6 @@ mod tests {
     fn one_line_2_tokens() {
         let mut lexer = SimpleLexer::new("111    222");
 
-        lexer.buffer_more_tokens();
-
         let (tok1, loc1) = lexer.pop_current_token().unwrap();;
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
         let (tok3, loc3) = lexer.pop_current_token().unwrap();
@@ -279,8 +276,6 @@ mod tests {
     #[test]
     fn one_line_2_tokens_many_spaces() {
         let mut lexer = SimpleLexer::new("  1   2  ");
-
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -299,8 +294,6 @@ mod tests {
     #[test]
     fn one_line_3_tokens() {
         let mut lexer = SimpleLexer::new("1 2 3");
-
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -323,9 +316,6 @@ mod tests {
     #[test]
     fn two_lines() {
         let mut lexer = SimpleLexer::new("1 22 \n 333 4444");
-
-        lexer.buffer_more_tokens();
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -354,19 +344,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn panics_when_buffer_is_empty_but_eof_has_not_been_reached_yet() {
-        let lexer = SimpleLexer::new("111");
-
-        lexer.peek_current_token();
-    }
-
-    #[test]
     fn add_op() {
         let mut lexer = SimpleLexer::new("1+2");
-
-        lexer.buffer_more_tokens();
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -386,8 +365,6 @@ mod tests {
     fn add_op_surrounded_by_spaces() {
         let mut lexer = SimpleLexer::new("1 + 2");
 
-        lexer.buffer_more_tokens();
-
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
         let (tok3, loc3) = lexer.pop_current_token().unwrap();
@@ -405,8 +382,6 @@ mod tests {
     #[test]
     fn mul_op() {
         let mut lexer = SimpleLexer::new("1*2");
-
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -426,8 +401,6 @@ mod tests {
     fn parentheses() {
         let mut lexer = SimpleLexer::new("(111)");
 
-        lexer.buffer_more_tokens();
-
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
         let (tok3, loc3) = lexer.pop_current_token().unwrap();
@@ -446,8 +419,6 @@ mod tests {
     fn brackets() {
         let mut lexer = SimpleLexer::new("[111]");
 
-        lexer.buffer_more_tokens();
-
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
         let (tok3, loc3) = lexer.pop_current_token().unwrap();
@@ -465,8 +436,6 @@ mod tests {
     #[test]
     fn brackets_surrounded_by_parentheses() {
         let mut lexer = SimpleLexer::new("([])");
-
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -490,8 +459,6 @@ mod tests {
     fn parentheses_surrounded_by_brackets() {
         let mut lexer = SimpleLexer::new("[()]");
 
-        lexer.buffer_more_tokens();
-
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
         let (tok3, loc3) = lexer.pop_current_token().unwrap();
@@ -513,8 +480,6 @@ mod tests {
     #[test]
     fn assign() {
         let mut lexer = SimpleLexer::new("MyVar=10");
-
-        lexer.buffer_more_tokens();
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
         let (tok2, loc2) = lexer.pop_current_token().unwrap();
