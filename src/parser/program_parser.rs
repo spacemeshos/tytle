@@ -29,7 +29,7 @@ impl ProgramParser {
     fn parse_program(&mut self, lexer: &mut impl Lexer) -> Program {
         let mut program = Program::default();
 
-        while let Some(stmt) = Self::parse_statement(lexer) {
+        while let Some(stmt) = self.parse_statement(lexer) {
             match stmt {
                 Statement::Nop => continue,
                 _ => program.statements.push(stmt),
@@ -39,8 +39,8 @@ impl ProgramParser {
         program
     }
 
-    fn parse_statement(lexer: &mut impl Lexer) -> Option<Statement> {
-        let tok_loc = Self::peek_current_token(lexer);
+    fn parse_statement(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+        let tok_loc = self.peek_current_token(lexer);
         if tok_loc.is_none() {
             return None;
         }
@@ -50,37 +50,37 @@ impl ProgramParser {
         match token {
             Token::EOF => return None,
             Token::NEWLINE => {
-                Self::skip_token(lexer);
+                self.skip_token(lexer);
                 Some(Statement::Nop)
             }
             Token::VALUE(val) => match val.as_str() {
                 "REPEAT" => {
                     unimplemented!();
                 }
-                "IF" => Self::parse_if_stmt(lexer),
+                "IF" => self.parse_if_stmt(lexer),
                 "TO" => {
                     unimplemented!();
                 }
-                _ => Self::parse_basic_statement(val.clone(), lexer),
+                _ => self.parse_basic_statement(val.clone(), lexer),
             },
             _ => panic!(),
         }
     }
 
-    fn parse_if_stmt(lexer: &mut impl Lexer) -> Option<Statement> {
-        Self::skip_token(lexer); // skipping the `IF` token
+    fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+        self.skip_token(lexer); // skipping the `IF` token
 
-        let cond_expr = Self::parse_expr(lexer);
-        let true_block = Self::parse_block_stmt(lexer);
+        let cond_expr = self.parse_expr(lexer);
+        let true_block = self.parse_block_stmt(lexer);
         let mut false_block = None;
 
-        let tok_loc = Self::peek_current_token(lexer);
+        let tok_loc = self.peek_current_token(lexer);
 
         if tok_loc.is_some() {
             let (tok, loc) = tok_loc.unwrap();
 
             if *tok == Token::LBRACKET {
-                false_block = Some(Self::parse_block_stmt(lexer));
+                false_block = Some(self.parse_block_stmt(lexer));
             }
         }
 
@@ -93,21 +93,21 @@ impl ProgramParser {
         Some(Statement::If(if_stmt))
     }
 
-    fn parse_block_stmt(lexer: &mut impl Lexer) -> BlockStatement {
+    fn parse_block_stmt(&self, lexer: &mut impl Lexer) -> BlockStatement {
         let mut block = BlockStatement::new();
 
-        Self::expect_token(lexer, Token::LBRACKET);
+        self.expect_token(lexer, Token::LBRACKET);
 
         let mut completed = false;
 
         while !completed {
-            let stmt = Self::parse_statement(lexer).unwrap();
+            let stmt = self.parse_statement(lexer).unwrap();
             block.add_statement(stmt);
 
-            let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+            let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::RBRACKET {
-                Self::skip_token(lexer); // skipping the `]` token
+                self.skip_token(lexer); // skipping the `]` token
                 completed = true;
             }
         }
@@ -115,12 +115,12 @@ impl ProgramParser {
         block
     }
 
-    fn parse_basic_statement(val: String, lexer: &mut impl Lexer) -> Option<Statement> {
+    fn parse_basic_statement(&self, val: String, lexer: &mut impl Lexer) -> Option<Statement> {
         let val = val.as_str();
 
         let stmt = match val {
-            "MAKE" => Self::parse_make(lexer),
-            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => Self::parse_direction(val, lexer),
+            "MAKE" => self.parse_make(lexer),
+            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
             _ => {
                 unimplemented!();
             }
@@ -129,15 +129,15 @@ impl ProgramParser {
         Some(stmt)
     }
 
-    fn parse_make(lexer: &mut impl Lexer) -> Statement {
-        Self::skip_token(lexer); // skipping the `MAKE` token
+    fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
+        self.skip_token(lexer); // skipping the `MAKE` token
 
-        let name = Self::expect_ident(lexer);
+        let name = self.expect_ident(lexer);
         let symbol = Symbol { name };
 
-        Self::expect_token(lexer, Token::ASSIGN);
+        self.expect_token(lexer, Token::ASSIGN);
 
-        let expr = Self::parse_expr(lexer);
+        let expr = self.parse_expr(lexer);
 
         let stmt = MakeStmt {
             symbol,
@@ -146,14 +146,14 @@ impl ProgramParser {
         Statement::Make(stmt)
     }
 
-    fn parse_direction(direction: &str, lexer: &mut impl Lexer) -> Statement {
+    fn parse_direction(&self, direction: &str, lexer: &mut impl Lexer) -> Statement {
         // skipping the direction token
         // we already have the value under `direction`
-        Self::skip_token(lexer);
+        self.skip_token(lexer);
 
-        let distance_expr = Self::parse_expr(lexer);
+        let distance_expr = self.parse_expr(lexer);
 
-        Self::expect_newline(lexer);
+        self.expect_newline(lexer);
 
         let stmt = DirectionStmt {
             distance_expr,
@@ -163,31 +163,31 @@ impl ProgramParser {
         Statement::Direction(stmt)
     }
 
-    fn parse_expr(lexer: &mut impl Lexer) -> Expression {
-        let left_expr = Self::parse_mul_expr(lexer);
+    fn parse_expr(&self, lexer: &mut impl Lexer) -> Expression {
+        let left_expr = self.parse_mul_expr(lexer);
 
-        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::ADD => {
-                Self::skip_token(lexer); // we skip the `+` token
-                let right_expr = Self::parse_expr(lexer);
+                self.skip_token(lexer); // we skip the `+` token
+                let right_expr = self.parse_expr(lexer);
                 Expression::Add(Box::new(left_expr), Box::new(right_expr))
             }
             _ => left_expr,
         }
     }
 
-    fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
-        let lparen_expr = Self::parse_parens_expr(lexer);
+    fn parse_mul_expr(&self, lexer: &mut impl Lexer) -> Expression {
+        let lparen_expr = self.parse_parens_expr(lexer);
 
-        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::MUL => {
-                Self::skip_token(lexer); // skip the `*`
+                self.skip_token(lexer); // skip the `*`
 
-                let rparen_expr = Self::parse_parens_expr(lexer);
+                let rparen_expr = self.parse_parens_expr(lexer);
 
                 Expression::Mul(Box::new(lparen_expr), Box::new(rparen_expr))
             }
@@ -195,25 +195,25 @@ impl ProgramParser {
         }
     }
 
-    fn parse_parens_expr(lexer: &mut impl Lexer) -> Expression {
-        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+    fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> Expression {
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::LPAREN => {
-                Self::skip_token(lexer); // skip the `(`
+                self.skip_token(lexer); // skip the `(`
 
-                let inner_expr = Self::parse_expr(lexer);
+                let inner_expr = self.parse_expr(lexer);
 
-                Self::expect_token(lexer, Token::RPAREN);
+                self.expect_token(lexer, Token::RPAREN);
 
                 inner_expr
             }
-            _ => Self::parse_literal_expr(lexer),
+            _ => self.parse_literal_expr(lexer),
         }
     }
 
-    fn parse_literal_expr(lexer: &mut impl Lexer) -> Expression {
-        let pair = Self::pop_current_token(lexer);
+    fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> Expression {
+        let pair = self.pop_current_token(lexer);
 
         let (tok, loc) = pair.unwrap();
 
@@ -227,8 +227,8 @@ impl ProgramParser {
         }
     }
 
-    fn expect_newline(lexer: &mut impl Lexer) {
-        let tok_loc = Self::pop_current_token(lexer);
+    fn expect_newline(&self, lexer: &mut impl Lexer) {
+        let tok_loc = self.pop_current_token(lexer);
 
         if tok_loc.is_some() {
             let (tok, loc) = tok_loc.unwrap();
@@ -240,8 +240,8 @@ impl ProgramParser {
         }
     }
 
-    fn expect_ident(lexer: &mut impl Lexer) -> String {
-        let (token, loc) = Self::pop_current_token(lexer).unwrap();
+    fn expect_ident(&self, lexer: &mut impl Lexer) -> String {
+        let (token, loc) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
             return v;
@@ -250,21 +250,21 @@ impl ProgramParser {
         }
     }
 
-    fn expect_token(lexer: &mut impl Lexer, expected: Token) {
-        let (actual, loc) = Self::pop_current_token(lexer).unwrap();
+    fn expect_token(&self, lexer: &mut impl Lexer, expected: Token) {
+        let (actual, loc) = self.pop_current_token(lexer).unwrap();
 
         assert_eq!(actual, expected);
     }
 
-    fn peek_current_token(lexer: &impl Lexer) -> Option<&(Token, Location)> {
+    fn peek_current_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
         lexer.peek_current_token()
     }
 
-    fn skip_token(lexer: &mut impl Lexer) {
-        Self::pop_current_token(lexer);
+    fn skip_token(&self, lexer: &mut impl Lexer) {
+        self.pop_current_token(lexer);
     }
 
-    fn pop_current_token(lexer: &mut impl Lexer) -> Option<(Token, Location)> {
+    fn pop_current_token(&self, lexer: &mut impl Lexer) -> Option<(Token, Location)> {
         lexer.pop_current_token()
     }
 }
