@@ -69,13 +69,13 @@ impl<'a> Lexer for SimpleLexer<'a> {
                         self.push_op(ch);
                         self.location.increment_column();
                         break;
-                    },
+                    }
                     '(' | ')' | '[' | ']' => {
                         self.push_token(&mut token);
                         self.push_bracket(ch);
                         self.location.increment_column();
                         break;
-                    },
+                    }
                     ' ' => match token.len() {
                         0 => {
                             self.location.increment_column();

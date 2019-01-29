@@ -120,16 +120,16 @@ impl ProgramParser {
         let (tok, loc) = Self::peek_current_token(lexer).unwrap();
 
         match tok {
-            Token::VALUE(val) => match val.as_str() {
-                "+" => {
-                    Self::skip_token(lexer); // we skip the `+` token
-
-                    let right_expr = Self::parse_expr(lexer);
-
-                    Expression::Add(Box::new(left_expr), Box::new(right_expr))
-                }
-                _ => panic!(),
-            },
+            Token::ADD => {
+                Self::skip_token(lexer); // we skip the `+` token
+                let right_expr = Self::parse_expr(lexer);
+                Expression::Add(Box::new(left_expr), Box::new(right_expr))
+            }
+            Token::MUL => {
+                Self::skip_token(lexer); // we skip the `*` token
+                let right_expr = Self::parse_expr(lexer);
+                Expression::Mul(Box::new(left_expr), Box::new(right_expr))
+            }
             _ => left_expr,
         }
     }
@@ -299,12 +299,29 @@ mod tests {
 
     #[test]
     fn forward_only_add_integers_expr_without_spaces() {
-        let actual = ProgramParser.parse("FORWARD 1+2").unwrap();
+        let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
                 distance_expr: Expression::Add(
+                    Box::new(Expression::Int(1)),
+                    Box::new(Expression::Int(2)),
+                ),
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_only_mul_integers_expr_without_spaces() {
+        let actual = ProgramParser.parse("FORWARD 1 * 2").unwrap();
+
+        let expected = Program {
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr: Expression::Mul(
                     Box::new(Expression::Int(1)),
                     Box::new(Expression::Int(2)),
                 ),
