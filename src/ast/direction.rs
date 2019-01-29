@@ -13,7 +13,7 @@ impl From<&str> for Direction {
             "BACKWARD" => Direction::Backward,
             "LEFT" => Direction::Left,
             "RIGHT" => Direction::Right,
-            _ => panic!("undefined direction: {}", s)
+            _ => panic!("Undefined direction: {}", s),
         }
     }
 }

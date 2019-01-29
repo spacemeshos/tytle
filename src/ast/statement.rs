@@ -18,6 +18,25 @@ pub struct ShowExpr {
 pub struct OutputExpr {}
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct BlockStatement {
+    stmts: Vec<Statement>,
+}
+
+impl BlockStatement {
+    pub fn new() -> Self {
+        Self {
+            stmts: Default::default(),
+        }
+    }
+
+    pub fn add_statement(&mut self, stmt: Statement) {
+        if stmt != Statement::Nop {
+            self.stmts.push(stmt);
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureStmt {
     pub loction: Option<Location>,
     pub name: String,
@@ -74,22 +93,11 @@ pub enum CommandStmt {
     PenErase,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct BlockStatement {
-    pub stmts: Vec<Statement>,
-}
-
 impl Default for BlockStatement {
     fn default() -> Self {
         Self {
             stmts: Default::default(),
         }
-    }
-}
-
-impl BlockStatement {
-    pub fn add_statement(&mut self, stmt: Statement) {
-        self.stmts.push(stmt);
     }
 }
 

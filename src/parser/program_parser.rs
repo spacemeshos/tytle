@@ -51,15 +51,13 @@ impl ProgramParser {
             Token::EOF => return None,
             Token::NEWLINE => {
                 Self::skip_token(lexer);
-                return Some(Statement::Nop);
+                Some(Statement::Nop)
             }
             Token::VALUE(val) => match val.as_str() {
                 "REPEAT" => {
                     unimplemented!();
                 }
-                "IF" => {
-                    unimplemented!();
-                }
+                "IF" => Self::parse_if_stmt(lexer),
                 "TO" => {
                     unimplemented!();
                 }
@@ -67,6 +65,54 @@ impl ProgramParser {
             },
             _ => panic!(),
         }
+    }
+
+    fn parse_if_stmt(lexer: &mut impl Lexer) -> Option<Statement> {
+        Self::skip_token(lexer); // skipping the `IF` token
+
+        let cond_expr = Self::parse_expr(lexer);
+        let true_block = Self::parse_block_stmt(lexer);
+        let mut false_block = None;
+
+        let tok_loc = Self::peek_current_token(lexer);
+
+        if tok_loc.is_some() {
+            let (tok, loc) = tok_loc.unwrap();
+
+            if *tok == Token::LBRACKET {
+                false_block = Some(Self::parse_block_stmt(lexer));
+            }
+        }
+
+        let if_stmt = IfStmt {
+            cond_expr: Box::new(cond_expr),
+            true_block,
+            false_block,
+        };
+
+        Some(Statement::If(if_stmt))
+    }
+
+    fn parse_block_stmt(lexer: &mut impl Lexer) -> BlockStatement {
+        let mut block = BlockStatement::new();
+
+        Self::expect_token(lexer, Token::LBRACKET);
+
+        let mut completed = false;
+
+        while !completed {
+            let stmt = Self::parse_statement(lexer).unwrap();
+            block.add_statement(stmt);
+
+            let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+
+            if *tok == Token::RBRACKET {
+                Self::skip_token(lexer); // skipping the `]` token
+                completed = true;
+            }
+        }
+
+        block
     }
 
     fn parse_basic_statement(val: String, lexer: &mut impl Lexer) -> Option<Statement> {
@@ -141,9 +187,9 @@ impl ProgramParser {
             Token::MUL => {
                 Self::skip_token(lexer); // skip the `*`
 
-                let rparent_expr = Self::parse_parens_expr(lexer);
+                let rparen_expr = Self::parse_parens_expr(lexer);
 
-                Expression::Mul(Box::new(lparen_expr), Box::new(rparent_expr))
+                Expression::Mul(Box::new(lparen_expr), Box::new(rparen_expr))
             }
             _ => lparen_expr,
         }
@@ -465,5 +511,84 @@ mod tests {
         };
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn if_stmt_without_else() {
+        let actual = ProgramParser
+            .parse("IF 1 + 2 [MAKE A = 3 \n MAKE B = 4]")
+            .unwrap();
+
+        let cond_expr = Box::new(Expression::Add(
+            Box::new(Expression::Int(1)),
+            Box::new(Expression::Int(2)),
+        ));
+
+        let mut true_block = BlockStatement::new();
+        true_block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "A".to_string(),
+            },
+            expr: Box::new(Expression::Int(3)),
+        }));
+
+        true_block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "B".to_string(),
+            },
+            expr: Box::new(Expression::Int(4)),
+        }));
+
+        let expected_block_stmt = Statement::If(IfStmt {
+            cond_expr,
+            true_block,
+            false_block: None,
+        });
+
+        let expected = Program {
+            statements: vec![expected_block_stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn if_else_stmt() {
+        let actual = ProgramParser
+            .parse("IF 1 + 2 [MAKE A = 1] [MAKE B = 2]")
+            .unwrap();
+
+        let cond_expr = Box::new(Expression::Add(
+            Box::new(Expression::Int(1)),
+            Box::new(Expression::Int(2)),
+        ));
+
+        let mut true_block = BlockStatement::new();
+        true_block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "A".to_string(),
+            },
+            expr: Box::new(Expression::Int(1)),
+        }));
+
+        let mut false_block = BlockStatement::new();
+        false_block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "B".to_string(),
+            },
+            expr: Box::new(Expression::Int(2)),
+        }));
+
+        let expected_block_stmt = Statement::If(IfStmt {
+            cond_expr,
+            true_block,
+            false_block: Some(false_block),
+        });
+
+        let expected = Program {
+            statements: vec![expected_block_stmt],
+        };
+
+        assert_eq!(expected, actual);
     }
 }
