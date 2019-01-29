@@ -478,7 +478,7 @@ mod tests {
     }
 
     #[test]
-    fn assign() {
+    fn assign_an_int_expr() {
         let mut lexer = SimpleLexer::new("MyVar=10");
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -493,5 +493,39 @@ mod tests {
 
         assert_eq!(loc3, Location(1, 7));
         assert_eq!(tok3, Token::VALUE("10".to_string()));
+    }
+
+    #[test]
+    fn assign_a_comppsite_expr() {
+        let mut lexer = SimpleLexer::new("MyVar=(1+2)");
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+        let (tok4, loc4) = lexer.pop_current_token().unwrap();
+        let (tok5, loc5) = lexer.pop_current_token().unwrap();
+        let (tok6, loc6) = lexer.pop_current_token().unwrap();
+        let (tok7, loc7) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("MyVar".to_string()));
+
+        assert_eq!(loc2, Location(1, 6));
+        assert_eq!(tok2, Token::ASSIGN);
+
+        assert_eq!(loc3, Location(1, 7));
+        assert_eq!(tok3, Token::LPAREN);
+
+        assert_eq!(loc4, Location(1, 8));
+        assert_eq!(tok4, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc5, Location(1, 9));
+        assert_eq!(tok5, Token::ADD);
+
+        assert_eq!(loc6, Location(1, 10));
+        assert_eq!(tok6, Token::VALUE("2".to_string()));
+
+        assert_eq!(loc7, Location(1, 11));
+        assert_eq!(tok7, Token::RPAREN);
     }
 }
