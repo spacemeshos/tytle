@@ -30,9 +30,8 @@ impl ProgramParser {
         let mut program = Program::default();
 
         while let Some(stmt) = self.parse_statement(lexer) {
-            match stmt {
-                Statement::Nop => continue,
-                _ => program.statements.push(stmt),
+            if stmt != Statement::Nop {
+                program.statements.push(stmt);
             }
         }
 
@@ -143,6 +142,7 @@ impl ProgramParser {
             symbol,
             expr: Box::new(expr),
         };
+
         Statement::Make(stmt)
     }
 
@@ -168,13 +168,12 @@ impl ProgramParser {
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        match tok {
-            Token::ADD => {
-                self.skip_token(lexer); // we skip the `+` token
-                let right_expr = self.parse_expr(lexer);
-                Expression::Add(Box::new(left_expr), Box::new(right_expr))
-            }
-            _ => left_expr,
+        if *tok == Token::ADD {
+            self.skip_token(lexer); // we skip the `+` token
+            let right_expr = self.parse_expr(lexer);
+            Expression::Add(Box::new(left_expr), Box::new(right_expr))
+        } else {
+            left_expr
         }
     }
 
@@ -183,32 +182,29 @@ impl ProgramParser {
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        match tok {
-            Token::MUL => {
-                self.skip_token(lexer); // skip the `*`
+        if *tok == Token::MUL {
+            self.skip_token(lexer); // skip the `*`
 
-                let rparen_expr = self.parse_parens_expr(lexer);
-
-                Expression::Mul(Box::new(lparen_expr), Box::new(rparen_expr))
-            }
-            _ => lparen_expr,
+            let rparen_expr = self.parse_parens_expr(lexer);
+            Expression::Mul(Box::new(lparen_expr), Box::new(rparen_expr))
+        } else {
+            lparen_expr
         }
     }
 
     fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> Expression {
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        match tok {
-            Token::LPAREN => {
-                self.skip_token(lexer); // skip the `(`
+        if *tok == Token::LPAREN {
+            self.skip_token(lexer); // skip the `(`
 
-                let inner_expr = self.parse_expr(lexer);
+            let inner_expr = self.parse_expr(lexer);
 
-                self.expect_token(lexer, Token::RPAREN);
+            self.expect_token(lexer, Token::RPAREN);
 
-                inner_expr
-            }
-            _ => self.parse_literal_expr(lexer),
+            inner_expr
+        } else {
+            self.parse_literal_expr(lexer)
         }
     }
 
@@ -217,13 +213,12 @@ impl ProgramParser {
 
         let (tok, loc) = pair.unwrap();
 
-        match tok {
-            Token::VALUE(v) => {
-                let num = v.parse::<usize>().unwrap();
+        if let Token::VALUE(v) = tok {
+            let num = v.parse::<usize>().unwrap();
 
-                Expression::Int(num)
-            }
-            _ => panic!(),
+            Expression::Int(num)
+        } else {
+            panic!();
         }
     }
 
