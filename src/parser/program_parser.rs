@@ -143,31 +143,56 @@ impl ProgramParser {
                 let right_expr = Self::parse_expr(lexer);
                 Expression::Mul(Box::new(left_expr), Box::new(right_expr))
             }
-            // Token::LPAREN => {
-            //     Self::skip_token(lexer); // we skip the `(` token
-            //     let expr = Self::parse_expr(lexer);
-            //     Self::expect_token(lexer, Token::RPAREN); // we expect `)` token
-            //
-            //     expr
-            // }
             _ => left_expr,
         }
     }
 
-    fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
-        let num = Self::expect_number(lexer);
+    fn parse_parens_expr(lexer: &mut impl Lexer) -> Expression {
+        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
 
-        Expression::Int(num)
+        match tok {
+            Token::LPAREN => {
+                Self::skip_token(lexer); // skip the `(`
+
+                let inner_expr = Self::parse_expr(lexer);
+
+                Self::expect_token(lexer, Token::RPAREN);
+
+                inner_expr
+            }
+            _ => Self::parse_literal_expr(lexer),
+        }
     }
 
-    fn expect_number(lexer: &mut impl Lexer) -> usize {
+    fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
+        let lparen_expr = Self::parse_parens_expr(lexer);
+
+        let (tok, loc) = Self::peek_current_token(lexer).unwrap();
+
+        match tok {
+            Token::MUL => {
+                Self::skip_token(lexer); // skip the `*`
+
+                let rparent_expr = Self::parse_parens_expr(lexer);
+
+                Expression::Mul(Box::new(lparen_expr), Box::new(rparent_expr))
+            }
+            _ => lparen_expr,
+        }
+    }
+
+    fn parse_literal_expr(lexer: &mut impl Lexer) -> Expression {
         let pair = Self::pop_current_token(lexer);
 
         let (tok, loc) = pair.unwrap();
 
         match tok {
             Token::EOF | Token::NEWLINE => panic!("unexpected..."),
-            Token::VALUE(v) => v.parse::<usize>().unwrap(),
+            Token::VALUE(v) => {
+                let num = v.parse::<usize>().unwrap();
+
+                Expression::Int(num)
+            }
             _ => panic!(),
         }
     }
@@ -317,7 +342,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn forward_only_integer_expr_surrounded_by_parentheses() {
         let actual = ProgramParser.parse("FORWARD (10)").unwrap();
 
@@ -366,6 +390,24 @@ mod tests {
     }
 
     #[test]
+    fn forward_only_add_and_mul_integers_expr() {
+        let actual = ProgramParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
+
+        let clause1 = Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
+        let clause2 = Expression::Mul(Box::new(Expression::Int(3)), Box::new(Expression::Int(4)));
+        let distance_expr = Expression::Add(Box::new(clause1), Box::new(clause2));
+
+        let expected = Program {
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr,
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn forward_only_mul_integers_expr_without_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 * 2").unwrap();
 
@@ -376,6 +418,30 @@ mod tests {
                     Box::new(Expression::Int(1)),
                     Box::new(Expression::Int(2)),
                 ),
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn forward_mix_of_mul_add_ops_between_integers_and_parentheses_expr() {
+        let actual = ProgramParser
+            .parse("FORWARD (1*1 + 2) * (3*3 + 4)")
+            .unwrap();
+
+        let ones_mul = Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(1)));
+        let three_mul = Expression::Mul(Box::new(Expression::Int(3)), Box::new(Expression::Int(3)));
+
+        let add_1_2 = Expression::Add(Box::new(ones_mul), Box::new(Expression::Int(2)));
+        let add_3_4 = Expression::Add(Box::new(three_mul), Box::new(Expression::Int(4)));
+
+        let distance_expr = Expression::Mul(Box::new(add_1_2), Box::new(add_3_4));
+
+        let expected = Program {
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr,
             })],
         };
 
