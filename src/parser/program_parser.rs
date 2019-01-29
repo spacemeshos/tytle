@@ -157,7 +157,6 @@ impl ProgramParser {
     }
 
     fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
-        lexer.buffer_more_tokens();
         let num = Self::expect_number(lexer);
 
         Expression::Int(num)
@@ -176,7 +175,7 @@ impl ProgramParser {
     }
 
     fn expect_newline(lexer: &mut impl Lexer) {
-        let tok_loc = lexer.pop_current_token();
+        let tok_loc = Self::pop_current_token(lexer);
 
         if tok_loc.is_some() {
             let (tok, loc) = tok_loc.unwrap();
@@ -189,7 +188,7 @@ impl ProgramParser {
     }
 
     fn expect_ident(lexer: &mut impl Lexer) -> String {
-        let (token, loc) = lexer.pop_current_token().unwrap();
+        let (token, loc) = Self::pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
             return v;
@@ -199,7 +198,7 @@ impl ProgramParser {
     }
 
     fn expect_token(lexer: &mut impl Lexer, expected: Token) {
-        let (actual, loc) = lexer.pop_current_token().unwrap();
+        let (actual, loc) = Self::pop_current_token(lexer).unwrap();
 
         assert_eq!(actual, expected);
     }
@@ -209,10 +208,11 @@ impl ProgramParser {
     }
 
     fn skip_token(lexer: &mut impl Lexer) {
-        lexer.pop_current_token();
+        Self::pop_current_token(lexer);
     }
 
     fn pop_current_token(lexer: &mut impl Lexer) -> Option<(Token, Location)> {
+        lexer.buffer_more_tokens();
         lexer.pop_current_token()
     }
 }
