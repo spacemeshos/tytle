@@ -88,13 +88,17 @@ impl ProgramParser {
     fn parse_make(lexer: &mut impl Lexer) -> Statement {
         Self::skip_token(lexer); // skipping the `MAKE` token
 
-        // expect_token(lexer, Token::VALUE("="));
-        let name = "MyVar".to_string();
-        // let expr = Self::parse_expr(lexer);
-        let expr = Expression::Int(2);
+        let name = Self::expect_ident(lexer);
         let symbol = Symbol { name };
 
-        let stmt = MakeStmt { symbol, expr: Box::new(expr) };
+        Self::expect_token(lexer, Token::ASSIGN);
+
+        let expr = Self::parse_expr(lexer);
+
+        let stmt = MakeStmt {
+            symbol,
+            expr: Box::new(expr),
+        };
         Statement::Make(stmt)
     }
 
@@ -153,6 +157,7 @@ impl ProgramParser {
     }
 
     fn parse_mul_expr(lexer: &mut impl Lexer) -> Expression {
+        lexer.buffer_more_tokens();
         let num = Self::expect_number(lexer);
 
         Expression::Int(num)
@@ -180,6 +185,16 @@ impl ProgramParser {
                 Token::EOF | Token::NEWLINE => return,
                 _ => panic!("invalid input"),
             }
+        }
+    }
+
+    fn expect_ident(lexer: &mut impl Lexer) -> String {
+        let (token, loc) = lexer.pop_current_token().unwrap();
+
+        if let Token::VALUE(v) = token {
+            return v;
+        } else {
+            panic!("Expected an identifier");
         }
     }
 
@@ -380,6 +395,25 @@ mod tests {
                     name: "MyVar".to_string(),
                 },
                 expr: Box::new(Expression::Int(2)),
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn make_variable_assign_an_expr() {
+        let actual = ProgramParser.parse("MAKE MyVar = 1 + 2").unwrap();
+
+        let expected_expr =
+            Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
+
+        let expected = Program {
+            statements: vec![Statement::Make(MakeStmt {
+                symbol: Symbol {
+                    name: "MyVar".to_string(),
+                },
+                expr: Box::new(expected_expr),
             })],
         };
 
