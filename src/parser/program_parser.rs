@@ -67,6 +67,7 @@ impl ProgramParser {
                 }
                 _ => Self::parse_basic_statement(val.clone(), lexer),
             },
+            _ => panic!(),
         }
     }
 
@@ -147,6 +148,7 @@ impl ProgramParser {
         match tok {
             Token::EOF | Token::NEWLINE => panic!("unexpected..."),
             Token::VALUE(v) => v.parse::<usize>().unwrap(),
+            _ => panic!(),
         }
     }
 
@@ -283,15 +285,13 @@ mod tests {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
-            statements: vec![
-                Statement::Direction(DirectionStmt {
-                    direction: Direction::Forward,
-                    distance_expr: Expression::Add(
-                        Box::new(Expression::Int(1)),
-                        Box::new(Expression::Int(2)),
-                     ),
-                })
-            ]
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr: Expression::Add(
+                    Box::new(Expression::Int(1)),
+                    Box::new(Expression::Int(2)),
+                ),
+            })],
         };
 
         assert_eq!(actual, expected);
@@ -302,15 +302,13 @@ mod tests {
         let actual = ProgramParser.parse("FORWARD 1+2").unwrap();
 
         let expected = Program {
-            statements: vec![
-                Statement::Direction(DirectionStmt {
-                    direction: Direction::Forward,
-                    distance_expr: Expression::Add(
-                        Box::new(Expression::Int(1)),
-                        Box::new(Expression::Int(2)),
-                     ),
-                })
-            ]
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr: Expression::Add(
+                    Box::new(Expression::Int(1)),
+                    Box::new(Expression::Int(2)),
+                ),
+            })],
         };
 
         assert_eq!(actual, expected);

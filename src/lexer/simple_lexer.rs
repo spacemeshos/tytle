@@ -64,6 +64,18 @@ impl<'a> Lexer for SimpleLexer<'a> {
                         self.push_newline();
                         break;
                     }
+                    '+' | '*' => {
+                        self.push_token(&mut token);
+                        self.push_op(ch);
+                        self.location.increment_column();
+                        break;
+                    },
+                    '(' | ')' | '[' | ']' => {
+                        self.push_token(&mut token);
+                        self.push_bracket(ch);
+                        self.location.increment_column();
+                        break;
+                    },
                     ' ' => match token.len() {
                         0 => {
                             self.location.increment_column();
@@ -120,6 +132,30 @@ impl<'a> SimpleLexer<'a> {
             .push_back((Token::NEWLINE, self.location));
 
         self.location.next_line();
+    }
+
+    fn push_mul(&mut self) {
+        self.tokens_buffer.push_back((Token::MUL, self.location));
+    }
+
+    fn push_op(&mut self, op: char) {
+        let token = match op {
+            '+' => Token::ADD,
+            '*' => Token::MUL,
+            _ => panic!(),
+        };
+        self.tokens_buffer.push_back((token, self.location));
+    }
+
+    fn push_bracket(&mut self, op: char) {
+        let token = match op {
+            '(' => Token::LPAREN,
+            ')' => Token::RPAREN,
+            '[' => Token::LBRACKET,
+            ']' => Token::RBRACKET,
+            _ => panic!(),
+        };
+        self.tokens_buffer.push_back((token, self.location));
     }
 
     fn push_eof(&mut self) {
@@ -313,5 +349,154 @@ mod tests {
         let lexer = SimpleLexer::new("111");
 
         lexer.peek_current_token();
+    }
+
+    #[test]
+    fn add_op() {
+        let mut lexer = SimpleLexer::new("1+2");
+
+        lexer.buffer_more_tokens();
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::ADD);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::VALUE("2".to_string()));
+    }
+
+    #[test]
+    fn add_op_surrounded_by_spaces() {
+        let mut lexer = SimpleLexer::new("1 + 2");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc2, Location(1, 3));
+        assert_eq!(tok2, Token::ADD);
+
+        assert_eq!(loc3, Location(1, 5));
+        assert_eq!(tok3, Token::VALUE("2".to_string()));
+    }
+
+    #[test]
+    fn mul_op() {
+        let mut lexer = SimpleLexer::new("1*2");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::MUL);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::VALUE("2".to_string()));
+    }
+
+    #[test]
+    fn parentheses() {
+        let mut lexer = SimpleLexer::new("(111)");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::LPAREN);
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::VALUE("111".to_string()));
+
+        assert_eq!(loc3, Location(1, 5));
+        assert_eq!(tok3, Token::RPAREN);
+    }
+
+    #[test]
+    fn brackets() {
+        let mut lexer = SimpleLexer::new("[111]");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::LBRACKET);
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::VALUE("111".to_string()));
+
+        assert_eq!(loc3, Location(1, 5));
+        assert_eq!(tok3, Token::RBRACKET);
+    }
+
+    #[test]
+    fn brackets_surrounded_by_parentheses() {
+        let mut lexer = SimpleLexer::new("([])");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+        let (tok4, loc4) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::LPAREN);
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::LBRACKET);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::RBRACKET);
+
+        assert_eq!(loc4, Location(1, 4));
+        assert_eq!(tok4, Token::RPAREN);
+    }
+
+    #[test]
+    fn parentheses_surrounded_by_brackets() {
+        let mut lexer = SimpleLexer::new("[()]");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+        let (tok4, loc4) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::LBRACKET);
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::LPAREN);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::RPAREN);
+
+        assert_eq!(loc4, Location(1, 4));
+        assert_eq!(tok4, Token::RBRACKET);
     }
 }
