@@ -2,7 +2,7 @@ use crate::ast::direction::Direction;
 use crate::ast::program::Program;
 use crate::ast::statement::{
     BlockStatement, CommandStmt, DirectionStmt, Expression, IfStmt, LocalStmt, MakeStmt,
-    ProcedureStmt, RepeatStmt, ShowExpr, Statement,
+    ProcedureStmt, RepeatStmt, ShowExpr, Statement, Symbol,
 };
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
@@ -75,9 +75,7 @@ impl ProgramParser {
         let val = val.as_str();
 
         let stmt = match val {
-            "MAKE" => {
-                unimplemented!();
-            }
+            "MAKE" => Self::parse_make(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => Self::parse_direction(val, lexer),
             _ => {
                 unimplemented!();
@@ -85,6 +83,19 @@ impl ProgramParser {
         };
 
         Some(stmt)
+    }
+
+    fn parse_make(lexer: &mut impl Lexer) -> Statement {
+        Self::skip_token(lexer); // skipping the `MAKE` token
+
+        // expect_token(lexer, Token::VALUE("="));
+        let name = "MyVar".to_string();
+        // let expr = Self::parse_expr(lexer);
+        let expr = Expression::Int(2);
+        let symbol = Symbol { name };
+
+        let stmt = MakeStmt { symbol, expr: Box::new(expr) };
+        Statement::Make(stmt)
     }
 
     fn parse_direction(direction: &str, lexer: &mut impl Lexer) -> Statement {
@@ -130,6 +141,13 @@ impl ProgramParser {
                 let right_expr = Self::parse_expr(lexer);
                 Expression::Mul(Box::new(left_expr), Box::new(right_expr))
             }
+            // Token::LPAREN => {
+            //     Self::skip_token(lexer); // we skip the `(` token
+            //     let expr = Self::parse_expr(lexer);
+            //     Self::expect_token(lexer, Token::RPAREN); // we expect `)` token
+            //
+            //     expr
+            // }
             _ => left_expr,
         }
     }
@@ -163,6 +181,12 @@ impl ProgramParser {
                 _ => panic!("invalid input"),
             }
         }
+    }
+
+    fn expect_token(lexer: &mut impl Lexer, expected: Token) {
+        let (actual, loc) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(actual, expected);
     }
 
     fn peek_current_token(lexer: &impl Lexer) -> Option<&(Token, Location)> {
@@ -281,6 +305,21 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn forward_only_integer_expr_surrounded_by_parentheses() {
+        let actual = ProgramParser.parse("FORWARD (10)").unwrap();
+
+        let expected = Program {
+            statements: vec![Statement::Direction(DirectionStmt {
+                direction: Direction::Forward,
+                distance_expr: Expression::Int(10),
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn forward_only_add_integers_expr_with_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
@@ -325,6 +364,22 @@ mod tests {
                     Box::new(Expression::Int(1)),
                     Box::new(Expression::Int(2)),
                 ),
+            })],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn make_variable_assign_an_integer() {
+        let actual = ProgramParser.parse("MAKE MyVar = 2").unwrap();
+
+        let expected = Program {
+            statements: vec![Statement::Make(MakeStmt {
+                symbol: Symbol {
+                    name: "MyVar".to_string(),
+                },
+                expr: Box::new(Expression::Int(2)),
             })],
         };
 

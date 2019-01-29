@@ -33,7 +33,6 @@ pub enum SymbolKind {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Symbol {
     pub name: String,
-    pub kind: SymbolKind,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -103,4 +102,19 @@ pub enum Statement {
     Make(MakeStmt),
     Procedure(ProcedureStmt),
     Nop,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn int_expr_sanity() {
+        let expr1 = Expression::Int(10);
+        let expr2 = Expression::Int(10);
+        let expr3 = Expression::Int(20);
+
+        assert_eq!(expr1, expr2);
+        assert_ne!(expr1, expr3);
+    }
 }

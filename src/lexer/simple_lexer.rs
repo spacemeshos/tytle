@@ -64,6 +64,12 @@ impl<'a> Lexer for SimpleLexer<'a> {
                         self.push_newline();
                         break;
                     }
+                    '=' => {
+                        self.push_token(&mut token);
+                        self.push_assign();
+                        self.location.increment_column();
+                        break;
+                    }
                     '+' | '*' => {
                         self.push_token(&mut token);
                         self.push_op(ch);
@@ -145,6 +151,10 @@ impl<'a> SimpleLexer<'a> {
             _ => panic!(),
         };
         self.tokens_buffer.push_back((token, self.location));
+    }
+
+    fn push_assign(&mut self) {
+        self.tokens_buffer.push_back((Token::ASSIGN, self.location));
     }
 
     fn push_bracket(&mut self, op: char) {
@@ -498,5 +508,25 @@ mod tests {
 
         assert_eq!(loc4, Location(1, 4));
         assert_eq!(tok4, Token::RBRACKET);
+    }
+
+    #[test]
+    fn assign() {
+        let mut lexer = SimpleLexer::new("MyVar=10");
+
+        lexer.buffer_more_tokens();
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("MyVar".to_string()));
+
+        assert_eq!(loc2, Location(1, 6));
+        assert_eq!(tok2, Token::ASSIGN);
+
+        assert_eq!(loc3, Location(1, 7));
+        assert_eq!(tok3, Token::VALUE("10".to_string()));
     }
 }

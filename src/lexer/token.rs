@@ -12,5 +12,7 @@ pub enum Token {
     LBRACKET, // [
     RBRACKET, // ]
 
+    ASSIGN, // =
+
     VALUE(String),
 }
