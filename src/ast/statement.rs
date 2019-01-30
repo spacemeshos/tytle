@@ -43,7 +43,7 @@ pub struct Symbol {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MakeStmt {
     pub symbol: Symbol,
-    pub expr: Box<Expression>,
+    pub expr: Expression,
 }
 
 #[derive(Debug, Clone, PartialEq)]

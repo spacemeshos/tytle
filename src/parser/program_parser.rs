@@ -146,10 +146,7 @@ impl ProgramParser {
 
         let expr = self.parse_expr(lexer);
 
-        let stmt = MakeStmt {
-            symbol,
-            expr: Box::new(expr),
-        };
+        let stmt = MakeStmt { symbol, expr };
 
         Statement::Make(stmt)
     }
@@ -490,7 +487,7 @@ mod tests {
                 symbol: Symbol {
                     name: "MyVar".to_string(),
                 },
-                expr: Box::new(Expression::Int(2)),
+                expr: Expression::Int(2),
             })],
         };
 
@@ -501,15 +498,14 @@ mod tests {
     fn make_variable_assign_an_expr() {
         let actual = ProgramParser.parse("MAKE MyVar = 1 + 2").unwrap();
 
-        let expected_expr =
-            Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
+        let expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
         let expected = Program {
             statements: vec![Statement::Make(MakeStmt {
                 symbol: Symbol {
                     name: "MyVar".to_string(),
                 },
-                expr: Box::new(expected_expr),
+                expr,
             })],
         };
 
@@ -529,24 +525,24 @@ mod tests {
             symbol: Symbol {
                 name: "A".to_string(),
             },
-            expr: Box::new(Expression::Int(3)),
+            expr: Expression::Int(3),
         }));
 
         true_block.add_statement(Statement::Make(MakeStmt {
             symbol: Symbol {
                 name: "B".to_string(),
             },
-            expr: Box::new(Expression::Int(4)),
+            expr: Expression::Int(4),
         }));
 
-        let expected_block_stmt = Statement::If(IfStmt {
+        let if_stmt = Statement::If(IfStmt {
             cond_expr,
             true_block,
             false_block: None,
         });
 
         let expected = Program {
-            statements: vec![expected_block_stmt],
+            statements: vec![if_stmt],
         };
 
         assert_eq!(expected, actual);
@@ -565,7 +561,7 @@ mod tests {
             symbol: Symbol {
                 name: "A".to_string(),
             },
-            expr: Box::new(Expression::Int(1)),
+            expr: Expression::Int(1),
         }));
 
         let mut false_block = BlockStatement::new();
@@ -573,7 +569,7 @@ mod tests {
             symbol: Symbol {
                 name: "B".to_string(),
             },
-            expr: Box::new(Expression::Int(2)),
+            expr: Expression::Int(2),
         }));
 
         let expected_block_stmt = Statement::If(IfStmt {
@@ -603,20 +599,20 @@ mod tests {
             symbol: Symbol {
                 name: "A".to_string(),
             },
-            expr: Box::new(Expression::Int(3)),
+            expr: Expression::Int(3),
         }));
 
         block.add_statement(Statement::Make(MakeStmt {
             symbol: Symbol {
                 name: "B".to_string(),
             },
-            expr: Box::new(Expression::Int(4)),
+            expr: Expression::Int(4),
         }));
 
-        let expected_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
+        let repeat_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
 
         let expected = Program {
-            statements: vec![expected_stmt],
+            statements: vec![repeat_stmt],
         };
 
         assert_eq!(expected, actual);
