@@ -3,17 +3,23 @@ pub enum Expression {
     Int(usize),
     Var(String),
     Str(String),
+    Bool(Box<BoolExpression>),
     Add(Box<Expression>, Box<Expression>),
     Mul(Box<Expression>, Box<Expression>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ShowExpr {
-    pub varname: String,
+pub enum BoolExpression {
+    True,
+    False,
+    And(Box<BoolExpression>, Box<BoolExpression>),
+    Or(Box<BoolExpression>, Box<Expression>),
+    EQ(Expression, Expression),
+    GT(Expression, Expression),
+    LT(Expression, Expression),
+    GTE(Expression, Expression),
+    LTE(Expression, Expression),
 }
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct OutputExpr {}
 
 #[cfg(test)]
 mod tests {

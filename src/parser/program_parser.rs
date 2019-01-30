@@ -159,7 +159,9 @@ impl ProgramParser {
     fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Option<Statement> {
         let stmt = match val {
             "MAKE" => self.parse_make(lexer),
-            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => self.parse_direction(val, lexer),
+            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => {
+                self.parse_direction(val, lexer)
+            }
             _ => self.parse_command(val, lexer),
         };
 
@@ -267,11 +269,9 @@ impl ProgramParser {
                 Err(_) => {
                     if v.starts_with(":") {
                         Expression::Var(v[1..].to_string())
-                    }
-                    else if v.starts_with("\"") {
+                    } else if v.starts_with("\"") {
                         Expression::Str(v[1..].to_string())
-                    }
-                    else {
+                    } else {
                         panic!("Invalid Literal: {}", v);
                     }
                 }
@@ -280,6 +280,14 @@ impl ProgramParser {
             panic!();
         }
     }
+
+    // fn parse_boolean_expr(&self, lexer: &mut impl Lexer) {
+    //     let lexpr = self.parse_expr(lexer);
+    //
+    //     let bool_token = self.expect_boolean_token(lexer)
+    //
+    //     let rexpr = self.parse_expr(lexer);
+    // }
 
     fn expect_newline(&self, lexer: &mut impl Lexer) {
         let tok_loc = self.pop_current_token(lexer);
