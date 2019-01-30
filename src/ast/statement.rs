@@ -1,4 +1,4 @@
-use crate::ast::command::Command;
+use crate::ast::command::CommandStmt;
 use crate::ast::direction::Direction;
 use crate::ast::expression::Expression;
 use crate::ir::instruction::Instruction;
@@ -80,7 +80,7 @@ impl Default for BlockStatement {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
-    Command(Command),
+    Command(CommandStmt),
     Direction(DirectionStmt),
     Repeat(RepeatStmt),
     If(IfStmt),

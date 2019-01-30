@@ -1,4 +1,4 @@
-use crate::ast::command::Command;
+use crate::ast::command::CommandStmt;
 use crate::ast::direction::Direction;
 use crate::ast::expression::Expression;
 use crate::ast::program::Program;
@@ -162,9 +162,9 @@ impl ProgramParser {
     fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `command` token
 
-        let cmd = Command::from(val);
+        let stmt = CommandStmt::from(val);
 
-        Statement::Command(cmd)
+        Statement::Command(stmt)
     }
 
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
@@ -681,7 +681,7 @@ mod tests {
     fn command_pen_up() {
         let actual = ProgramParser.parse("PENUP").unwrap();
 
-        let stmt = Statement::Command(Command::PenUp);
+        let stmt = Statement::Command(CommandStmt::PenUp);
 
         let expected = Program {
             statements: vec![stmt],
@@ -694,7 +694,7 @@ mod tests {
     fn command_pen_down() {
         let actual = ProgramParser.parse("PENDOWN").unwrap();
 
-        let stmt = Statement::Command(Command::PenDown);
+        let stmt = Statement::Command(CommandStmt::PenDown);
 
         let expected = Program {
             statements: vec![stmt],
@@ -707,7 +707,7 @@ mod tests {
     fn command_show_turtle() {
         let actual = ProgramParser.parse("SHOWTURTLE").unwrap();
 
-        let stmt = Statement::Command(Command::ShowTurtle);
+        let stmt = Statement::Command(CommandStmt::ShowTurtle);
 
         let expected = Program {
             statements: vec![stmt],
@@ -720,7 +720,7 @@ mod tests {
     fn command_hide_turtle() {
         let actual = ProgramParser.parse("HIDETURTLE").unwrap();
 
-        let stmt = Statement::Command(Command::HideTurtle);
+        let stmt = Statement::Command(CommandStmt::HideTurtle);
 
         let expected = Program {
             statements: vec![stmt],
@@ -733,7 +733,7 @@ mod tests {
     fn command_pen_erase() {
         let actual = ProgramParser.parse("PENERASE").unwrap();
 
-        let stmt = Statement::Command(Command::PenErase);
+        let stmt = Statement::Command(CommandStmt::PenErase);
 
         let expected = Program {
             statements: vec![stmt],
@@ -746,7 +746,7 @@ mod tests {
     fn command_clear_screen() {
         let actual = ProgramParser.parse("CLEARSCREEN").unwrap();
 
-        let stmt = Statement::Command(Command::ClearScreen);
+        let stmt = Statement::Command(CommandStmt::ClearScreen);
 
         let expected = Program {
             statements: vec![stmt],
@@ -759,7 +759,7 @@ mod tests {
     fn command_set_pen_color() {
         let actual = ProgramParser.parse("SETPENCOLOR").unwrap();
 
-        let stmt = Statement::Command(Command::SetPenColor);
+        let stmt = Statement::Command(CommandStmt::SetPenColor);
 
         let expected = Program {
             statements: vec![stmt],
@@ -772,7 +772,7 @@ mod tests {
     fn command_set_background_color() {
         let actual = ProgramParser.parse("SETBACKGROUND").unwrap();
 
-        let stmt = Statement::Command(Command::SetBackgroundColor);
+        let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
 
         let expected = Program {
             statements: vec![stmt],

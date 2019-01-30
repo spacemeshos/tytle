@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq)]
-pub enum Command {
+pub enum CommandStmt {
     PenUp,
     PenDown,
     ShowTurtle,
@@ -10,17 +10,17 @@ pub enum Command {
     SetBackgroundColor,
 }
 
-impl From<&str> for Command {
+impl From<&str> for CommandStmt {
     fn from(s: &str) -> Self {
         match s {
-            "PENUP" => Command::PenUp,
-            "PENDOWN" =>       Command::PenDown,
-            "SHOWTURTLE" =>    Command::ShowTurtle,
-            "HIDETURTLE" =>    Command::HideTurtle,
-            "PENERASE" =>      Command::PenErase,
-            "CLEARSCREEN" =>   Command::ClearScreen,
-            "SETPENCOLOR" =>   Command::SetPenColor,
-            "SETBACKGROUND" => Command::SetBackgroundColor,
+            "PENUP" => CommandStmt::PenUp,
+            "PENDOWN" => CommandStmt::PenDown,
+            "SHOWTURTLE" => CommandStmt::ShowTurtle,
+            "HIDETURTLE" => CommandStmt::HideTurtle,
+            "PENERASE" => CommandStmt::PenErase,
+            "CLEARSCREEN" => CommandStmt::ClearScreen,
+            "SETPENCOLOR" => CommandStmt::SetPenColor,
+            "SETBACKGROUND" => CommandStmt::SetBackgroundColor,
             _ => panic!("Invalid command: {}", s),
         }
     }
