@@ -1,6 +1,3 @@
-pub mod location;
-pub mod token;
-
 use location::Location;
 use token::Token;
 
@@ -11,4 +8,6 @@ pub trait Lexer {
     fn pop_current_token(&mut self) -> Option<(Token, Location)>;
 }
 
+pub mod location;
 pub mod simple_lexer;
+pub mod token;

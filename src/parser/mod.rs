@@ -16,10 +16,10 @@ impl ParseError {
     }
 }
 
-type ParserResult = Result<Program, ParseError>;
+pub type ParserResult = Result<Program, ParseError>;
 
 pub trait Parser {
     fn parse(&mut self, code: &str) -> ParserResult;
 }
 
-mod program_parser;
+pub mod program_parser;
