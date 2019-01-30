@@ -18,6 +18,14 @@ impl From<&str> for Direction {
     }
 }
 
+use crate::ast::expression::Expression;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DirectionStmt {
+    pub direction: Direction,
+    pub expr: Expression,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

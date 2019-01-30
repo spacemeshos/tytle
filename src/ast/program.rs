@@ -1,4 +1,4 @@
-use crate::ast::{procedure::Procedure, scope::Scope, statement::Statement, variable::Variable};
+use crate::ast::statement::Statement;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]

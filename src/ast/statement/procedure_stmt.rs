@@ -1,23 +1,24 @@
-use crate::ast::statement::BlockStatement;
-use crate::ast::variable::Variable;
-
+use std::default::Default;
 use std::fmt;
 
-pub struct Procedure {
+use crate::ast::statement::block_stmt::BlockStatement;
+
+#[derive(Clone, PartialEq)]
+pub struct ProcedureStmt {
     pub name: String,
     pub block: BlockStatement,
 }
 
-impl Procedure {
+impl ProcedureStmt {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            block: Default::default(),
+            block: BlockStatement::new()
         }
     }
 }
 
-impl fmt::Debug for Procedure {
+impl fmt::Debug for ProcedureStmt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let proc_str = r#"
         CODE:

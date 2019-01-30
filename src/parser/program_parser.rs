@@ -1,11 +1,17 @@
-use crate::ast::command::CommandStmt;
-use crate::ast::direction::Direction;
 use crate::ast::expression::Expression;
 use crate::ast::program::Program;
+
 use crate::ast::statement::{
-    BlockStatement, DirectionStmt, IfStmt, LocalStmt, MakeStmt, ProcedureStmt, RepeatStmt,
-    Statement, Symbol,
+    block_stmt::BlockStatement,
+    command_stmt::CommandStmt,
+    direction::{Direction, DirectionStmt},
+    if_stmt::IfStmt,
+    make_stmt::MakeStmt,
+    procedure_stmt::ProcedureStmt,
+    repeat_stmt::RepeatStmt,
+    Statement,
 };
+
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
 
@@ -170,8 +176,7 @@ impl ProgramParser {
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `MAKE` token
 
-        let name = self.expect_ident(lexer);
-        let symbol = Symbol { name };
+        let symbol = self.expect_ident(lexer);
 
         self.expect_token(lexer, Token::ASSIGN);
 
@@ -505,9 +510,7 @@ mod tests {
         let actual = ProgramParser.parse("MAKE MyVar = 2").unwrap();
 
         let make_stmt = Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "MyVar".to_string(),
-            },
+            symbol: "MyVar".to_string(),
             expr: Expression::Int(2),
         });
 
@@ -525,9 +528,7 @@ mod tests {
         let expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
         let make_stmt = Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "MyVar".to_string(),
-            },
+            symbol: "MyVar".to_string(),
             expr,
         });
 
@@ -548,16 +549,12 @@ mod tests {
 
         let mut true_block = BlockStatement::new();
         true_block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "A".to_string(),
-            },
+            symbol: "A".to_string(),
             expr: Expression::Int(3),
         }));
 
         true_block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "B".to_string(),
-            },
+            symbol: "B".to_string(),
             expr: Expression::Int(4),
         }));
 
@@ -584,17 +581,13 @@ mod tests {
 
         let mut true_block = BlockStatement::new();
         true_block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "A".to_string(),
-            },
+            symbol: "A".to_string(),
             expr: Expression::Int(1),
         }));
 
         let mut false_block = BlockStatement::new();
         false_block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "B".to_string(),
-            },
+            symbol: "B".to_string(),
             expr: Expression::Int(2),
         }));
 
@@ -622,16 +615,12 @@ mod tests {
 
         let mut block = BlockStatement::new();
         block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "A".to_string(),
-            },
+            symbol: "A".to_string(),
             expr: Expression::Int(3),
         }));
 
         block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "B".to_string(),
-            },
+            symbol: "B".to_string(),
             expr: Expression::Int(4),
         }));
 
@@ -652,16 +641,12 @@ mod tests {
 
         let mut block = BlockStatement::new();
         block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "A".to_string(),
-            },
+            symbol: "A".to_string(),
             expr: Expression::Int(3),
         }));
 
         block.add_statement(Statement::Make(MakeStmt {
-            symbol: Symbol {
-                name: "B".to_string(),
-            },
+            symbol: "B".to_string(),
             expr: Expression::Int(4),
         }));
 
