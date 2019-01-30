@@ -1,3 +1,5 @@
+use crate::ast::expression::BinaryOp;
+use crate::ast::expression::LiteralExpr;
 use crate::ast::expression::Expression;
 use crate::ast::program::Program;
 
@@ -252,7 +254,7 @@ impl ProgramParser {
         if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
             let right_expr = self.parse_expr(lexer);
-            Expression::Add(Box::new(left_expr), Box::new(right_expr))
+            Expression::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr))
         } else {
             left_expr
         }
@@ -267,7 +269,7 @@ impl ProgramParser {
             self.skip_token(lexer); // skip the `*`
 
             let rparen_expr = self.parse_parens_expr(lexer);
-            Expression::Mul(Box::new(lparen_expr), Box::new(rparen_expr))
+            Expression::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr))
         } else {
             lparen_expr
         }
@@ -285,23 +287,24 @@ impl ProgramParser {
 
             inner_expr
         } else {
-            self.parse_literal_expr(lexer)
+            let expr = self.parse_literal_expr(lexer);
+            Expression::Literal(expr)
         }
     }
 
-    fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> Expression {
+    fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> LiteralExpr {
         let pair = self.pop_current_token(lexer);
 
         let (tok, loc) = pair.unwrap();
 
         if let Token::VALUE(v) = tok {
             match v.parse::<usize>() {
-                Ok(num) => Expression::Int(num),
+                Ok(num) => LiteralExpr::Int(num),
                 Err(_) => {
                     if v.starts_with(":") {
-                        Expression::Var(v[1..].to_string())
+                        LiteralExpr::Var(v[1..].to_string())
                     } else if v.starts_with("\"") {
-                        Expression::Str(v[1..].to_string())
+                        LiteralExpr::Str(v[1..].to_string())
                     } else {
                         panic!("Invalid Literal: {}", v);
                     }
