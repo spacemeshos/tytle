@@ -177,7 +177,13 @@ impl ProgramParser {
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `MAKE` token
 
-        let symbol = self.expect_ident(lexer);
+        let mut symbol = self.expect_ident(lexer);
+
+        if symbol.starts_with("\"") {
+            symbol = symbol[1..].to_string();
+        } else {
+            panic!("Invalid `MAKE` exression: {}", symbol);
+        }
 
         self.expect_token(lexer, Token::ASSIGN);
 
@@ -256,9 +262,10 @@ impl ProgramParser {
         let (tok, loc) = pair.unwrap();
 
         if let Token::VALUE(v) = tok {
-            let num = v.parse::<usize>().unwrap();
-
-            Expression::Int(num)
+            match v.parse::<usize>() {
+                Ok(num) => Expression::Int(num),
+                Err(_) => panic!(),
+            }
         } else {
             panic!();
         }

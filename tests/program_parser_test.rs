@@ -215,7 +215,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
 #[test]
 fn make_variable_assign_an_integer() {
-    let actual = ProgramParser.parse("MAKE MyVar = 2").unwrap();
+    let actual = ProgramParser.parse("MAKE \"MyVar = 2").unwrap();
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
@@ -231,7 +231,7 @@ fn make_variable_assign_an_integer() {
 
 #[test]
 fn make_variable_assign_an_expr() {
-    let actual = ProgramParser.parse("MAKE MyVar = 1 + 2").unwrap();
+    let actual = ProgramParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
     let expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
@@ -248,9 +248,15 @@ fn make_variable_assign_an_expr() {
 }
 
 #[test]
+#[should_panic]
+fn make_variable_must_be_prefixed_with_quotation_marks() {
+    ProgramParser.parse("MAKE A=1").unwrap();
+}
+
+#[test]
 fn if_stmt_without_else() {
     let actual = ProgramParser
-        .parse("IF 1 + 2 [MAKE A = 3 \n MAKE B = 4]")
+        .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
     let cond_expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
@@ -282,7 +288,7 @@ fn if_stmt_without_else() {
 #[test]
 fn if_stmt_with_else() {
     let actual = ProgramParser
-        .parse("IF 1 + 2 [MAKE A = 1] [MAKE B = 2]")
+        .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
         .unwrap();
 
     let cond_expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
@@ -315,7 +321,7 @@ fn if_stmt_with_else() {
 #[test]
 fn repeat_stmt() {
     let actual = ProgramParser
-        .parse("REPEAT 1 + 2 [MAKE A = 3 \n MAKE B = 4]")
+        .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
     let count_expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
@@ -343,7 +349,7 @@ fn repeat_stmt() {
 #[test]
 fn to_stmt() {
     let actual = ProgramParser
-        .parse("TO MyProc \n MAKE A = 3 \n MAKE B = 4 \n END")
+        .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
         .unwrap();
 
     let mut block = BlockStatement::new();

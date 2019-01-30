@@ -496,7 +496,7 @@ mod tests {
     }
 
     #[test]
-    fn assign_a_comppsite_expr() {
+    fn assign_a_composite_expr() {
         let mut lexer = SimpleLexer::new("MyVar=(1+2)");
 
         let (tok1, loc1) = lexer.pop_current_token().unwrap();
