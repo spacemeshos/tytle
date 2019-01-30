@@ -410,7 +410,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_forward_only_integer_expr_surrounded_by_parentheses() {
+    fn expr_integer_surrounded_by_parentheses() {
         let actual = ProgramParser.parse("FORWARD (10)").unwrap();
 
         let expected = Program {
@@ -424,7 +424,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_forward_only_add_integers_expr_with_spaces() {
+    fn expr_add_integers_with_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
@@ -441,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_forward_only_add_integers_expr_without_spaces() {
+    fn expr_add_integers_without_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
@@ -458,7 +458,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_forward_only_add_and_mul_integers_expr() {
+    fn expr_add_and_mul_integers() {
         let actual = ProgramParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
         let clause1 = Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
@@ -476,7 +476,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_forward_only_mul_integers_expr_without_spaces() {
+    fn expr_mul_integers_without_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 * 2").unwrap();
 
         let expected = Program {
@@ -493,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn expr_mix_of_mul_add_ops_between_integers_and_parentheses_expr() {
+    fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
         let actual = ProgramParser
             .parse("FORWARD (1*1 + 2) * (3*3 + 4)")
             .unwrap();
@@ -520,13 +520,15 @@ mod tests {
     fn make_variable_assign_an_integer() {
         let actual = ProgramParser.parse("MAKE MyVar = 2").unwrap();
 
+        let make_stmt = Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "MyVar".to_string(),
+            },
+            expr: Expression::Int(2),
+        });
+
         let expected = Program {
-            statements: vec![Statement::Make(MakeStmt {
-                symbol: Symbol {
-                    name: "MyVar".to_string(),
-                },
-                expr: Expression::Int(2),
-            })],
+            statements: vec![make_stmt],
         };
 
         assert_eq!(actual, expected);
@@ -538,13 +540,15 @@ mod tests {
 
         let expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
+        let make_stmt = Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "MyVar".to_string(),
+            },
+            expr,
+        });
+
         let expected = Program {
-            statements: vec![Statement::Make(MakeStmt {
-                symbol: Symbol {
-                    name: "MyVar".to_string(),
-                },
-                expr,
-            })],
+            statements: vec![make_stmt],
         };
 
         assert_eq!(actual, expected);
@@ -610,14 +614,14 @@ mod tests {
             expr: Expression::Int(2),
         }));
 
-        let expected_block_stmt = Statement::If(IfStmt {
+        let if_stmt = Statement::If(IfStmt {
             cond_expr,
             true_block,
             false_block: Some(false_block),
         });
 
         let expected = Program {
-            statements: vec![expected_block_stmt],
+            statements: vec![if_stmt],
         };
 
         assert_eq!(expected, actual);
