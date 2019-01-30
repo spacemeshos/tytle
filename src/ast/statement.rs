@@ -1,21 +1,7 @@
 use crate::ast::direction::Direction;
+use crate::ast::expression::Expression;
 use crate::ir::instruction::Instruction;
 use crate::lexer::location::Location;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Int(usize),
-    Add(Box<Expression>, Box<Expression>),
-    Mul(Box<Expression>, Box<Expression>),
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ShowExpr {
-    pub varname: String,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct OutputExpr {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockStatement {
@@ -79,7 +65,7 @@ pub struct DirectionStmt {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IfStmt {
-    pub cond_expr: Box<Expression>,
+    pub cond_expr: Expression,
     pub true_block: BlockStatement,
     pub false_block: Option<BlockStatement>,
 }
@@ -110,19 +96,4 @@ pub enum Statement {
     Make(MakeStmt),
     Procedure(ProcedureStmt),
     Nop,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn int_expr_sanity() {
-        let expr1 = Expression::Int(10);
-        let expr2 = Expression::Int(10);
-        let expr3 = Expression::Int(20);
-
-        assert_eq!(expr1, expr2);
-        assert_ne!(expr1, expr3);
-    }
 }

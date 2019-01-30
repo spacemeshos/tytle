@@ -1,8 +1,9 @@
 use crate::ast::direction::Direction;
+use crate::ast::expression::Expression;
 use crate::ast::program::Program;
 use crate::ast::statement::{
-    BlockStatement, CommandStmt, DirectionStmt, Expression, IfStmt, LocalStmt, MakeStmt,
-    ProcedureStmt, RepeatStmt, ShowExpr, Statement, Symbol,
+    BlockStatement, CommandStmt, DirectionStmt, IfStmt, LocalStmt, MakeStmt, ProcedureStmt,
+    RepeatStmt, Statement, Symbol,
 };
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
@@ -53,17 +54,26 @@ impl ProgramParser {
                 Some(Statement::Nop)
             }
             Token::VALUE(val) => match val.as_str() {
-                "REPEAT" => {
-                    unimplemented!();
-                }
+                "REPEAT" => self.parse_repeat_stmt(lexer),
                 "IF" => self.parse_if_stmt(lexer),
                 "TO" => {
                     unimplemented!();
                 }
-                _ => self.parse_basic_statement(val.clone(), lexer),
+                _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
             },
             _ => panic!(),
         }
+    }
+
+    fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+        self.skip_token(lexer); // skipping the `REPEAT` token
+
+        let count_expr = self.parse_expr(lexer);
+        let block = self.parse_block_stmt(lexer);
+
+        let repeat_stmt = RepeatStmt { count_expr, block };
+
+        Some(Statement::Repeat(repeat_stmt))
     }
 
     fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
@@ -84,7 +94,7 @@ impl ProgramParser {
         }
 
         let if_stmt = IfStmt {
-            cond_expr: Box::new(cond_expr),
+            cond_expr,
             true_block,
             false_block,
         };
@@ -114,9 +124,7 @@ impl ProgramParser {
         block
     }
 
-    fn parse_basic_statement(&self, val: String, lexer: &mut impl Lexer) -> Option<Statement> {
-        let val = val.as_str();
-
+    fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Option<Statement> {
         let stmt = match val {
             "MAKE" => self.parse_make(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
@@ -514,10 +522,7 @@ mod tests {
             .parse("IF 1 + 2 [MAKE A = 3 \n MAKE B = 4]")
             .unwrap();
 
-        let cond_expr = Box::new(Expression::Add(
-            Box::new(Expression::Int(1)),
-            Box::new(Expression::Int(2)),
-        ));
+        let cond_expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
         let mut true_block = BlockStatement::new();
         true_block.add_statement(Statement::Make(MakeStmt {
@@ -553,10 +558,7 @@ mod tests {
             .parse("IF 1 + 2 [MAKE A = 1] [MAKE B = 2]")
             .unwrap();
 
-        let cond_expr = Box::new(Expression::Add(
-            Box::new(Expression::Int(1)),
-            Box::new(Expression::Int(2)),
-        ));
+        let cond_expr = Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
 
         let mut true_block = BlockStatement::new();
         true_block.add_statement(Statement::Make(MakeStmt {
@@ -582,6 +584,39 @@ mod tests {
 
         let expected = Program {
             statements: vec![expected_block_stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn repeat_stmt() {
+        let actual = ProgramParser
+            .parse("REPEAT 1 + 2 [MAKE A = 3 \n MAKE B = 4]")
+            .unwrap();
+
+        let count_expr =
+            Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
+
+        let mut block = BlockStatement::new();
+        block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "A".to_string(),
+            },
+            expr: Box::new(Expression::Int(3)),
+        }));
+
+        block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "B".to_string(),
+            },
+            expr: Box::new(Expression::Int(4)),
+        }));
+
+        let expected_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
+
+        let expected = Program {
+            statements: vec![expected_stmt],
         };
 
         assert_eq!(expected, actual);
