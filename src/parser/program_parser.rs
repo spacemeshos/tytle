@@ -1,9 +1,10 @@
+use crate::ast::command::Command;
 use crate::ast::direction::Direction;
 use crate::ast::expression::Expression;
 use crate::ast::program::Program;
 use crate::ast::statement::{
-    BlockStatement, CommandStmt, DirectionStmt, IfStmt, LocalStmt, MakeStmt, ProcedureStmt,
-    RepeatStmt, Statement, Symbol,
+    BlockStatement, DirectionStmt, IfStmt, LocalStmt, MakeStmt, ProcedureStmt, RepeatStmt,
+    Statement, Symbol,
 };
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
@@ -140,7 +141,7 @@ impl ProgramParser {
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == block_end_token {
-                self.skip_token(lexer); // skipping the block end token
+                self.skip_token(lexer); // skipping the block ending token`
                 completed = true;
             }
         }
@@ -152,26 +153,18 @@ impl ProgramParser {
         let stmt = match val {
             "MAKE" => self.parse_make(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
-            _ => self.consume_command(val, lexer),
+            _ => self.parse_command(val, lexer),
         };
 
         Some(stmt)
     }
 
-    fn consume_command(&self, cmd: &str, lexer: &mut impl Lexer) -> Statement {
+    fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `command` token
 
-        match cmd {
-            "PENUP" => Statement::Command(CommandStmt::PenUp),
-            "PENDOWN" => Statement::Command(CommandStmt::PenDown),
-            "SHOWTURTLE" => Statement::Command(CommandStmt::ShowTurtle),
-            "HIDETURTLE" => Statement::Command(CommandStmt::HideTurtle),
-            "PENERASE" => Statement::Command(CommandStmt::PenErase),
-            "CLEARSCREEN" => Statement::Command(CommandStmt::ClearScreen),
-            "SETPENCOLOR" => Statement::Command(CommandStmt::SetPenColor),
-            "SETBACKGROUND" => Statement::Command(CommandStmt::SetBackgroundColor),
-            _ => unimplemented!(),
-        }
+        let cmd = Command::from(val);
+
+        Statement::Command(cmd)
     }
 
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
@@ -194,12 +187,12 @@ impl ProgramParser {
         // we already have the value under `direction`
         self.skip_token(lexer);
 
-        let distance_expr = self.parse_expr(lexer);
+        let expr = self.parse_expr(lexer);
 
         self.expect_newline(lexer);
 
         let stmt = DirectionStmt {
-            distance_expr,
+            expr,
             direction: Direction::from(direction),
         };
 
@@ -318,7 +311,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Int(20),
+                expr: Expression::Int(20),
             })],
         };
 
@@ -332,7 +325,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Backward,
-                distance_expr: Expression::Int(20),
+                expr: Expression::Int(20),
             })],
         };
 
@@ -346,7 +339,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Left,
-                distance_expr: Expression::Int(20),
+                expr: Expression::Int(20),
             })],
         };
 
@@ -360,7 +353,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Right,
-                distance_expr: Expression::Int(20),
+                expr: Expression::Int(20),
             })],
         };
 
@@ -375,11 +368,11 @@ mod tests {
             statements: vec![
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Forward,
-                    distance_expr: Expression::Int(10),
+                    expr: Expression::Int(10),
                 }),
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Right,
-                    distance_expr: Expression::Int(20),
+                    expr: Expression::Int(20),
                 }),
             ],
         };
@@ -397,11 +390,11 @@ mod tests {
             statements: vec![
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Forward,
-                    distance_expr: Expression::Int(10),
+                    expr: Expression::Int(10),
                 }),
                 Statement::Direction(DirectionStmt {
                     direction: Direction::Right,
-                    distance_expr: Expression::Int(20),
+                    expr: Expression::Int(20),
                 }),
             ],
         };
@@ -416,7 +409,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Int(10),
+                expr: Expression::Int(10),
             })],
         };
 
@@ -430,10 +423,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Add(
-                    Box::new(Expression::Int(1)),
-                    Box::new(Expression::Int(2)),
-                ),
+                expr: Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2))),
             })],
         };
 
@@ -447,10 +437,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Add(
-                    Box::new(Expression::Int(1)),
-                    Box::new(Expression::Int(2)),
-                ),
+                expr: Expression::Add(Box::new(Expression::Int(1)), Box::new(Expression::Int(2))),
             })],
         };
 
@@ -463,12 +450,12 @@ mod tests {
 
         let clause1 = Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
         let clause2 = Expression::Mul(Box::new(Expression::Int(3)), Box::new(Expression::Int(4)));
-        let distance_expr = Expression::Add(Box::new(clause1), Box::new(clause2));
+        let expr = Expression::Add(Box::new(clause1), Box::new(clause2));
 
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr,
+                expr,
             })],
         };
 
@@ -482,10 +469,7 @@ mod tests {
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr: Expression::Mul(
-                    Box::new(Expression::Int(1)),
-                    Box::new(Expression::Int(2)),
-                ),
+                expr: Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(2))),
             })],
         };
 
@@ -504,12 +488,12 @@ mod tests {
         let add_1_2 = Expression::Add(Box::new(ones_mul), Box::new(Expression::Int(2)));
         let add_3_4 = Expression::Add(Box::new(three_mul), Box::new(Expression::Int(4)));
 
-        let distance_expr = Expression::Mul(Box::new(add_1_2), Box::new(add_3_4));
+        let expr = Expression::Mul(Box::new(add_1_2), Box::new(add_3_4));
 
         let expected = Program {
             statements: vec![Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                distance_expr,
+                expr,
             })],
         };
 
@@ -697,7 +681,7 @@ mod tests {
     fn command_pen_up() {
         let actual = ProgramParser.parse("PENUP").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::PenUp);
+        let stmt = Statement::Command(Command::PenUp);
 
         let expected = Program {
             statements: vec![stmt],
@@ -710,7 +694,7 @@ mod tests {
     fn command_pen_down() {
         let actual = ProgramParser.parse("PENDOWN").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::PenDown);
+        let stmt = Statement::Command(Command::PenDown);
 
         let expected = Program {
             statements: vec![stmt],
@@ -723,7 +707,7 @@ mod tests {
     fn command_show_turtle() {
         let actual = ProgramParser.parse("SHOWTURTLE").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::ShowTurtle);
+        let stmt = Statement::Command(Command::ShowTurtle);
 
         let expected = Program {
             statements: vec![stmt],
@@ -736,7 +720,7 @@ mod tests {
     fn command_hide_turtle() {
         let actual = ProgramParser.parse("HIDETURTLE").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::HideTurtle);
+        let stmt = Statement::Command(Command::HideTurtle);
 
         let expected = Program {
             statements: vec![stmt],
@@ -749,7 +733,7 @@ mod tests {
     fn command_pen_erase() {
         let actual = ProgramParser.parse("PENERASE").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::PenErase);
+        let stmt = Statement::Command(Command::PenErase);
 
         let expected = Program {
             statements: vec![stmt],
@@ -762,7 +746,7 @@ mod tests {
     fn command_clear_screen() {
         let actual = ProgramParser.parse("CLEARSCREEN").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::ClearScreen);
+        let stmt = Statement::Command(Command::ClearScreen);
 
         let expected = Program {
             statements: vec![stmt],
@@ -775,7 +759,7 @@ mod tests {
     fn command_set_pen_color() {
         let actual = ProgramParser.parse("SETPENCOLOR").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::SetPenColor);
+        let stmt = Statement::Command(Command::SetPenColor);
 
         let expected = Program {
             statements: vec![stmt],
@@ -788,7 +772,7 @@ mod tests {
     fn command_set_background_color() {
         let actual = ProgramParser.parse("SETBACKGROUND").unwrap();
 
-        let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
+        let stmt = Statement::Command(Command::SetBackgroundColor);
 
         let expected = Program {
             statements: vec![stmt],

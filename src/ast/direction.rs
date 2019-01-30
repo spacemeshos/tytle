@@ -7,7 +7,7 @@ pub enum Direction {
 }
 
 impl From<&str> for Direction {
-    fn from(s: &str) -> Direction {
+    fn from(s: &str) -> Self {
         match s {
             "FORWARD" => Direction::Forward,
             "BACKWARD" => Direction::Backward,

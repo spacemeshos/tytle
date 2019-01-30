@@ -1,3 +1,4 @@
+use crate::ast::command::Command;
 use crate::ast::direction::Direction;
 use crate::ast::expression::Expression;
 use crate::ir::instruction::Instruction;
@@ -59,7 +60,7 @@ pub struct RepeatStmt {
 #[derive(Debug, Clone, PartialEq)]
 pub struct DirectionStmt {
     pub direction: Direction,
-    pub distance_expr: Expression,
+    pub expr: Expression,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -67,18 +68,6 @@ pub struct IfStmt {
     pub cond_expr: Expression,
     pub true_block: BlockStatement,
     pub false_block: Option<BlockStatement>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum CommandStmt {
-    PenUp,
-    PenDown,
-    ShowTurtle,
-    HideTurtle,
-    PenErase,
-    ClearScreen,
-    SetPenColor,
-    SetBackgroundColor,
 }
 
 impl Default for BlockStatement {
@@ -91,7 +80,7 @@ impl Default for BlockStatement {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
-    Command(CommandStmt),
+    Command(Command),
     Direction(DirectionStmt),
     Repeat(RepeatStmt),
     If(IfStmt),
