@@ -230,6 +230,22 @@ fn make_variable_assign_an_integer() {
 }
 
 #[test]
+fn make_variable_assign_a_string() {
+    let actual = ProgramParser.parse("MAKE \"MyVar = \"Hello").unwrap();
+
+    let make_stmt = Statement::Make(MakeStmt {
+        symbol: "MyVar".to_string(),
+        expr: Expression::Str("Hello".to_string()),
+    });
+
+    let expected = Program {
+        statements: vec![make_stmt],
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn make_variable_assign_an_expr() {
     let actual = ProgramParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
@@ -251,6 +267,27 @@ fn make_variable_assign_an_expr() {
 #[should_panic]
 fn make_variable_must_be_prefixed_with_quotation_marks() {
     ProgramParser.parse("MAKE A=1").unwrap();
+}
+
+#[test]
+fn make_variable_assign_an_expr_containing_another_var() {
+    let actual = ProgramParser.parse("MAKE \"A = :B + 2").unwrap();
+
+    let expr = Expression::Add(
+        Box::new(Expression::Var("B".to_string())),
+        Box::new(Expression::Int(2)),
+    );
+
+    let make_stmt = Statement::Make(MakeStmt {
+        symbol: "A".to_string(),
+        expr,
+    });
+
+    let expected = Program {
+        statements: vec![make_stmt],
+    };
+
+    assert_eq!(actual, expected);
 }
 
 #[test]

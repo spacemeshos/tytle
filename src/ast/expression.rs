@@ -1,6 +1,8 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Int(usize),
+    Var(String),
+    Str(String),
     Add(Box<Expression>, Box<Expression>),
     Mul(Box<Expression>, Box<Expression>),
 }

@@ -264,7 +264,17 @@ impl ProgramParser {
         if let Token::VALUE(v) = tok {
             match v.parse::<usize>() {
                 Ok(num) => Expression::Int(num),
-                Err(_) => panic!(),
+                Err(_) => {
+                    if v.starts_with(":") {
+                        Expression::Var(v[1..].to_string())
+                    }
+                    else if v.starts_with("\"") {
+                        Expression::Str(v[1..].to_string())
+                    }
+                    else {
+                        panic!("Invalid Literal: {}", v);
+                    }
+                }
             }
         } else {
             panic!();
