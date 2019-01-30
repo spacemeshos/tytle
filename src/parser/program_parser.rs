@@ -56,20 +56,34 @@ impl ProgramParser {
             Token::VALUE(val) => match val.as_str() {
                 "REPEAT" => self.parse_repeat_stmt(lexer),
                 "IF" => self.parse_if_stmt(lexer),
-                "TO" => {
-                    unimplemented!();
-                }
+                "TO" => self.parse_proc_stmt(lexer),
                 _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
             },
             _ => panic!(),
         }
     }
 
+    fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+        self.skip_token(lexer); // skipping the `TO` token
+
+        let name = self.expect_ident(lexer);
+        let borders = (None, Token::VALUE("END".to_string()));
+
+        let block = self.parse_block_stmt(lexer, borders);
+
+        let proc_stmt = ProcedureStmt { name, block };
+
+        Some(Statement::Procedure(proc_stmt))
+    }
+
     fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
         self.skip_token(lexer); // skipping the `REPEAT` token
 
         let count_expr = self.parse_expr(lexer);
-        let block = self.parse_block_stmt(lexer);
+
+        let borders = (Some(Token::LBRACKET), Token::RBRACKET);
+
+        let block = self.parse_block_stmt(lexer, borders);
 
         let repeat_stmt = RepeatStmt { count_expr, block };
 
@@ -79,8 +93,10 @@ impl ProgramParser {
     fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
         self.skip_token(lexer); // skipping the `IF` token
 
+        let borders = (Some(Token::LBRACKET), Token::RBRACKET);
+
         let cond_expr = self.parse_expr(lexer);
-        let true_block = self.parse_block_stmt(lexer);
+        let true_block = self.parse_block_stmt(lexer, borders.clone());
         let mut false_block = None;
 
         let tok_loc = self.peek_current_token(lexer);
@@ -89,7 +105,7 @@ impl ProgramParser {
             let (tok, loc) = tok_loc.unwrap();
 
             if *tok == Token::LBRACKET {
-                false_block = Some(self.parse_block_stmt(lexer));
+                false_block = Some(self.parse_block_stmt(lexer, borders.clone()));
             }
         }
 
@@ -102,10 +118,18 @@ impl ProgramParser {
         Some(Statement::If(if_stmt))
     }
 
-    fn parse_block_stmt(&self, lexer: &mut impl Lexer) -> BlockStatement {
+    fn parse_block_stmt(
+        &self,
+        lexer: &mut impl Lexer,
+        block_borders: (Option<Token>, Token),
+    ) -> BlockStatement {
         let mut block = BlockStatement::new();
 
-        self.expect_token(lexer, Token::LBRACKET);
+        let (block_start_token, block_end_token) = block_borders;
+
+        if block_start_token.is_some() {
+            self.expect_token(lexer, block_start_token.unwrap());
+        }
 
         let mut completed = false;
 
@@ -115,8 +139,8 @@ impl ProgramParser {
 
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-            if *tok == Token::RBRACKET {
-                self.skip_token(lexer); // skipping the `]` token
+            if *tok == block_end_token {
+                self.skip_token(lexer); // skipping the block end token
                 completed = true;
             }
         }
@@ -129,7 +153,7 @@ impl ProgramParser {
             "MAKE" => self.parse_make(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
             _ => {
-                unimplemented!();
+                panic!("Unknown keyword: {}", val);
             }
         };
 
@@ -613,6 +637,41 @@ mod tests {
 
         let expected = Program {
             statements: vec![repeat_stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn to_stmt() {
+        let actual = ProgramParser
+            .parse("TO MyProc \n MAKE A = 3 \n MAKE B = 4 \n END")
+            .unwrap();
+
+        dbg!(actual.clone());
+
+        let mut block = BlockStatement::new();
+        block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "A".to_string(),
+            },
+            expr: Expression::Int(3),
+        }));
+
+        block.add_statement(Statement::Make(MakeStmt {
+            symbol: Symbol {
+                name: "B".to_string(),
+            },
+            expr: Expression::Int(4),
+        }));
+
+        let proc_stmt = Statement::Procedure(ProcedureStmt {
+            name: "MyProc".to_string(),
+            block,
+        });
+
+        let expected = Program {
+            statements: vec![proc_stmt],
         };
 
         assert_eq!(expected, actual);

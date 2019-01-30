@@ -24,7 +24,6 @@ impl BlockStatement {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureStmt {
-    pub loction: Option<Location>,
     pub name: String,
     pub block: BlockStatement,
 }
