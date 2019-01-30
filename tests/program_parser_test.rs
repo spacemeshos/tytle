@@ -412,7 +412,7 @@ fn repeat_stmt() {
 }
 
 #[test]
-fn to_stmt() {
+fn procedure_stmt_without_params() {
     let actual = ProgramParser
         .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
         .unwrap();
@@ -430,6 +430,32 @@ fn to_stmt() {
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
         name: "MyProc".to_string(),
+        params: vec![],
+        block,
+    });
+
+    let expected = Program {
+        statements: vec![proc_stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn procedure_stmt_with_params() {
+    let actual = ProgramParser
+        .parse("TO MyProc :A :B \n MAKE \"C = 10 END")
+        .unwrap();
+
+    let mut block = BlockStatement::new();
+    block.add_statement(Statement::Make(MakeStmt {
+        symbol: "C".to_string(),
+        expr: Expression::Int(10),
+    }));
+
+    let proc_stmt = Statement::Procedure(ProcedureStmt {
+        name: "MyProc".to_string(),
+        params: vec!["A".to_string(), "B".to_string()],
         block,
     });
 

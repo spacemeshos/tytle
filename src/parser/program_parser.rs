@@ -77,11 +77,41 @@ impl ProgramParser {
         let name = self.expect_ident(lexer);
         let borders = (None, Token::VALUE("END".to_string()));
 
+        let params = self.parse_proc_params(lexer);
+
         let block = self.parse_block_stmt(lexer, borders);
 
-        let proc_stmt = ProcedureStmt { name, block };
+        let proc_stmt = ProcedureStmt {
+            name,
+            block,
+            params,
+        };
 
         Some(Statement::Procedure(proc_stmt))
+    }
+
+    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Vec<String> {
+        let mut params = Vec::new();
+        let mut completed = false;
+
+        while !completed {
+            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+            if *tok == Token::NEWLINE {
+                completed = true
+            } else {
+                let ident = self.expect_ident(lexer);
+
+                if ident.starts_with(":") {
+                    let param = ident[1..].to_string();
+                    params.push(param);
+                } else {
+                    panic!("Invalid procedure parameter: {}", ident)
+                }
+            }
+        }
+
+        params
     }
 
     fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
@@ -143,6 +173,7 @@ impl ProgramParser {
 
         while !completed {
             let stmt = self.parse_statement(lexer).unwrap();
+
             block.add_statement(stmt);
 
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
