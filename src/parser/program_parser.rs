@@ -152,12 +152,26 @@ impl ProgramParser {
         let stmt = match val {
             "MAKE" => self.parse_make(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
-            _ => {
-                panic!("Unknown keyword: {}", val);
-            }
+            _ => self.consume_command(val, lexer),
         };
 
         Some(stmt)
+    }
+
+    fn consume_command(&self, cmd: &str, lexer: &mut impl Lexer) -> Statement {
+        self.skip_token(lexer); // skipping the `command` token
+
+        match cmd {
+            "PENUP" => Statement::Command(CommandStmt::PenUp),
+            "PENDOWN" => Statement::Command(CommandStmt::PenDown),
+            "SHOWTURTLE" => Statement::Command(CommandStmt::ShowTurtle),
+            "HIDETURTLE" => Statement::Command(CommandStmt::HideTurtle),
+            "PENERASE" => Statement::Command(CommandStmt::PenErase),
+            "CLEARSCREEN" => Statement::Command(CommandStmt::ClearScreen),
+            "SETPENCOLOR" => Statement::Command(CommandStmt::SetPenColor),
+            "SETBACKGROUND" => Statement::Command(CommandStmt::SetBackgroundColor),
+            _ => unimplemented!(),
+        }
     }
 
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
@@ -298,7 +312,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn forward() {
+    fn direction_forward() {
         let actual = ProgramParser.parse("FORWARD 20").unwrap();
 
         let expected = Program {
@@ -312,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn backward() {
+    fn direction_backward() {
         let actual = ProgramParser.parse("BACKWARD 20").unwrap();
 
         let expected = Program {
@@ -326,7 +340,7 @@ mod tests {
     }
 
     #[test]
-    fn left() {
+    fn direction_left() {
         let actual = ProgramParser.parse("LEFT 20").unwrap();
 
         let expected = Program {
@@ -340,7 +354,7 @@ mod tests {
     }
 
     #[test]
-    fn right() {
+    fn direction_right() {
         let actual = ProgramParser.parse("RIGHT 20").unwrap();
 
         let expected = Program {
@@ -354,7 +368,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_and_then_backward_no_empty_lines() {
+    fn direction_forward_and_then_backward_no_empty_lines() {
         let actual = ProgramParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
         let expected = Program {
@@ -374,7 +388,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_and_then_backward_with_empty_lines() {
+    fn direction_forward_and_then_backward_with_empty_lines() {
         let actual = ProgramParser
             .parse("\n\nFORWARD 10\n\nRIGHT 20\n\n")
             .unwrap();
@@ -396,7 +410,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_only_integer_expr_surrounded_by_parentheses() {
+    fn expr_forward_only_integer_expr_surrounded_by_parentheses() {
         let actual = ProgramParser.parse("FORWARD (10)").unwrap();
 
         let expected = Program {
@@ -410,7 +424,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_only_add_integers_expr_with_spaces() {
+    fn expr_forward_only_add_integers_expr_with_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
@@ -427,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_only_add_integers_expr_without_spaces() {
+    fn expr_forward_only_add_integers_expr_without_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
 
         let expected = Program {
@@ -444,7 +458,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_only_add_and_mul_integers_expr() {
+    fn expr_forward_only_add_and_mul_integers_expr() {
         let actual = ProgramParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
         let clause1 = Expression::Mul(Box::new(Expression::Int(1)), Box::new(Expression::Int(2)));
@@ -462,7 +476,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_only_mul_integers_expr_without_spaces() {
+    fn expr_forward_only_mul_integers_expr_without_spaces() {
         let actual = ProgramParser.parse("FORWARD 1 * 2").unwrap();
 
         let expected = Program {
@@ -479,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn forward_mix_of_mul_add_ops_between_integers_and_parentheses_expr() {
+    fn expr_mix_of_mul_add_ops_between_integers_and_parentheses_expr() {
         let actual = ProgramParser
             .parse("FORWARD (1*1 + 2) * (3*3 + 4)")
             .unwrap();
@@ -573,7 +587,7 @@ mod tests {
     }
 
     #[test]
-    fn if_else_stmt() {
+    fn if_stmt_with_else() {
         let actual = ProgramParser
             .parse("IF 1 + 2 [MAKE A = 1] [MAKE B = 2]")
             .unwrap();
@@ -648,8 +662,6 @@ mod tests {
             .parse("TO MyProc \n MAKE A = 3 \n MAKE B = 4 \n END")
             .unwrap();
 
-        dbg!(actual.clone());
-
         let mut block = BlockStatement::new();
         block.add_statement(Statement::Make(MakeStmt {
             symbol: Symbol {
@@ -672,6 +684,110 @@ mod tests {
 
         let expected = Program {
             statements: vec![proc_stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_pen_up() {
+        let actual = ProgramParser.parse("PENUP").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::PenUp);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_pen_down() {
+        let actual = ProgramParser.parse("PENDOWN").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::PenDown);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_show_turtle() {
+        let actual = ProgramParser.parse("SHOWTURTLE").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::ShowTurtle);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_hide_turtle() {
+        let actual = ProgramParser.parse("HIDETURTLE").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::HideTurtle);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_pen_erase() {
+        let actual = ProgramParser.parse("PENERASE").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::PenErase);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_clear_screen() {
+        let actual = ProgramParser.parse("CLEARSCREEN").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::ClearScreen);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_set_pen_color() {
+        let actual = ProgramParser.parse("SETPENCOLOR").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::SetPenColor);
+
+        let expected = Program {
+            statements: vec![stmt],
+        };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn command_set_background_color() {
+        let actual = ProgramParser.parse("SETBACKGROUND").unwrap();
+
+        let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
+
+        let expected = Program {
+            statements: vec![stmt],
         };
 
         assert_eq!(expected, actual);

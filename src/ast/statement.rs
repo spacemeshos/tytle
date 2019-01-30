@@ -76,6 +76,9 @@ pub enum CommandStmt {
     ShowTurtle,
     HideTurtle,
     PenErase,
+    ClearScreen,
+    SetPenColor,
+    SetBackgroundColor,
 }
 
 impl Default for BlockStatement {
