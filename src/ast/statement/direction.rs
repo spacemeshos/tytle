@@ -4,6 +4,8 @@ pub enum Direction {
     Right,
     Forward,
     Backward,
+    SetX,
+    SetY,
 }
 
 impl From<&str> for Direction {
@@ -13,6 +15,8 @@ impl From<&str> for Direction {
             "BACKWARD" => Direction::Backward,
             "LEFT" => Direction::Left,
             "RIGHT" => Direction::Right,
+            "SETX" => Direction::SetX,
+            "SETY" => Direction::SetY,
             _ => panic!("Undefined direction: {}", s),
         }
     }

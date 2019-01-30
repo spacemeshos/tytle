@@ -74,6 +74,34 @@ fn direction_right() {
 }
 
 #[test]
+fn direction_setx() {
+    let actual = ProgramParser.parse("SETX 20").unwrap();
+
+    let expected = Program {
+        statements: vec![Statement::Direction(DirectionStmt {
+            direction: Direction::SetX,
+            expr: Expression::Int(20),
+        })],
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn direction_sety() {
+    let actual = ProgramParser.parse("SETY 20").unwrap();
+
+    let expected = Program {
+        statements: vec![Statement::Direction(DirectionStmt {
+            direction: Direction::SetY,
+            expr: Expression::Int(20),
+        })],
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn direction_forward_and_then_backward_no_empty_lines() {
     let actual = ProgramParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
@@ -413,6 +441,32 @@ fn to_stmt() {
 }
 
 #[test]
+fn command_xcor() {
+    let actual = ProgramParser.parse("XCOR").unwrap();
+
+    let stmt = Statement::Command(CommandStmt::XCor);
+
+    let expected = Program {
+        statements: vec![stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn command_ycor() {
+    let actual = ProgramParser.parse("YCOR").unwrap();
+
+    let stmt = Statement::Command(CommandStmt::YCor);
+
+    let expected = Program {
+        statements: vec![stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn command_pen_up() {
     let actual = ProgramParser.parse("PENUP").unwrap();
 
@@ -469,6 +523,19 @@ fn command_pen_erase() {
     let actual = ProgramParser.parse("PENERASE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenErase);
+
+    let expected = Program {
+        statements: vec![stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn command_clean() {
+    let actual = ProgramParser.parse("CLEAN").unwrap();
+
+    let stmt = Statement::Command(CommandStmt::Clean);
 
     let expected = Program {
         statements: vec![stmt],

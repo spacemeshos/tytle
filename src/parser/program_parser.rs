@@ -159,7 +159,7 @@ impl ProgramParser {
     fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Option<Statement> {
         let stmt = match val {
             "MAKE" => self.parse_make(lexer),
-            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" => self.parse_direction(val, lexer),
+            "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => self.parse_direction(val, lexer),
             _ => self.parse_command(val, lexer),
         };
 
