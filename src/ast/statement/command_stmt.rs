@@ -11,6 +11,8 @@ pub enum CommandStmt {
     ClearScreen,
     SetPenColor,
     SetBackgroundColor,
+    Wait,
+    Stop,
 }
 
 impl From<&str> for CommandStmt {
@@ -27,6 +29,8 @@ impl From<&str> for CommandStmt {
             "CLEARSCREEN" => CommandStmt::ClearScreen,
             "SETPENCOLOR" => CommandStmt::SetPenColor,
             "SETBACKGROUND" => CommandStmt::SetBackgroundColor,
+            "WAIT" => CommandStmt::Wait,
+            "STOP" => CommandStmt::Stop,
             _ => panic!("Invalid command: {}", s),
         }
     }

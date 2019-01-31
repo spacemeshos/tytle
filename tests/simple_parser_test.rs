@@ -666,3 +666,29 @@ fn command_set_background_color() {
 
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn command_wait() {
+    let actual = SimpleParser.parse("WAIT").unwrap();
+
+    let stmt = Statement::Command(CommandStmt::Wait);
+
+    let expected = ProgramAst {
+        statements: vec![stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn command_stop() {
+    let actual = SimpleParser.parse("STOP").unwrap();
+
+    let stmt = Statement::Command(CommandStmt::Stop);
+
+    let expected = ProgramAst {
+        statements: vec![stmt],
+    };
+
+    assert_eq!(expected, actual);
+}
