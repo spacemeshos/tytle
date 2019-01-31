@@ -6,6 +6,21 @@ macro_rules! direction {
 }
 
 #[macro_export]
+macro_rules! int_lit_expr {
+    ($num:expr) => {{
+        use $crate::ast::expression::{Expression, LiteralExpr};
+        Expression::Literal(LiteralExpr::Int($num))
+    }};
+}
+
+#[macro_export]
+macro_rules! boxed_int_lit_expr {
+    ($num:expr) => {{
+        Box::new(int_lit_expr!($num))
+    }};
+}
+
+#[macro_export]
 macro_rules! var_lit_expr {
     ($s:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
