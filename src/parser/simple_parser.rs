@@ -3,16 +3,8 @@ use crate::ast::expression::Expression;
 use crate::ast::expression::LiteralExpr;
 use crate::ast::Ast;
 
-use crate::ast::statement::{
-    block_stmt::BlockStatement,
-    command_stmt::CommandStmt,
-    direction::{Direction, DirectionStmt},
-    if_stmt::IfStmt,
-    make_stmt::MakeStmt,
-    procedure_stmt::ProcedureStmt,
-    repeat_stmt::RepeatStmt,
-    Statement,
-};
+use crate::ast::statement::direction::Direction;
+use crate::ast::statement::*;
 
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
