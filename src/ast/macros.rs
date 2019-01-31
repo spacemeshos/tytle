@@ -18,6 +18,16 @@ macro_rules! direct_lit_expr {
 }
 
 #[macro_export]
+macro_rules! direct_stmt {
+    ($dir:ident, $expr:expr) => {{
+        Statement::Direction($crate::ast::statement::DirectionStmt {
+            direction: direction!($dir),
+            expr: $expr,
+        })
+    }};
+}
+
+#[macro_export]
 macro_rules! command_stmt {
     ($cmd:ident) => {{
         let cmd_enum = $crate::ast::statement::CommandStmt::from(stringify!($cmd));

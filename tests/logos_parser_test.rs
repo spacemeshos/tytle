@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate logos;
 
-use logos::ast::Ast;
 use logos::parser::{LogosParser, Parser};
 
 use logos::ast::expression::*;
 use logos::ast::statement::*;
+use logos::ast::Ast;
 
 #[test]
 fn direction_forward() {
@@ -111,10 +111,9 @@ fn expr_add_integers_with_spaces() {
     let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: direction!(FORWARD),
-            expr: binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2))
-        })],
+        statements: vec![
+            direct_stmt!(FORWARD, binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)))
+        ]
     };
 
     assert_eq!(actual, expected);
@@ -125,10 +124,9 @@ fn expr_add_integers_without_spaces() {
     let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: direction!(FORWARD),
-            expr: binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2))
-        })],
+        statements: vec![
+            direct_stmt!(FORWARD, binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)))
+        ]
     };
 
     assert_eq!(actual, expected);
@@ -143,10 +141,7 @@ fn expr_add_and_mul_integers() {
     let expr = binary_expr!(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: direction!(FORWARD),
-            expr,
-        })],
+        statements: vec![direct_stmt!(FORWARD, expr)],
     };
 
     assert_eq!(actual, expected);
@@ -159,10 +154,7 @@ fn expr_mul_integers_without_spaces() {
     let expr = binary_expr!(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            expr,
-            direction: direction!(FORWARD),
-        })],
+        statements: vec![direct_stmt!(FORWARD, expr)]
     };
 
     assert_eq!(actual, expected);
@@ -181,10 +173,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let expr = binary_expr!(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: direction!(FORWARD),
-            expr,
-        })],
+        statements: vec![direct_stmt!(FORWARD, expr)]
     };
 
     assert_eq!(actual, expected);
@@ -362,7 +351,7 @@ fn procedure_stmt_with_params() {
         .unwrap();
 
     let mut block = BlockStatement::new();
-     block.add_statement(make_stmt!("C".to_string(), int_expr!(10)));
+    block.add_statement(make_stmt!("C".to_string(), int_expr!(10)));
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
         name: "MyProc".to_string(),
