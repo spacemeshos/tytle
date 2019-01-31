@@ -19,6 +19,22 @@ use logos::ast::statement::{
     Statement,
 };
 
+macro_rules! int_expr {
+    ($num:expr) => {
+        {
+            Expression::Literal(LiteralExpr::Int($num))
+        }
+    }
+}
+
+macro_rules! boxed_int_expr {
+    ($num:expr) => {
+        {
+            Box::new(int_expr!($num))
+        }
+    }
+}
+
 #[test]
 fn direction_forward() {
     let actual = SimpleParser.parse("FORWARD 20").unwrap();
@@ -26,7 +42,7 @@ fn direction_forward() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20),
         })],
     };
 
@@ -40,7 +56,7 @@ fn direction_backward() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Backward,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20)
         })],
     };
 
@@ -54,7 +70,7 @@ fn direction_left() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Left,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20)
         })],
     };
 
@@ -68,7 +84,7 @@ fn direction_right() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Right,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20)
         })],
     };
 
@@ -82,7 +98,7 @@ fn direction_setx() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::SetX,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20)
         })],
     };
 
@@ -96,7 +112,7 @@ fn direction_sety() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::SetY,
-            expr: Expression::Literal(LiteralExpr::Int(20)),
+            expr: int_expr!(20)
         })],
     };
 
@@ -111,11 +127,11 @@ fn direction_forward_and_then_backward_no_empty_lines() {
         statements: vec![
             Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                expr: Expression::Literal(LiteralExpr::Int(10)),
+                expr: int_expr!(10)
             }),
             Statement::Direction(DirectionStmt {
                 direction: Direction::Right,
-                expr: Expression::Literal(LiteralExpr::Int(20)),
+                expr: int_expr!(20)
             }),
         ],
     };
@@ -133,11 +149,11 @@ fn direction_forward_and_then_backward_with_empty_lines() {
         statements: vec![
             Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
-                expr: Expression::Literal(LiteralExpr::Int(10)),
+                expr: int_expr!(10)
             }),
             Statement::Direction(DirectionStmt {
                 direction: Direction::Right,
-                expr: Expression::Literal(LiteralExpr::Int(20)),
+                expr: int_expr!(20)
             }),
         ],
     };
@@ -152,7 +168,7 @@ fn expr_integer_surrounded_by_parentheses() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
-            expr: Expression::Literal(LiteralExpr::Int(10)),
+            expr: int_expr!(10)
         })],
     };
 
@@ -168,8 +184,8 @@ fn expr_add_integers_with_spaces() {
             direction: Direction::Forward,
             expr: Expression::Binary(
                 BinaryOp::Add,
-                Box::new(Expression::Literal(LiteralExpr::Int(1))),
-                Box::new(Expression::Literal(LiteralExpr::Int(2))),
+                boxed_int_expr!(1),
+                boxed_int_expr!(2),
             ),
         })],
     };
@@ -186,8 +202,8 @@ fn expr_add_integers_without_spaces() {
             direction: Direction::Forward,
             expr: Expression::Binary(
                 BinaryOp::Add,
-                Box::new(Expression::Literal(LiteralExpr::Int(1))),
-                Box::new(Expression::Literal(LiteralExpr::Int(2))),
+                boxed_int_expr!(1),
+                boxed_int_expr!(2),
             ),
         })],
     };
@@ -201,14 +217,14 @@ fn expr_add_and_mul_integers() {
 
     let clause1 = Expression::Binary(
         BinaryOp::Mul,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let clause2 = Expression::Binary(
         BinaryOp::Mul,
-        Box::new(Expression::Literal(LiteralExpr::Int(3))),
-        Box::new(Expression::Literal(LiteralExpr::Int(4))),
+        boxed_int_expr!(3),
+        boxed_int_expr!(4),
     );
 
     let expr = Expression::Binary(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
@@ -229,8 +245,8 @@ fn expr_mul_integers_without_spaces() {
 
     let expr = Expression::Binary(
         BinaryOp::Mul,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let expected = Ast {
@@ -249,25 +265,25 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
     let ones_mul = Expression::Binary(
         BinaryOp::Mul,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(1),
     );
 
     let three_mul = Expression::Binary(
         BinaryOp::Mul,
-        Box::new(Expression::Literal(LiteralExpr::Int(3))),
-        Box::new(Expression::Literal(LiteralExpr::Int(3))),
+        boxed_int_expr!(3),
+        boxed_int_expr!(3),
     );
 
     let add_1_2 = Expression::Binary(
         BinaryOp::Add,
         Box::new(ones_mul),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(2),
     );
     let add_3_4 = Expression::Binary(
         BinaryOp::Add,
         Box::new(three_mul),
-        Box::new(Expression::Literal(LiteralExpr::Int(4))),
+        boxed_int_expr!(4),
     );
 
     let expr = Expression::Binary(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
@@ -288,7 +304,7 @@ fn make_variable_assign_an_integer() {
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(2)),
+        expr: int_expr!(2),
     });
 
     let expected = Ast {
@@ -320,8 +336,8 @@ fn make_variable_assign_an_expr() {
 
     let expr = Expression::Binary(
         BinaryOp::Add,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let make_stmt = Statement::Make(MakeStmt {
@@ -349,7 +365,7 @@ fn make_variable_assign_an_expr_containing_another_var() {
     let expr = Expression::Binary(
         BinaryOp::Add,
         Box::new(Expression::Literal(LiteralExpr::Var("B".to_string()))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(2),
     );
 
     let make_stmt = Statement::Make(MakeStmt {
@@ -372,19 +388,19 @@ fn if_stmt_without_else() {
 
     let cond_expr = Expression::Binary(
         BinaryOp::Add,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let mut true_block = BlockStatement::new();
     true_block.add_statement(Statement::Make(MakeStmt {
         symbol: "A".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(3)),
+        expr: int_expr!(3),
     }));
 
     true_block.add_statement(Statement::Make(MakeStmt {
         symbol: "B".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(4)),
+        expr: int_expr!(4),
     }));
 
     let if_stmt = Statement::If(IfStmt {
@@ -408,20 +424,20 @@ fn if_stmt_with_else() {
 
     let cond_expr = Expression::Binary(
         BinaryOp::Add,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let mut true_block = BlockStatement::new();
     true_block.add_statement(Statement::Make(MakeStmt {
         symbol: "A".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(1)),
+        expr: int_expr!(1),
     }));
 
     let mut false_block = BlockStatement::new();
     false_block.add_statement(Statement::Make(MakeStmt {
         symbol: "B".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(2)),
+        expr: int_expr!(2),
     }));
 
     let if_stmt = Statement::If(IfStmt {
@@ -445,19 +461,19 @@ fn repeat_stmt() {
 
     let count_expr = Expression::Binary(
         BinaryOp::Add,
-        Box::new(Expression::Literal(LiteralExpr::Int(1))),
-        Box::new(Expression::Literal(LiteralExpr::Int(2))),
+        boxed_int_expr!(1),
+        boxed_int_expr!(2),
     );
 
     let mut block = BlockStatement::new();
     block.add_statement(Statement::Make(MakeStmt {
         symbol: "A".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(3)),
+        expr: int_expr!(3)
     }));
 
     block.add_statement(Statement::Make(MakeStmt {
         symbol: "B".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(4)),
+        expr: int_expr!(4)
     }));
 
     let repeat_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
@@ -478,12 +494,12 @@ fn procedure_stmt_without_params() {
     let mut block = BlockStatement::new();
     block.add_statement(Statement::Make(MakeStmt {
         symbol: "A".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(3)),
+        expr: int_expr!(3)
     }));
 
     block.add_statement(Statement::Make(MakeStmt {
         symbol: "B".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(4)),
+        expr: int_expr!(4)
     }));
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
@@ -508,7 +524,7 @@ fn procedure_stmt_with_params() {
     let mut block = BlockStatement::new();
     block.add_statement(Statement::Make(MakeStmt {
         symbol: "C".to_string(),
-        expr: Expression::Literal(LiteralExpr::Int(10)),
+        expr: int_expr!(10)
     }));
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
