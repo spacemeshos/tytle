@@ -198,7 +198,7 @@ fn make_variable_assign_a_string() {
 
     let make_stmt = make_stmt!(
         "MyVar",
-        Expression::Literal(LiteralExpr::Str("Hello".to_string()))
+        str_lit_expr!("Hello")
     );
 
     let expected = Ast {
@@ -235,7 +235,7 @@ fn make_variable_assign_an_expr_containing_another_var() {
 
     let expr = binary_expr!(
         BinaryOp::Add,
-        Box::new(Expression::Literal(LiteralExpr::Var("B".to_string()))),
+        boxed_var_lit_expr!("B"),
         boxed_int_expr!(2)
     );
 
