@@ -1,24 +1,23 @@
-use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
 use crate::ast::Ast;
+use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
 
-use crate::ast::statement::direction::Direction;
 use crate::ast::statement::*;
 
-use crate::lexer::{simple_lexer::SimpleLexer, Lexer, Location, Token};
+use crate::lexer::{Lexer, Location, LogosLexer, Token};
 use crate::parser::{Parser, ParserResult};
 
-pub struct SimpleParser;
+pub struct LogosParser;
 
-impl SimpleParser {
+impl LogosParser {
     fn new() -> Self {
         Self {}
     }
 }
 
-impl Parser for SimpleParser {
+impl Parser for LogosParser {
     fn parse(&mut self, code: &str) -> ParserResult {
         let mut parser = Self::new();
-        let mut lexer = SimpleLexer::new(code);
+        let mut lexer = LogosLexer::new(code);
 
         let ast = parser.parse(&mut lexer);
 
@@ -26,7 +25,7 @@ impl Parser for SimpleParser {
     }
 }
 
-impl SimpleParser {
+impl LogosParser {
     fn parse(&mut self, lexer: &mut impl Lexer) -> Ast {
         let mut ast = Ast::default();
 

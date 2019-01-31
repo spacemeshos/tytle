@@ -1,7 +1,7 @@
 use std::default::Default;
 use std::fmt;
 
-use crate::ast::statement::block_stmt::BlockStatement;
+use crate::ast::statement::BlockStatement;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureStmt {

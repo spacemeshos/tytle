@@ -1,5 +1,6 @@
-mod token;
 mod location;
+mod logos_lexer;
+mod token;
 
 pub trait Lexer {
     fn buffer_more_tokens(&mut self);
@@ -8,6 +9,6 @@ pub trait Lexer {
     fn pop_current_token(&mut self) -> Option<(Token, Location)>;
 }
 
-pub mod simple_lexer;
-pub use token::Token;
 pub use location::Location;
+pub use logos_lexer::LogosLexer;
+pub use token::Token;

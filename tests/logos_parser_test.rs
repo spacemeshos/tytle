@@ -1,12 +1,10 @@
 extern crate logos;
 
 use logos::ast::Ast;
-use logos::parser::simple_parser::SimpleParser;
+use logos::parser::LogosParser;
 use logos::parser::Parser;
 
-use logos::ast::expression::{BinaryOp, Expression, LiteralExpr};
-
-use logos::ast::statement::direction::Direction;
+use logos::ast::expression::*;
 use logos::ast::statement::*;
 
 macro_rules! int_expr {
@@ -23,7 +21,7 @@ macro_rules! boxed_int_expr {
 
 #[test]
 fn direction_forward() {
-    let actual = SimpleParser.parse("FORWARD 20").unwrap();
+    let actual = LogosParser.parse("FORWARD 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -37,7 +35,7 @@ fn direction_forward() {
 
 #[test]
 fn direction_backward() {
-    let actual = SimpleParser.parse("BACKWARD 20").unwrap();
+    let actual = LogosParser.parse("BACKWARD 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -51,7 +49,7 @@ fn direction_backward() {
 
 #[test]
 fn direction_left() {
-    let actual = SimpleParser.parse("LEFT 20").unwrap();
+    let actual = LogosParser.parse("LEFT 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -65,7 +63,7 @@ fn direction_left() {
 
 #[test]
 fn direction_right() {
-    let actual = SimpleParser.parse("RIGHT 20").unwrap();
+    let actual = LogosParser.parse("RIGHT 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -79,7 +77,7 @@ fn direction_right() {
 
 #[test]
 fn direction_setx() {
-    let actual = SimpleParser.parse("SETX 20").unwrap();
+    let actual = LogosParser.parse("SETX 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -93,7 +91,7 @@ fn direction_setx() {
 
 #[test]
 fn direction_sety() {
-    let actual = SimpleParser.parse("SETY 20").unwrap();
+    let actual = LogosParser.parse("SETY 20").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -107,7 +105,7 @@ fn direction_sety() {
 
 #[test]
 fn direction_forward_and_then_backward_no_empty_lines() {
-    let actual = SimpleParser.parse("FORWARD 10\nRIGHT 20").unwrap();
+    let actual = LogosParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
     let expected = Ast {
         statements: vec![
@@ -127,9 +125,7 @@ fn direction_forward_and_then_backward_no_empty_lines() {
 
 #[test]
 fn direction_forward_and_then_backward_with_empty_lines() {
-    let actual = SimpleParser
-        .parse("\n\nFORWARD 10\n\nRIGHT 20\n\n")
-        .unwrap();
+    let actual = LogosParser.parse("\n\nFORWARD 10\n\nRIGHT 20\n\n").unwrap();
 
     let expected = Ast {
         statements: vec![
@@ -149,7 +145,7 @@ fn direction_forward_and_then_backward_with_empty_lines() {
 
 #[test]
 fn expr_integer_surrounded_by_parentheses() {
-    let actual = SimpleParser.parse("FORWARD (10)").unwrap();
+    let actual = LogosParser.parse("FORWARD (10)").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -163,7 +159,7 @@ fn expr_integer_surrounded_by_parentheses() {
 
 #[test]
 fn expr_add_integers_with_spaces() {
-    let actual = SimpleParser.parse("FORWARD 1 + 2").unwrap();
+    let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -177,7 +173,7 @@ fn expr_add_integers_with_spaces() {
 
 #[test]
 fn expr_add_integers_without_spaces() {
-    let actual = SimpleParser.parse("FORWARD 1 + 2").unwrap();
+    let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -191,7 +187,7 @@ fn expr_add_integers_without_spaces() {
 
 #[test]
 fn expr_add_and_mul_integers() {
-    let actual = SimpleParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
+    let actual = LogosParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
     let clause1 = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
 
@@ -211,7 +207,7 @@ fn expr_add_and_mul_integers() {
 
 #[test]
 fn expr_mul_integers_without_spaces() {
-    let actual = SimpleParser.parse("FORWARD 1 * 2").unwrap();
+    let actual = LogosParser.parse("FORWARD 1 * 2").unwrap();
 
     let expr = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
 
@@ -227,7 +223,7 @@ fn expr_mul_integers_without_spaces() {
 
 #[test]
 fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
-    let actual = SimpleParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
+    let actual = LogosParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
     let ones_mul = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(1));
 
@@ -250,7 +246,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
 #[test]
 fn make_variable_assign_an_integer() {
-    let actual = SimpleParser.parse("MAKE \"MyVar = 2").unwrap();
+    let actual = LogosParser.parse("MAKE \"MyVar = 2").unwrap();
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
@@ -266,7 +262,7 @@ fn make_variable_assign_an_integer() {
 
 #[test]
 fn make_variable_assign_a_string() {
-    let actual = SimpleParser.parse("MAKE \"MyVar = \"Hello").unwrap();
+    let actual = LogosParser.parse("MAKE \"MyVar = \"Hello").unwrap();
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
@@ -282,7 +278,7 @@ fn make_variable_assign_a_string() {
 
 #[test]
 fn make_variable_assign_an_expr() {
-    let actual = SimpleParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
+    let actual = LogosParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
     let expr = Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
 
@@ -301,12 +297,12 @@ fn make_variable_assign_an_expr() {
 #[test]
 #[should_panic]
 fn make_variable_must_be_prefixed_with_quotation_marks() {
-    SimpleParser.parse("MAKE A=1").unwrap();
+    LogosParser.parse("MAKE A=1").unwrap();
 }
 
 #[test]
 fn make_variable_assign_an_expr_containing_another_var() {
-    let actual = SimpleParser.parse("MAKE \"A = :B + 2").unwrap();
+    let actual = LogosParser.parse("MAKE \"A = :B + 2").unwrap();
 
     let expr = Expression::Binary(
         BinaryOp::Add,
@@ -328,7 +324,7 @@ fn make_variable_assign_an_expr_containing_another_var() {
 
 #[test]
 fn if_stmt_without_else() {
-    let actual = SimpleParser
+    let actual = LogosParser
         .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
@@ -360,7 +356,7 @@ fn if_stmt_without_else() {
 
 #[test]
 fn if_stmt_with_else() {
-    let actual = SimpleParser
+    let actual = LogosParser
         .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
         .unwrap();
 
@@ -393,7 +389,7 @@ fn if_stmt_with_else() {
 
 #[test]
 fn repeat_stmt() {
-    let actual = SimpleParser
+    let actual = LogosParser
         .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
@@ -421,7 +417,7 @@ fn repeat_stmt() {
 
 #[test]
 fn procedure_stmt_without_params() {
-    let actual = SimpleParser
+    let actual = LogosParser
         .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
         .unwrap();
 
@@ -451,7 +447,7 @@ fn procedure_stmt_without_params() {
 
 #[test]
 fn procedure_stmt_with_params() {
-    let actual = SimpleParser
+    let actual = LogosParser
         .parse("TO MyProc :A :B \n MAKE \"C = 10 END")
         .unwrap();
 
@@ -476,7 +472,7 @@ fn procedure_stmt_with_params() {
 
 #[test]
 fn command_xcor() {
-    let actual = SimpleParser.parse("XCOR").unwrap();
+    let actual = LogosParser.parse("XCOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::XCor);
 
@@ -489,7 +485,7 @@ fn command_xcor() {
 
 #[test]
 fn command_ycor() {
-    let actual = SimpleParser.parse("YCOR").unwrap();
+    let actual = LogosParser.parse("YCOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::YCor);
 
@@ -502,7 +498,7 @@ fn command_ycor() {
 
 #[test]
 fn command_pen_up() {
-    let actual = SimpleParser.parse("PENUP").unwrap();
+    let actual = LogosParser.parse("PENUP").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenUp);
 
@@ -515,7 +511,7 @@ fn command_pen_up() {
 
 #[test]
 fn command_pen_down() {
-    let actual = SimpleParser.parse("PENDOWN").unwrap();
+    let actual = LogosParser.parse("PENDOWN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenDown);
 
@@ -528,7 +524,7 @@ fn command_pen_down() {
 
 #[test]
 fn command_show_turtle() {
-    let actual = SimpleParser.parse("SHOWTURTLE").unwrap();
+    let actual = LogosParser.parse("SHOWTURTLE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::ShowTurtle);
 
@@ -541,7 +537,7 @@ fn command_show_turtle() {
 
 #[test]
 fn command_hide_turtle() {
-    let actual = SimpleParser.parse("HIDETURTLE").unwrap();
+    let actual = LogosParser.parse("HIDETURTLE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::HideTurtle);
 
@@ -554,7 +550,7 @@ fn command_hide_turtle() {
 
 #[test]
 fn command_pen_erase() {
-    let actual = SimpleParser.parse("PENERASE").unwrap();
+    let actual = LogosParser.parse("PENERASE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenErase);
 
@@ -567,7 +563,7 @@ fn command_pen_erase() {
 
 #[test]
 fn command_clean() {
-    let actual = SimpleParser.parse("CLEAN").unwrap();
+    let actual = LogosParser.parse("CLEAN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::Clean);
 
@@ -580,7 +576,7 @@ fn command_clean() {
 
 #[test]
 fn command_clear_screen() {
-    let actual = SimpleParser.parse("CLEARSCREEN").unwrap();
+    let actual = LogosParser.parse("CLEARSCREEN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::ClearScreen);
 
@@ -593,7 +589,7 @@ fn command_clear_screen() {
 
 #[test]
 fn command_set_pen_color() {
-    let actual = SimpleParser.parse("SETPENCOLOR").unwrap();
+    let actual = LogosParser.parse("SETPENCOLOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::SetPenColor);
 
@@ -606,7 +602,7 @@ fn command_set_pen_color() {
 
 #[test]
 fn command_set_background_color() {
-    let actual = SimpleParser.parse("SETBACKGROUND").unwrap();
+    let actual = LogosParser.parse("SETBACKGROUND").unwrap();
 
     let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
 
@@ -619,7 +615,7 @@ fn command_set_background_color() {
 
 #[test]
 fn command_wait() {
-    let actual = SimpleParser.parse("WAIT").unwrap();
+    let actual = LogosParser.parse("WAIT").unwrap();
 
     let stmt = Statement::Command(CommandStmt::Wait);
 
@@ -632,7 +628,7 @@ fn command_wait() {
 
 #[test]
 fn command_stop() {
-    let actual = SimpleParser.parse("STOP").unwrap();
+    let actual = LogosParser.parse("STOP").unwrap();
 
     let stmt = Statement::Command(CommandStmt::Stop);
 

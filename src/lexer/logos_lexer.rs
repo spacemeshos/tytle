@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 
 use std::str::Chars;
 
-pub struct SimpleLexer<'a> {
+pub struct LogosLexer<'a> {
     code_size: usize,
     code_chars: Chars<'a>,
     location: Location,
@@ -14,7 +14,7 @@ pub struct SimpleLexer<'a> {
     tokens_buffer: VecDeque<(Token, Location)>,
 }
 
-impl<'a> SimpleLexer<'a> {
+impl<'a> LogosLexer<'a> {
     pub fn new(code: &'a str) -> Self {
         let mut lexer = Self {
             location: Location::default(),
@@ -30,7 +30,7 @@ impl<'a> SimpleLexer<'a> {
     }
 }
 
-impl<'a> Lexer for SimpleLexer<'a> {
+impl<'a> Lexer for LogosLexer<'a> {
     fn peek_current_token(&self) -> Option<&(Token, Location)> {
         self.peek_nth_token(0)
     }
@@ -75,7 +75,7 @@ impl<'a> Lexer for SimpleLexer<'a> {
                         self.push_assign();
                         self.location.increment_column();
                         break;
-                    },
+                    }
                     '>' => {
                         self.push_token(&mut token);
                         self.push_greater_than();
@@ -121,7 +121,7 @@ impl<'a> Lexer for SimpleLexer<'a> {
     }
 }
 
-impl<'a> SimpleLexer<'a> {
+impl<'a> LogosLexer<'a> {
     fn peek_nth_token(&self, nth: usize) -> Option<&(Token, Location)> {
         if self.tokens_buffer.len() > nth {
             self.tokens_buffer.get(nth)
