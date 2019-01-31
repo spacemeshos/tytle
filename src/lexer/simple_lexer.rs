@@ -75,6 +75,18 @@ impl<'a> Lexer for SimpleLexer<'a> {
                         self.push_assign();
                         self.location.increment_column();
                         break;
+                    },
+                    '>' => {
+                        self.push_token(&mut token);
+                        self.push_greater_than();
+                        self.location.increment_column();
+                        break;
+                    }
+                    '<' => {
+                        self.push_token(&mut token);
+                        self.push_less_than();
+                        self.location.increment_column();
+                        break;
                     }
                     '+' | '*' => {
                         self.push_token(&mut token);
@@ -161,6 +173,14 @@ impl<'a> SimpleLexer<'a> {
 
     fn push_assign(&mut self) {
         self.tokens_buffer.push_back((Token::ASSIGN, self.location));
+    }
+
+    fn push_less_than(&mut self) {
+        self.tokens_buffer.push_back((Token::LT, self.location));
+    }
+
+    fn push_greater_than(&mut self) {
+        self.tokens_buffer.push_back((Token::GT, self.location));
     }
 
     fn push_bracket(&mut self, op: char) {
@@ -527,5 +547,41 @@ mod tests {
 
         assert_eq!(loc7, Location(1, 11));
         assert_eq!(tok7, Token::RPAREN);
+    }
+
+    #[test]
+    fn less_than_expr() {
+        let mut lexer = SimpleLexer::new("1<2");
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::LT);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::VALUE("2".to_string()));
+    }
+
+    #[test]
+    fn greater_than_expr() {
+        let mut lexer = SimpleLexer::new("1>2");
+
+        let (tok1, loc1) = lexer.pop_current_token().unwrap();
+        let (tok2, loc2) = lexer.pop_current_token().unwrap();
+        let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+        assert_eq!(loc1, Location(1, 1));
+        assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+        assert_eq!(loc2, Location(1, 2));
+        assert_eq!(tok2, Token::GT);
+
+        assert_eq!(loc3, Location(1, 3));
+        assert_eq!(tok3, Token::VALUE("2".to_string()));
     }
 }

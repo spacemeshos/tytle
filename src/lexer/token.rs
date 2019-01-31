@@ -14,5 +14,8 @@ pub enum Token {
 
     ASSIGN, // =
 
+    LT, // <
+    GT, // >
+
     VALUE(String),
 }
