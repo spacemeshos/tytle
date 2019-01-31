@@ -113,7 +113,7 @@ fn expr_add_integers_with_spaces() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: direction!(FORWARD),
-            expr: Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)),
+            expr: binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2))
         })],
     };
 
@@ -127,7 +127,7 @@ fn expr_add_integers_without_spaces() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: direction!(FORWARD),
-            expr: Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)),
+            expr: binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2))
         })],
     };
 
@@ -138,9 +138,9 @@ fn expr_add_integers_without_spaces() {
 fn expr_add_and_mul_integers() {
     let actual = LogosParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
-    let clause1 = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
-    let clause2 = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(4));
-    let expr = Expression::Binary(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
+    let clause1 = binary_expr!(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
+    let clause2 = binary_expr!(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(4));
+    let expr = binary_expr!(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -156,7 +156,7 @@ fn expr_add_and_mul_integers() {
 fn expr_mul_integers_without_spaces() {
     let actual = LogosParser.parse("FORWARD 1 * 2").unwrap();
 
-    let expr = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
+    let expr = binary_expr!(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -172,13 +172,13 @@ fn expr_mul_integers_without_spaces() {
 fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let actual = LogosParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
-    let ones_mul = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(1));
-    let three_mul = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(3));
+    let ones_mul = binary_expr!(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(1));
+    let three_mul = binary_expr!(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(3));
 
-    let add_1_2 = Expression::Binary(BinaryOp::Add, Box::new(ones_mul), boxed_int_expr!(2));
-    let add_3_4 = Expression::Binary(BinaryOp::Add, Box::new(three_mul), boxed_int_expr!(4));
+    let add_1_2 = binary_expr!(BinaryOp::Add, Box::new(ones_mul), boxed_int_expr!(2));
+    let add_3_4 = binary_expr!(BinaryOp::Add, Box::new(three_mul), boxed_int_expr!(4));
 
-    let expr = Expression::Binary(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
+    let expr = binary_expr!(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
@@ -194,10 +194,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 fn make_variable_assign_an_integer() {
     let actual = LogosParser.parse("MAKE \"MyVar = 2").unwrap();
 
-    let make_stmt = Statement::Make(MakeStmt {
-        symbol: "MyVar".to_string(),
-        expr: int_expr!(2),
-    });
+    let make_stmt = make_stmt!("MyVar", int_expr!(2));
 
     let expected = Ast {
         statements: vec![make_stmt],
@@ -210,10 +207,10 @@ fn make_variable_assign_an_integer() {
 fn make_variable_assign_a_string() {
     let actual = LogosParser.parse("MAKE \"MyVar = \"Hello").unwrap();
 
-    let make_stmt = Statement::Make(MakeStmt {
-        symbol: "MyVar".to_string(),
-        expr: Expression::Literal(LiteralExpr::Str("Hello".to_string())),
-    });
+    let make_stmt = make_stmt!(
+        "MyVar",
+        Expression::Literal(LiteralExpr::Str("Hello".to_string()))
+    );
 
     let expected = Ast {
         statements: vec![make_stmt],
@@ -226,12 +223,9 @@ fn make_variable_assign_a_string() {
 fn make_variable_assign_an_expr() {
     let actual = LogosParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
-    let expr = Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
+    let expr = binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
 
-    let make_stmt = Statement::Make(MakeStmt {
-        symbol: "MyVar".to_string(),
-        expr,
-    });
+    let make_stmt = make_stmt!("MyVar", expr);
 
     let expected = Ast {
         statements: vec![make_stmt],
@@ -250,16 +244,13 @@ fn make_variable_must_be_prefixed_with_quotation_marks() {
 fn make_variable_assign_an_expr_containing_another_var() {
     let actual = LogosParser.parse("MAKE \"A = :B + 2").unwrap();
 
-    let expr = Expression::Binary(
+    let expr = binary_expr!(
         BinaryOp::Add,
         Box::new(Expression::Literal(LiteralExpr::Var("B".to_string()))),
-        boxed_int_expr!(2),
+        boxed_int_expr!(2)
     );
 
-    let make_stmt = Statement::Make(MakeStmt {
-        symbol: "A".to_string(),
-        expr,
-    });
+    let make_stmt = make_stmt!("A", expr);
 
     let expected = Ast {
         statements: vec![make_stmt],
@@ -274,18 +265,11 @@ fn if_stmt_without_else() {
         .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
-    let cond_expr = Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
+    let cond_expr = binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
 
     let mut true_block = BlockStatement::new();
-    true_block.add_statement(Statement::Make(MakeStmt {
-        symbol: "A".to_string(),
-        expr: int_expr!(3),
-    }));
-
-    true_block.add_statement(Statement::Make(MakeStmt {
-        symbol: "B".to_string(),
-        expr: int_expr!(4),
-    }));
+    true_block.add_statement(make_stmt!("A".to_string(), int_expr!(3)));
+    true_block.add_statement(make_stmt!("B".to_string(), int_expr!(4)));
 
     let if_stmt = Statement::If(IfStmt {
         cond_expr,
@@ -306,19 +290,13 @@ fn if_stmt_with_else() {
         .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
         .unwrap();
 
-    let cond_expr = Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
+    let cond_expr = binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
 
     let mut true_block = BlockStatement::new();
-    true_block.add_statement(Statement::Make(MakeStmt {
-        symbol: "A".to_string(),
-        expr: int_expr!(1),
-    }));
+    true_block.add_statement(make_stmt!("A", int_expr!(1)));
 
     let mut false_block = BlockStatement::new();
-    false_block.add_statement(Statement::Make(MakeStmt {
-        symbol: "B".to_string(),
-        expr: int_expr!(2),
-    }));
+    false_block.add_statement(make_stmt!("B", int_expr!(2)));
 
     let if_stmt = Statement::If(IfStmt {
         cond_expr,
@@ -339,18 +317,11 @@ fn repeat_stmt() {
         .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
-    let count_expr = Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
+    let count_expr = binary_expr!(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2));
 
     let mut block = BlockStatement::new();
-    block.add_statement(Statement::Make(MakeStmt {
-        symbol: "A".to_string(),
-        expr: int_expr!(3),
-    }));
-
-    block.add_statement(Statement::Make(MakeStmt {
-        symbol: "B".to_string(),
-        expr: int_expr!(4),
-    }));
+    block.add_statement(make_stmt!("A", int_expr!(3)));
+    block.add_statement(make_stmt!("B", int_expr!(4)));
 
     let repeat_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
 
@@ -368,15 +339,8 @@ fn procedure_stmt_without_params() {
         .unwrap();
 
     let mut block = BlockStatement::new();
-    block.add_statement(Statement::Make(MakeStmt {
-        symbol: "A".to_string(),
-        expr: int_expr!(3),
-    }));
-
-    block.add_statement(Statement::Make(MakeStmt {
-        symbol: "B".to_string(),
-        expr: int_expr!(4),
-    }));
+    block.add_statement(make_stmt!("A".to_string(), int_expr!(3)));
+    block.add_statement(make_stmt!("B".to_string(), int_expr!(4)));
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
         name: "MyProc".to_string(),
@@ -398,10 +362,7 @@ fn procedure_stmt_with_params() {
         .unwrap();
 
     let mut block = BlockStatement::new();
-    block.add_statement(Statement::Make(MakeStmt {
-        symbol: "C".to_string(),
-        expr: int_expr!(10),
-    }));
+     block.add_statement(make_stmt!("C".to_string(), int_expr!(10)));
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
         name: "MyProc".to_string(),
@@ -420,10 +381,8 @@ fn procedure_stmt_with_params() {
 fn command_xcor() {
     let actual = LogosParser.parse("XCOR").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::XCor);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(XCOR)],
     };
 
     assert_eq!(expected, actual);
@@ -433,10 +392,8 @@ fn command_xcor() {
 fn command_ycor() {
     let actual = LogosParser.parse("YCOR").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::YCor);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(YCOR)],
     };
 
     assert_eq!(expected, actual);
@@ -446,10 +403,8 @@ fn command_ycor() {
 fn command_pen_up() {
     let actual = LogosParser.parse("PENUP").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::PenUp);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(PENUP)],
     };
 
     assert_eq!(expected, actual);
@@ -459,10 +414,8 @@ fn command_pen_up() {
 fn command_pen_down() {
     let actual = LogosParser.parse("PENDOWN").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::PenDown);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(PENDOWN)],
     };
 
     assert_eq!(expected, actual);
@@ -472,10 +425,8 @@ fn command_pen_down() {
 fn command_show_turtle() {
     let actual = LogosParser.parse("SHOWTURTLE").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::ShowTurtle);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(SHOWTURTLE)],
     };
 
     assert_eq!(expected, actual);
@@ -485,10 +436,8 @@ fn command_show_turtle() {
 fn command_hide_turtle() {
     let actual = LogosParser.parse("HIDETURTLE").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::HideTurtle);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(HIDETURTLE)],
     };
 
     assert_eq!(expected, actual);
@@ -498,10 +447,8 @@ fn command_hide_turtle() {
 fn command_pen_erase() {
     let actual = LogosParser.parse("PENERASE").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::PenErase);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(PENERASE)],
     };
 
     assert_eq!(expected, actual);
@@ -511,10 +458,8 @@ fn command_pen_erase() {
 fn command_clean() {
     let actual = LogosParser.parse("CLEAN").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::Clean);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(CLEAN)],
     };
 
     assert_eq!(expected, actual);
@@ -524,10 +469,8 @@ fn command_clean() {
 fn command_clear_screen() {
     let actual = LogosParser.parse("CLEARSCREEN").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::ClearScreen);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(CLEARSCREEN)],
     };
 
     assert_eq!(expected, actual);
@@ -537,10 +480,8 @@ fn command_clear_screen() {
 fn command_set_pen_color() {
     let actual = LogosParser.parse("SETPENCOLOR").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::SetPenColor);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(SETPENCOLOR)],
     };
 
     assert_eq!(expected, actual);
@@ -550,10 +491,8 @@ fn command_set_pen_color() {
 fn command_set_background_color() {
     let actual = LogosParser.parse("SETBACKGROUND").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(SETBACKGROUND)],
     };
 
     assert_eq!(expected, actual);
@@ -563,10 +502,8 @@ fn command_set_background_color() {
 fn command_wait() {
     let actual = LogosParser.parse("WAIT").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::Wait);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(WAIT)],
     };
 
     assert_eq!(expected, actual);
@@ -576,10 +513,8 @@ fn command_wait() {
 fn command_stop() {
     let actual = LogosParser.parse("STOP").unwrap();
 
-    let stmt = Statement::Command(CommandStmt::Stop);
-
     let expected = Ast {
-        statements: vec![stmt],
+        statements: vec![command_stmt!(STOP)],
     };
 
     assert_eq!(expected, actual);
