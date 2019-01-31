@@ -1,12 +1,10 @@
-use crate::ast::expression::BinaryOp;
-use crate::ast::expression::Expression;
-use crate::ast::expression::LiteralExpr;
+use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
 use crate::ast::Ast;
 
 use crate::ast::statement::direction::Direction;
 use crate::ast::statement::*;
 
-use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
+use crate::lexer::{simple_lexer::SimpleLexer, Lexer, Location, Token};
 use crate::parser::{Parser, ParserResult};
 
 pub struct SimpleParser;

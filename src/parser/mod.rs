@@ -1,5 +1,5 @@
 use crate::ast::Ast;
-use crate::lexer::location::Location;
+use crate::lexer::Location;
 
 #[derive(Debug, PartialEq)]
 pub struct ParseError {

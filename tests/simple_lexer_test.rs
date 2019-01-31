@@ -1,9 +1,7 @@
 extern crate logos;
 
-use logos::lexer::location::Location;
 use logos::lexer::simple_lexer::SimpleLexer;
-use logos::lexer::token::Token;
-use logos::lexer::Lexer;
+use logos::lexer::{Lexer, Location, Token};
 
 #[test]
 fn empty() {

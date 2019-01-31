@@ -4,9 +4,7 @@ use logos::ast::Ast;
 use logos::parser::simple_parser::SimpleParser;
 use logos::parser::Parser;
 
-use logos::ast::expression::BinaryOp;
-use logos::ast::expression::Expression;
-use logos::ast::expression::LiteralExpr;
+use logos::ast::expression::{BinaryOp, Expression, LiteralExpr};
 
 use logos::ast::statement::direction::Direction;
 use logos::ast::statement::*;
