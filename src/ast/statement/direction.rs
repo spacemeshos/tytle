@@ -1,3 +1,5 @@
+use crate::ast::expression::Expression;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Direction {
     Left,
@@ -22,8 +24,6 @@ impl From<&str> for Direction {
     }
 }
 
-use crate::ast::expression::Expression;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct DirectionStmt {
     pub direction: Direction,
@@ -32,6 +32,7 @@ pub struct DirectionStmt {
 
 #[cfg(test)]
 mod tests {
+    #[macro_use]
     use super::*;
 
     #[test]
@@ -52,6 +53,16 @@ mod tests {
     #[test]
     fn right() {
         assert_eq!(Direction::from("RIGHT"), Direction::Right);
+    }
+
+    #[test]
+    fn set_x() {
+        assert_eq!(Direction::from("SETX"), Direction::SetX);
+    }
+
+    #[test]
+    fn set_y() {
+        assert_eq!(Direction::from("SETY"), Direction::SetY);
     }
 
     #[test]

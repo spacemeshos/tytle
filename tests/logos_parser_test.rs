@@ -1,33 +1,18 @@
+#[macro_use]
 extern crate logos;
 
 use logos::ast::Ast;
-use logos::parser::LogosParser;
-use logos::parser::Parser;
+use logos::parser::{LogosParser, Parser};
 
 use logos::ast::expression::*;
 use logos::ast::statement::*;
-
-macro_rules! int_expr {
-    ($num:expr) => {{
-        Expression::Literal(LiteralExpr::Int($num))
-    }};
-}
-
-macro_rules! boxed_int_expr {
-    ($num:expr) => {{
-        Box::new(int_expr!($num))
-    }};
-}
 
 #[test]
 fn direction_forward() {
     let actual = LogosParser.parse("FORWARD 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(FORWARD, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -38,10 +23,7 @@ fn direction_backward() {
     let actual = LogosParser.parse("BACKWARD 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Backward,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(BACKWARD, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -52,10 +34,7 @@ fn direction_left() {
     let actual = LogosParser.parse("LEFT 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Left,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(LEFT, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -66,10 +45,7 @@ fn direction_right() {
     let actual = LogosParser.parse("RIGHT 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Right,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(RIGHT, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -80,10 +56,7 @@ fn direction_setx() {
     let actual = LogosParser.parse("SETX 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::SetX,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(SETX, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -94,10 +67,7 @@ fn direction_sety() {
     let actual = LogosParser.parse("SETY 20").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::SetY,
-            expr: int_expr!(20),
-        })],
+        statements: vec![direct_lit_expr!(SETY, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -108,16 +78,7 @@ fn direction_forward_and_then_backward_no_empty_lines() {
     let actual = LogosParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
     let expected = Ast {
-        statements: vec![
-            Statement::Direction(DirectionStmt {
-                direction: Direction::Forward,
-                expr: int_expr!(10),
-            }),
-            Statement::Direction(DirectionStmt {
-                direction: Direction::Right,
-                expr: int_expr!(20),
-            }),
-        ],
+        statements: vec![direct_lit_expr!(FORWARD, 10), direct_lit_expr!(RIGHT, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -128,16 +89,7 @@ fn direction_forward_and_then_backward_with_empty_lines() {
     let actual = LogosParser.parse("\n\nFORWARD 10\n\nRIGHT 20\n\n").unwrap();
 
     let expected = Ast {
-        statements: vec![
-            Statement::Direction(DirectionStmt {
-                direction: Direction::Forward,
-                expr: int_expr!(10),
-            }),
-            Statement::Direction(DirectionStmt {
-                direction: Direction::Right,
-                expr: int_expr!(20),
-            }),
-        ],
+        statements: vec![direct_lit_expr!(FORWARD, 10), direct_lit_expr!(RIGHT, 20)],
     };
 
     assert_eq!(actual, expected);
@@ -148,10 +100,7 @@ fn expr_integer_surrounded_by_parentheses() {
     let actual = LogosParser.parse("FORWARD (10)").unwrap();
 
     let expected = Ast {
-        statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
-            expr: int_expr!(10),
-        })],
+        statements: vec![direct_lit_expr!(FORWARD, 10)],
     };
 
     assert_eq!(actual, expected);
@@ -163,7 +112,7 @@ fn expr_add_integers_with_spaces() {
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
+            direction: direction!(FORWARD),
             expr: Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)),
         })],
     };
@@ -177,7 +126,7 @@ fn expr_add_integers_without_spaces() {
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
+            direction: direction!(FORWARD),
             expr: Expression::Binary(BinaryOp::Add, boxed_int_expr!(1), boxed_int_expr!(2)),
         })],
     };
@@ -190,14 +139,12 @@ fn expr_add_and_mul_integers() {
     let actual = LogosParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
     let clause1 = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(2));
-
     let clause2 = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(4));
-
     let expr = Expression::Binary(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
+            direction: direction!(FORWARD),
             expr,
         })],
     };
@@ -214,7 +161,7 @@ fn expr_mul_integers_without_spaces() {
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
             expr,
-            direction: Direction::Forward,
+            direction: direction!(FORWARD),
         })],
     };
 
@@ -226,7 +173,6 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let actual = LogosParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
     let ones_mul = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(1), boxed_int_expr!(1));
-
     let three_mul = Expression::Binary(BinaryOp::Mul, boxed_int_expr!(3), boxed_int_expr!(3));
 
     let add_1_2 = Expression::Binary(BinaryOp::Add, Box::new(ones_mul), boxed_int_expr!(2));
@@ -236,7 +182,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
     let expected = Ast {
         statements: vec![Statement::Direction(DirectionStmt {
-            direction: Direction::Forward,
+            direction: direction!(FORWARD),
             expr,
         })],
     };

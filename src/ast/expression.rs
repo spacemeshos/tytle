@@ -5,6 +5,20 @@ pub enum LiteralExpr {
     Str(String),
 }
 
+#[macro_export]
+macro_rules! int_expr {
+    ($num:expr) => {{
+        Expression::Literal(LiteralExpr::Int($num))
+    }};
+}
+
+#[macro_export]
+macro_rules! boxed_int_expr {
+    ($num:expr) => {{
+        Box::new(int_expr!($num))
+    }};
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOp {
     Add,
