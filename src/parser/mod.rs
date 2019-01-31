@@ -1,4 +1,4 @@
-use crate::ast::program::Program;
+use crate::ast::program_ast::ProgramAst;
 use crate::lexer::location::Location;
 
 #[derive(Debug, PartialEq)]
@@ -16,10 +16,10 @@ impl ParseError {
     }
 }
 
-pub type ParserResult = Result<Program, ParseError>;
+pub type ParserResult = Result<ProgramAst, ParseError>;
 
 pub trait Parser {
     fn parse(&mut self, code: &str) -> ParserResult;
 }
 
-pub mod program_parser;
+pub mod simple_parser;

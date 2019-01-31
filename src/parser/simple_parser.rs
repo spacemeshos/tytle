@@ -1,7 +1,7 @@
 use crate::ast::expression::BinaryOp;
-use crate::ast::expression::LiteralExpr;
 use crate::ast::expression::Expression;
-use crate::ast::program::Program;
+use crate::ast::expression::LiteralExpr;
+use crate::ast::program_ast::ProgramAst;
 
 use crate::ast::statement::{
     block_stmt::BlockStatement,
@@ -17,15 +17,15 @@ use crate::ast::statement::{
 use crate::lexer::{location::Location, simple_lexer::SimpleLexer, token::Token, Lexer};
 use crate::parser::{Parser, ParserResult};
 
-pub struct ProgramParser;
+pub struct SimpleParser;
 
-impl ProgramParser {
+impl SimpleParser {
     fn new() -> Self {
         Self {}
     }
 }
 
-impl Parser for ProgramParser {
+impl Parser for SimpleParser {
     fn parse(&mut self, code: &str) -> ParserResult {
         let mut parser = Self::new();
         let mut lexer = SimpleLexer::new(code);
@@ -36,9 +36,9 @@ impl Parser for ProgramParser {
     }
 }
 
-impl ProgramParser {
-    fn parse_program(&mut self, lexer: &mut impl Lexer) -> Program {
-        let mut program = Program::default();
+impl SimpleParser {
+    fn parse_program(&mut self, lexer: &mut impl Lexer) -> ProgramAst {
+        let mut program = ProgramAst::default();
 
         while let Some(stmt) = self.parse_statement(lexer) {
             if stmt != Statement::Nop {

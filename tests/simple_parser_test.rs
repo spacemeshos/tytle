@@ -1,7 +1,7 @@
 extern crate logos;
 
-use logos::ast::program::Program;
-use logos::parser::program_parser::ProgramParser;
+use logos::ast::program_ast::ProgramAst;
+use logos::parser::simple_parser::SimpleParser;
 use logos::parser::Parser;
 
 use logos::ast::expression::BinaryOp;
@@ -21,9 +21,9 @@ use logos::ast::statement::{
 
 #[test]
 fn direction_forward() {
-    let actual = ProgramParser.parse("FORWARD 20").unwrap();
+    let actual = SimpleParser.parse("FORWARD 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -35,9 +35,9 @@ fn direction_forward() {
 
 #[test]
 fn direction_backward() {
-    let actual = ProgramParser.parse("BACKWARD 20").unwrap();
+    let actual = SimpleParser.parse("BACKWARD 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Backward,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -49,9 +49,9 @@ fn direction_backward() {
 
 #[test]
 fn direction_left() {
-    let actual = ProgramParser.parse("LEFT 20").unwrap();
+    let actual = SimpleParser.parse("LEFT 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Left,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -63,9 +63,9 @@ fn direction_left() {
 
 #[test]
 fn direction_right() {
-    let actual = ProgramParser.parse("RIGHT 20").unwrap();
+    let actual = SimpleParser.parse("RIGHT 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Right,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -77,9 +77,9 @@ fn direction_right() {
 
 #[test]
 fn direction_setx() {
-    let actual = ProgramParser.parse("SETX 20").unwrap();
+    let actual = SimpleParser.parse("SETX 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::SetX,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -91,9 +91,9 @@ fn direction_setx() {
 
 #[test]
 fn direction_sety() {
-    let actual = ProgramParser.parse("SETY 20").unwrap();
+    let actual = SimpleParser.parse("SETY 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::SetY,
             expr: Expression::Literal(LiteralExpr::Int(20)),
@@ -105,9 +105,9 @@ fn direction_sety() {
 
 #[test]
 fn direction_forward_and_then_backward_no_empty_lines() {
-    let actual = ProgramParser.parse("FORWARD 10\nRIGHT 20").unwrap();
+    let actual = SimpleParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![
             Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
@@ -125,11 +125,11 @@ fn direction_forward_and_then_backward_no_empty_lines() {
 
 #[test]
 fn direction_forward_and_then_backward_with_empty_lines() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("\n\nFORWARD 10\n\nRIGHT 20\n\n")
         .unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![
             Statement::Direction(DirectionStmt {
                 direction: Direction::Forward,
@@ -147,9 +147,9 @@ fn direction_forward_and_then_backward_with_empty_lines() {
 
 #[test]
 fn expr_integer_surrounded_by_parentheses() {
-    let actual = ProgramParser.parse("FORWARD (10)").unwrap();
+    let actual = SimpleParser.parse("FORWARD (10)").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr: Expression::Literal(LiteralExpr::Int(10)),
@@ -161,9 +161,9 @@ fn expr_integer_surrounded_by_parentheses() {
 
 #[test]
 fn expr_add_integers_with_spaces() {
-    let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
+    let actual = SimpleParser.parse("FORWARD 1 + 2").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr: Expression::Binary(
@@ -179,9 +179,9 @@ fn expr_add_integers_with_spaces() {
 
 #[test]
 fn expr_add_integers_without_spaces() {
-    let actual = ProgramParser.parse("FORWARD 1 + 2").unwrap();
+    let actual = SimpleParser.parse("FORWARD 1 + 2").unwrap();
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr: Expression::Binary(
@@ -197,7 +197,7 @@ fn expr_add_integers_without_spaces() {
 
 #[test]
 fn expr_add_and_mul_integers() {
-    let actual = ProgramParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
+    let actual = SimpleParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
     let clause1 = Expression::Binary(
         BinaryOp::Mul,
@@ -213,7 +213,7 @@ fn expr_add_and_mul_integers() {
 
     let expr = Expression::Binary(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr,
@@ -225,7 +225,7 @@ fn expr_add_and_mul_integers() {
 
 #[test]
 fn expr_mul_integers_without_spaces() {
-    let actual = ProgramParser.parse("FORWARD 1 * 2").unwrap();
+    let actual = SimpleParser.parse("FORWARD 1 * 2").unwrap();
 
     let expr = Expression::Binary(
         BinaryOp::Mul,
@@ -233,7 +233,7 @@ fn expr_mul_integers_without_spaces() {
         Box::new(Expression::Literal(LiteralExpr::Int(2))),
     );
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             expr,
             direction: Direction::Forward,
@@ -245,9 +245,7 @@ fn expr_mul_integers_without_spaces() {
 
 #[test]
 fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
-    let actual = ProgramParser
-        .parse("FORWARD (1*1 + 2) * (3*3 + 4)")
-        .unwrap();
+    let actual = SimpleParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
     let ones_mul = Expression::Binary(
         BinaryOp::Mul,
@@ -274,7 +272,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
     let expr = Expression::Binary(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![Statement::Direction(DirectionStmt {
             direction: Direction::Forward,
             expr,
@@ -286,14 +284,14 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
 #[test]
 fn make_variable_assign_an_integer() {
-    let actual = ProgramParser.parse("MAKE \"MyVar = 2").unwrap();
+    let actual = SimpleParser.parse("MAKE \"MyVar = 2").unwrap();
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
         expr: Expression::Literal(LiteralExpr::Int(2)),
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![make_stmt],
     };
 
@@ -302,14 +300,14 @@ fn make_variable_assign_an_integer() {
 
 #[test]
 fn make_variable_assign_a_string() {
-    let actual = ProgramParser.parse("MAKE \"MyVar = \"Hello").unwrap();
+    let actual = SimpleParser.parse("MAKE \"MyVar = \"Hello").unwrap();
 
     let make_stmt = Statement::Make(MakeStmt {
         symbol: "MyVar".to_string(),
         expr: Expression::Literal(LiteralExpr::Str("Hello".to_string())),
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![make_stmt],
     };
 
@@ -318,7 +316,7 @@ fn make_variable_assign_a_string() {
 
 #[test]
 fn make_variable_assign_an_expr() {
-    let actual = ProgramParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
+    let actual = SimpleParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
     let expr = Expression::Binary(
         BinaryOp::Add,
@@ -331,7 +329,7 @@ fn make_variable_assign_an_expr() {
         expr,
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![make_stmt],
     };
 
@@ -341,12 +339,12 @@ fn make_variable_assign_an_expr() {
 #[test]
 #[should_panic]
 fn make_variable_must_be_prefixed_with_quotation_marks() {
-    ProgramParser.parse("MAKE A=1").unwrap();
+    SimpleParser.parse("MAKE A=1").unwrap();
 }
 
 #[test]
 fn make_variable_assign_an_expr_containing_another_var() {
-    let actual = ProgramParser.parse("MAKE \"A = :B + 2").unwrap();
+    let actual = SimpleParser.parse("MAKE \"A = :B + 2").unwrap();
 
     let expr = Expression::Binary(
         BinaryOp::Add,
@@ -359,7 +357,7 @@ fn make_variable_assign_an_expr_containing_another_var() {
         expr,
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![make_stmt],
     };
 
@@ -368,7 +366,7 @@ fn make_variable_assign_an_expr_containing_another_var() {
 
 #[test]
 fn if_stmt_without_else() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
@@ -395,7 +393,7 @@ fn if_stmt_without_else() {
         false_block: None,
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![if_stmt],
     };
 
@@ -404,7 +402,7 @@ fn if_stmt_without_else() {
 
 #[test]
 fn if_stmt_with_else() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
         .unwrap();
 
@@ -432,7 +430,7 @@ fn if_stmt_with_else() {
         false_block: Some(false_block),
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![if_stmt],
     };
 
@@ -441,7 +439,7 @@ fn if_stmt_with_else() {
 
 #[test]
 fn repeat_stmt() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
@@ -464,7 +462,7 @@ fn repeat_stmt() {
 
     let repeat_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![repeat_stmt],
     };
 
@@ -473,7 +471,7 @@ fn repeat_stmt() {
 
 #[test]
 fn procedure_stmt_without_params() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
         .unwrap();
 
@@ -494,7 +492,7 @@ fn procedure_stmt_without_params() {
         block,
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![proc_stmt],
     };
 
@@ -503,7 +501,7 @@ fn procedure_stmt_without_params() {
 
 #[test]
 fn procedure_stmt_with_params() {
-    let actual = ProgramParser
+    let actual = SimpleParser
         .parse("TO MyProc :A :B \n MAKE \"C = 10 END")
         .unwrap();
 
@@ -519,7 +517,7 @@ fn procedure_stmt_with_params() {
         block,
     });
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![proc_stmt],
     };
 
@@ -528,11 +526,11 @@ fn procedure_stmt_with_params() {
 
 #[test]
 fn command_xcor() {
-    let actual = ProgramParser.parse("XCOR").unwrap();
+    let actual = SimpleParser.parse("XCOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::XCor);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -541,11 +539,11 @@ fn command_xcor() {
 
 #[test]
 fn command_ycor() {
-    let actual = ProgramParser.parse("YCOR").unwrap();
+    let actual = SimpleParser.parse("YCOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::YCor);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -554,11 +552,11 @@ fn command_ycor() {
 
 #[test]
 fn command_pen_up() {
-    let actual = ProgramParser.parse("PENUP").unwrap();
+    let actual = SimpleParser.parse("PENUP").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenUp);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -567,11 +565,11 @@ fn command_pen_up() {
 
 #[test]
 fn command_pen_down() {
-    let actual = ProgramParser.parse("PENDOWN").unwrap();
+    let actual = SimpleParser.parse("PENDOWN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenDown);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -580,11 +578,11 @@ fn command_pen_down() {
 
 #[test]
 fn command_show_turtle() {
-    let actual = ProgramParser.parse("SHOWTURTLE").unwrap();
+    let actual = SimpleParser.parse("SHOWTURTLE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::ShowTurtle);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -593,11 +591,11 @@ fn command_show_turtle() {
 
 #[test]
 fn command_hide_turtle() {
-    let actual = ProgramParser.parse("HIDETURTLE").unwrap();
+    let actual = SimpleParser.parse("HIDETURTLE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::HideTurtle);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -606,11 +604,11 @@ fn command_hide_turtle() {
 
 #[test]
 fn command_pen_erase() {
-    let actual = ProgramParser.parse("PENERASE").unwrap();
+    let actual = SimpleParser.parse("PENERASE").unwrap();
 
     let stmt = Statement::Command(CommandStmt::PenErase);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -619,11 +617,11 @@ fn command_pen_erase() {
 
 #[test]
 fn command_clean() {
-    let actual = ProgramParser.parse("CLEAN").unwrap();
+    let actual = SimpleParser.parse("CLEAN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::Clean);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -632,11 +630,11 @@ fn command_clean() {
 
 #[test]
 fn command_clear_screen() {
-    let actual = ProgramParser.parse("CLEARSCREEN").unwrap();
+    let actual = SimpleParser.parse("CLEARSCREEN").unwrap();
 
     let stmt = Statement::Command(CommandStmt::ClearScreen);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -645,11 +643,11 @@ fn command_clear_screen() {
 
 #[test]
 fn command_set_pen_color() {
-    let actual = ProgramParser.parse("SETPENCOLOR").unwrap();
+    let actual = SimpleParser.parse("SETPENCOLOR").unwrap();
 
     let stmt = Statement::Command(CommandStmt::SetPenColor);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
@@ -658,11 +656,11 @@ fn command_set_pen_color() {
 
 #[test]
 fn command_set_background_color() {
-    let actual = ProgramParser.parse("SETBACKGROUND").unwrap();
+    let actual = SimpleParser.parse("SETBACKGROUND").unwrap();
 
     let stmt = Statement::Command(CommandStmt::SetBackgroundColor);
 
-    let expected = Program {
+    let expected = ProgramAst {
         statements: vec![stmt],
     };
 
