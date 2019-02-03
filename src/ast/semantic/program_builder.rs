@@ -1,21 +1,16 @@
-use crate::ast::semantic::AstWalker;
+use crate::ast::semantic::{AstWalker, Program, ProgramWalker};
+use crate::ast::statement::ProcedureStmt;
 use crate::ast::Ast;
-use std::collections::HashMap;
 
-use crate::ast::statement::{Statement, ProcedureStmt};
+pub struct ProgramBuilder;
 
+impl ProgramBuilder {
+    fn build(&mut self, ast: Ast) -> Program {
+        let root_proc: ProcedureStmt = ast.as_proc_stmt();
 
-pub struct ProgramBuilder<'a> {
-    procedures: HashMap<String, &'a ProcedureStmt>
-}
+        let mut walker = ProgramWalker::new();
+        walker.walk(&root_proc);
 
-impl<'a> ProgramBuilder<'a> {
-    pub fn new() -> Self {
-        Self {
-            procedures: Default::default()
-        }
+        Program::new()
     }
 }
-
-// impl<'a> AstWalker<'a> for ProgramBuilder<'a> {
-// }

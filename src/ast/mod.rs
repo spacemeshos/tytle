@@ -11,10 +11,10 @@ pub struct Ast {
 }
 
 impl Ast {
-    pub fn as_program_stmt(stmts: Vec<Statement>) -> ProcedureStmt {
+    pub fn as_proc_stmt(self) -> ProcedureStmt {
         let mut root = ProcedureStmt::new("__main__".to_string());
 
-        for stmt in stmts {
+        for stmt in self.statements {
             root.block.add_statement(stmt);
         }
 
