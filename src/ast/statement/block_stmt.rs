@@ -2,7 +2,7 @@ use crate::ast::statement::Statement;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockStatement {
-    stmts: Vec<Statement>,
+    pub stmts: Vec<Statement>,
 }
 
 impl BlockStatement {
@@ -18,3 +18,12 @@ impl BlockStatement {
         }
     }
 }
+
+// impl<'a> IntoIterator for &'a BlockStatement {
+//     type Item = &'a Statement;
+//     type IntoIter = std::vec::IntoIter<Statement>;
+//
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.stmts.into_iter()
+//     }
+// }
