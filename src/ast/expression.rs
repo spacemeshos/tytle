@@ -31,3 +31,13 @@ mod tests {
         assert_ne!(expr1, expr3);
     }
 }
+
+impl From<&str> for BinaryOp {
+    fn from(s: &str) -> BinaryOp {
+        match s {
+            "+" => BinaryOp::Add,
+            "*" => BinaryOp::Mul,
+            _ => panic!("Invalid binary operator: {}", s),
+        }
+    }
+}

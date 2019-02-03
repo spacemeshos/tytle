@@ -57,8 +57,9 @@ fn direction_sety() {
 fn direction_forward_and_then_backward_no_empty_lines() {
     let actual = LogosParser.parse("FORWARD 10\nRIGHT 20").unwrap();
 
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(FORWARD, 10), direct_lit_expr!(RIGHT, 20)],
+    let expected = ast! {
+        direct_lit_expr!(FORWARD, 10),
+        direct_lit_expr!(RIGHT, 20)
     };
 
     assert_eq!(actual, expected);
@@ -92,7 +93,7 @@ fn expr_add_integers_with_spaces() {
         direct_stmt!(
             FORWARD,
             binary_expr!(
-                BinaryOp::Add,
+                "+",
                 boxed_int_lit_expr!(1),
                 boxed_int_lit_expr!(2)
             )
@@ -110,7 +111,7 @@ fn expr_add_integers_without_spaces() {
         direct_stmt!(
             FORWARD,
             binary_expr!(
-                BinaryOp::Add,
+                "+",
                 boxed_int_lit_expr!(1),
                 boxed_int_lit_expr!(2)
             )
@@ -124,17 +125,9 @@ fn expr_add_integers_without_spaces() {
 fn expr_add_and_mul_integers() {
     let actual = LogosParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
-    let clause1 = binary_expr!(
-        BinaryOp::Mul,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
-    let clause2 = binary_expr!(
-        BinaryOp::Mul,
-        boxed_int_lit_expr!(3),
-        boxed_int_lit_expr!(4)
-    );
-    let expr = binary_expr!(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
+    let clause1 = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let clause2 = binary_expr!("*", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4));
+    let expr = binary_expr!("+", Box::new(clause1), Box::new(clause2));
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
@@ -145,11 +138,7 @@ fn expr_add_and_mul_integers() {
 fn expr_mul_integers_without_spaces() {
     let actual = LogosParser.parse("FORWARD 1 * 2").unwrap();
 
-    let expr = binary_expr!(
-        BinaryOp::Mul,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
+    let expr = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
@@ -160,21 +149,13 @@ fn expr_mul_integers_without_spaces() {
 fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let actual = LogosParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
-    let ones_mul = binary_expr!(
-        BinaryOp::Mul,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(1)
-    );
-    let three_mul = binary_expr!(
-        BinaryOp::Mul,
-        boxed_int_lit_expr!(3),
-        boxed_int_lit_expr!(3)
-    );
+    let ones_mul = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(1));
+    let three_mul = binary_expr!("*", boxed_int_lit_expr!(3), boxed_int_lit_expr!(3));
 
-    let add_1_2 = binary_expr!(BinaryOp::Add, Box::new(ones_mul), boxed_int_lit_expr!(2));
-    let add_3_4 = binary_expr!(BinaryOp::Add, Box::new(three_mul), boxed_int_lit_expr!(4));
+    let add_1_2 = binary_expr!("+", Box::new(ones_mul), boxed_int_lit_expr!(2));
+    let add_3_4 = binary_expr!("+", Box::new(three_mul), boxed_int_lit_expr!(4));
 
-    let expr = binary_expr!(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
+    let expr = binary_expr!("*", Box::new(add_1_2), Box::new(add_3_4));
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
@@ -207,11 +188,7 @@ fn make_variable_assign_a_string() {
 fn make_variable_assign_an_expr() {
     let actual = LogosParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
 
-    let expr = binary_expr!(
-        BinaryOp::Add,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
+    let expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let expected = ast! {
         make_stmt!("MyVar", expr)
@@ -230,11 +207,7 @@ fn make_variable_must_be_prefixed_with_quotation_marks() {
 fn make_variable_assign_an_expr_containing_another_var() {
     let actual = LogosParser.parse("MAKE \"A = :B + 2").unwrap();
 
-    let expr = binary_expr!(
-        BinaryOp::Add,
-        boxed_var_lit_expr!("B"),
-        boxed_int_lit_expr!(2)
-    );
+    let expr = binary_expr!("+", boxed_var_lit_expr!("B"), boxed_int_lit_expr!(2));
 
     let expected = ast! {
         make_stmt!("A", expr)
@@ -249,11 +222,7 @@ fn if_stmt_without_else() {
         .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
-    let cond_expr = binary_expr!(
-        BinaryOp::Add,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
+    let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let if_stmt = if_stmt! {
         cond: cond_expr,
@@ -263,9 +232,7 @@ fn if_stmt_without_else() {
         }
     };
 
-    let expected = Ast {
-        statements: vec![if_stmt],
-    };
+    let expected = ast! { if_stmt };
 
     assert_eq!(expected, actual);
 }
@@ -276,11 +243,7 @@ fn if_stmt_with_else() {
         .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
         .unwrap();
 
-    let cond_expr = binary_expr!(
-        BinaryOp::Add,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
+    let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let if_stmt = if_stmt! {
         cond: cond_expr,
@@ -299,11 +262,7 @@ fn repeat_stmt() {
         .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
         .unwrap();
 
-    let count_expr = binary_expr!(
-        BinaryOp::Add,
-        boxed_int_lit_expr!(1),
-        boxed_int_lit_expr!(2)
-    );
+    let count_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let block = block_stmt! {
       make_stmt!("A", int_lit_expr!(3)),

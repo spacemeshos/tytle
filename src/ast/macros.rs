@@ -87,10 +87,11 @@ macro_rules! make_stmt {
 
 #[macro_export]
 macro_rules! binary_expr {
-    ($op:expr, $lexpr:expr, $rexpr:expr) => {{
+    ($op_str:expr, $lexpr:expr, $rexpr:expr) => {{
         use $crate::ast::expression::Expression;
 
-        Expression::Binary($op, $lexpr, $rexpr)
+        let op = BinaryOp::from($op_str);
+        Expression::Binary(op, $lexpr, $rexpr)
     }};
 }
 
