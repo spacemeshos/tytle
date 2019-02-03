@@ -160,3 +160,17 @@ macro_rules! repeat_stmt {
         })
     }};
 }
+
+#[macro_export]
+macro_rules! ast {
+    ($ ($stmt:expr) ,*) => {
+        {
+            use $crate::ast::Ast;
+
+            let mut ast = Ast::default();
+            $( ast.statements.push($stmt); )*
+
+            ast
+        }
+    }
+}

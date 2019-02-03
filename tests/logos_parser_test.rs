@@ -8,10 +8,7 @@ use logos::ast::{expression::*, statement::*, Ast};
 #[test]
 fn direction_forward() {
     let actual = LogosParser.parse("FORWARD 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(FORWARD, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(FORWARD, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -19,10 +16,7 @@ fn direction_forward() {
 #[test]
 fn direction_backward() {
     let actual = LogosParser.parse("BACKWARD 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(BACKWARD, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(BACKWARD, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -30,10 +24,7 @@ fn direction_backward() {
 #[test]
 fn direction_left() {
     let actual = LogosParser.parse("LEFT 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(LEFT, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(LEFT, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -41,10 +32,7 @@ fn direction_left() {
 #[test]
 fn direction_right() {
     let actual = LogosParser.parse("RIGHT 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(RIGHT, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(RIGHT, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -52,10 +40,7 @@ fn direction_right() {
 #[test]
 fn direction_setx() {
     let actual = LogosParser.parse("SETX 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(SETX, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(SETX, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -63,10 +48,7 @@ fn direction_setx() {
 #[test]
 fn direction_sety() {
     let actual = LogosParser.parse("SETY 20").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(SETY, 20)],
-    };
+    let expected = ast! { direct_lit_expr!(SETY, 20) };
 
     assert_eq!(actual, expected);
 }
@@ -86,8 +68,9 @@ fn direction_forward_and_then_backward_no_empty_lines() {
 fn direction_forward_and_then_backward_with_empty_lines() {
     let actual = LogosParser.parse("\n\nFORWARD 10\n\nRIGHT 20\n\n").unwrap();
 
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(FORWARD, 10), direct_lit_expr!(RIGHT, 20)],
+    let expected = ast! {
+        direct_lit_expr!(FORWARD, 10),
+        direct_lit_expr!(RIGHT, 20)
     };
 
     assert_eq!(actual, expected);
@@ -96,10 +79,7 @@ fn direction_forward_and_then_backward_with_empty_lines() {
 #[test]
 fn expr_integer_surrounded_by_parentheses() {
     let actual = LogosParser.parse("FORWARD (10)").unwrap();
-
-    let expected = Ast {
-        statements: vec![direct_lit_expr!(FORWARD, 10)],
-    };
+    let expected = ast! { direct_lit_expr!(FORWARD, 10) };
 
     assert_eq!(actual, expected);
 }
@@ -108,15 +88,15 @@ fn expr_integer_surrounded_by_parentheses() {
 fn expr_add_integers_with_spaces() {
     let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
-    let expected = Ast {
-        statements: vec![direct_stmt!(
+    let expected = ast! {
+        direct_stmt!(
             FORWARD,
             binary_expr!(
                 BinaryOp::Add,
                 boxed_int_lit_expr!(1),
                 boxed_int_lit_expr!(2)
             )
-        )],
+        )
     };
 
     assert_eq!(actual, expected);
@@ -126,15 +106,15 @@ fn expr_add_integers_with_spaces() {
 fn expr_add_integers_without_spaces() {
     let actual = LogosParser.parse("FORWARD 1 + 2").unwrap();
 
-    let expected = Ast {
-        statements: vec![direct_stmt!(
+    let expected = ast! {
+        direct_stmt!(
             FORWARD,
             binary_expr!(
                 BinaryOp::Add,
                 boxed_int_lit_expr!(1),
                 boxed_int_lit_expr!(2)
             )
-        )],
+        )
     };
 
     assert_eq!(actual, expected);
@@ -156,9 +136,7 @@ fn expr_add_and_mul_integers() {
     );
     let expr = binary_expr!(BinaryOp::Add, Box::new(clause1), Box::new(clause2));
 
-    let expected = Ast {
-        statements: vec![direct_stmt!(FORWARD, expr)],
-    };
+    let expected = ast! { direct_stmt!(FORWARD, expr) };
 
     assert_eq!(actual, expected);
 }
@@ -173,9 +151,7 @@ fn expr_mul_integers_without_spaces() {
         boxed_int_lit_expr!(2)
     );
 
-    let expected = Ast {
-        statements: vec![direct_stmt!(FORWARD, expr)],
-    };
+    let expected = ast! { direct_stmt!(FORWARD, expr) };
 
     assert_eq!(actual, expected);
 }
@@ -200,9 +176,7 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
     let expr = binary_expr!(BinaryOp::Mul, Box::new(add_1_2), Box::new(add_3_4));
 
-    let expected = Ast {
-        statements: vec![direct_stmt!(FORWARD, expr)],
-    };
+    let expected = ast! { direct_stmt!(FORWARD, expr) };
 
     assert_eq!(actual, expected);
 }
@@ -211,10 +185,8 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 fn make_variable_assign_an_integer() {
     let actual = LogosParser.parse("MAKE \"MyVar = 2").unwrap();
 
-    let make_stmt = make_stmt!("MyVar", int_lit_expr!(2));
-
-    let expected = Ast {
-        statements: vec![make_stmt],
+    let expected = ast! {
+        make_stmt!("MyVar", int_lit_expr!(2))
     };
 
     assert_eq!(actual, expected);
@@ -224,10 +196,8 @@ fn make_variable_assign_an_integer() {
 fn make_variable_assign_a_string() {
     let actual = LogosParser.parse("MAKE \"MyVar = \"Hello").unwrap();
 
-    let make_stmt = make_stmt!("MyVar", str_lit_expr!("Hello"));
-
-    let expected = Ast {
-        statements: vec![make_stmt],
+    let expected = ast! {
+        make_stmt!("MyVar", str_lit_expr!("Hello"))
     };
 
     assert_eq!(actual, expected);
@@ -243,10 +213,8 @@ fn make_variable_assign_an_expr() {
         boxed_int_lit_expr!(2)
     );
 
-    let make_stmt = make_stmt!("MyVar", expr);
-
-    let expected = Ast {
-        statements: vec![make_stmt],
+    let expected = ast! {
+        make_stmt!("MyVar", expr)
     };
 
     assert_eq!(actual, expected);
@@ -268,10 +236,8 @@ fn make_variable_assign_an_expr_containing_another_var() {
         boxed_int_lit_expr!(2)
     );
 
-    let make_stmt = make_stmt!("A", expr);
-
-    let expected = Ast {
-        statements: vec![make_stmt],
+    let expected = ast! {
+        make_stmt!("A", expr)
     };
 
     assert_eq!(actual, expected);
@@ -316,21 +282,13 @@ fn if_stmt_with_else() {
         boxed_int_lit_expr!(2)
     );
 
-    // let mut true_block = BlockStatement::new();
-    // true_block.add_statement(make_stmt!("A", int_lit_expr!(1)));
-
-    // let mut false_block = BlockStatement::new();
-    // false_block.add_statement(make_stmt!("B", int_lit_expr!(2)));
-
     let if_stmt = if_stmt! {
         cond: cond_expr,
         when_true: block_stmt! { make_stmt!("A", int_lit_expr!(1))  },
         when_false: block_stmt! { make_stmt!("B", int_lit_expr!(2)) }
     };
 
-    let expected = Ast {
-        statements: vec![if_stmt],
-    };
+    let expected = ast! { if_stmt };
 
     assert_eq!(expected, actual);
 }
@@ -352,10 +310,8 @@ fn repeat_stmt() {
       make_stmt!("B", int_lit_expr!(4))
     };
 
-    let repeat_stmt = repeat_stmt! { count_expr, block };
-
-    let expected = Ast {
-        statements: vec![repeat_stmt],
+    let expected = ast! {
+        repeat_stmt! { count_expr, block }
     };
 
     assert_eq!(expected, actual);
@@ -368,18 +324,16 @@ fn procedure_stmt_without_params() {
         .unwrap();
 
     let block = block_stmt! {
-      make_stmt!("A".to_string(), int_lit_expr!(3)),
-      make_stmt!("B".to_string(), int_lit_expr!(4))
+      make_stmt!("A", int_lit_expr!(3)),
+      make_stmt!("B", int_lit_expr!(4))
     };
 
-    let proc_stmt = Statement::Procedure(ProcedureStmt {
-        name: "MyProc".to_string(),
-        params: vec![],
-        block,
-    });
-
-    let expected = Ast {
-        statements: vec![proc_stmt],
+    let expected = ast! {
+        proc_stmt! {
+            name: "MyProc",
+            params: [],
+            body: block
+        }
     };
 
     assert_eq!(expected, actual);
@@ -395,14 +349,12 @@ fn procedure_stmt_with_params() {
         make_stmt!("C", int_lit_expr!(10))
     };
 
-    let proc_stmt = proc_stmt! {
-        name: "MyProc",
-        params: ["A", "B"],
-        body: block
-    };
-
-    let expected = Ast {
-        statements: vec![proc_stmt],
+    let expected = ast! {
+        proc_stmt! {
+            name: "MyProc",
+            params: ["A", "B"],
+            body: block
+        }
     };
 
     assert_eq!(expected, actual);
@@ -411,10 +363,7 @@ fn procedure_stmt_with_params() {
 #[test]
 fn command_xcor() {
     let actual = LogosParser.parse("XCOR").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(XCOR)],
-    };
+    let expected = ast! { command_stmt!(XCOR) };
 
     assert_eq!(expected, actual);
 }
@@ -422,10 +371,7 @@ fn command_xcor() {
 #[test]
 fn command_ycor() {
     let actual = LogosParser.parse("YCOR").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(YCOR)],
-    };
+    let expected = ast! { command_stmt!(YCOR) };
 
     assert_eq!(expected, actual);
 }
@@ -433,10 +379,7 @@ fn command_ycor() {
 #[test]
 fn command_pen_up() {
     let actual = LogosParser.parse("PENUP").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(PENUP)],
-    };
+    let expected = ast! { command_stmt!(PENUP) };
 
     assert_eq!(expected, actual);
 }
@@ -444,10 +387,7 @@ fn command_pen_up() {
 #[test]
 fn command_pen_down() {
     let actual = LogosParser.parse("PENDOWN").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(PENDOWN)],
-    };
+    let expected = ast! { command_stmt!(PENDOWN) };
 
     assert_eq!(expected, actual);
 }
@@ -455,10 +395,7 @@ fn command_pen_down() {
 #[test]
 fn command_show_turtle() {
     let actual = LogosParser.parse("SHOWTURTLE").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(SHOWTURTLE)],
-    };
+    let expected = ast! { command_stmt!(SHOWTURTLE) };
 
     assert_eq!(expected, actual);
 }
@@ -466,10 +403,7 @@ fn command_show_turtle() {
 #[test]
 fn command_hide_turtle() {
     let actual = LogosParser.parse("HIDETURTLE").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(HIDETURTLE)],
-    };
+    let expected = ast! { command_stmt!(HIDETURTLE) };
 
     assert_eq!(expected, actual);
 }
@@ -477,10 +411,7 @@ fn command_hide_turtle() {
 #[test]
 fn command_pen_erase() {
     let actual = LogosParser.parse("PENERASE").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(PENERASE)],
-    };
+    let expected = ast! { command_stmt!(PENERASE) };
 
     assert_eq!(expected, actual);
 }
@@ -488,10 +419,7 @@ fn command_pen_erase() {
 #[test]
 fn command_clean() {
     let actual = LogosParser.parse("CLEAN").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(CLEAN)],
-    };
+    let expected = ast! { command_stmt!(CLEAN) };
 
     assert_eq!(expected, actual);
 }
@@ -499,10 +427,7 @@ fn command_clean() {
 #[test]
 fn command_clear_screen() {
     let actual = LogosParser.parse("CLEARSCREEN").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(CLEARSCREEN)],
-    };
+    let expected = ast! { command_stmt!(CLEARSCREEN) };
 
     assert_eq!(expected, actual);
 }
@@ -510,10 +435,7 @@ fn command_clear_screen() {
 #[test]
 fn command_set_pen_color() {
     let actual = LogosParser.parse("SETPENCOLOR").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(SETPENCOLOR)],
-    };
+    let expected = ast! { command_stmt!(SETPENCOLOR) };
 
     assert_eq!(expected, actual);
 }
@@ -521,10 +443,7 @@ fn command_set_pen_color() {
 #[test]
 fn command_set_background_color() {
     let actual = LogosParser.parse("SETBACKGROUND").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(SETBACKGROUND)],
-    };
+    let expected = ast! { command_stmt!(SETBACKGROUND) };
 
     assert_eq!(expected, actual);
 }
@@ -532,10 +451,7 @@ fn command_set_background_color() {
 #[test]
 fn command_wait() {
     let actual = LogosParser.parse("WAIT").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(WAIT)],
-    };
+    let expected = ast! { command_stmt!(WAIT) };
 
     assert_eq!(expected, actual);
 }
@@ -543,10 +459,7 @@ fn command_wait() {
 #[test]
 fn command_stop() {
     let actual = LogosParser.parse("STOP").unwrap();
-
-    let expected = Ast {
-        statements: vec![command_stmt!(STOP)],
-    };
+    let expected = ast! { command_stmt!(STOP) };
 
     assert_eq!(expected, actual);
 }
