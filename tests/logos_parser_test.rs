@@ -289,15 +289,13 @@ fn if_stmt_without_else() {
         boxed_int_lit_expr!(2)
     );
 
-    let mut true_block = BlockStatement::new();
-    true_block.add_statement(make_stmt!("A".to_string(), int_lit_expr!(3)));
-    true_block.add_statement(make_stmt!("B".to_string(), int_lit_expr!(4)));
-
-    let if_stmt = Statement::If(IfStmt {
-        cond_expr,
-        true_block,
-        false_block: None,
-    });
+    let if_stmt = if_stmt! {
+        cond: cond_expr,
+        when_true: block_stmt! {
+          make_stmt!("A", int_lit_expr!(3)),
+          make_stmt!("B", int_lit_expr!(4))
+        }
+    };
 
     let expected = Ast {
         statements: vec![if_stmt],
@@ -318,17 +316,17 @@ fn if_stmt_with_else() {
         boxed_int_lit_expr!(2)
     );
 
-    let mut true_block = BlockStatement::new();
-    true_block.add_statement(make_stmt!("A", int_lit_expr!(1)));
+    // let mut true_block = BlockStatement::new();
+    // true_block.add_statement(make_stmt!("A", int_lit_expr!(1)));
 
-    let mut false_block = BlockStatement::new();
-    false_block.add_statement(make_stmt!("B", int_lit_expr!(2)));
+    // let mut false_block = BlockStatement::new();
+    // false_block.add_statement(make_stmt!("B", int_lit_expr!(2)));
 
-    let if_stmt = Statement::If(IfStmt {
-        cond_expr,
-        true_block,
-        false_block: Some(false_block),
-    });
+    let if_stmt = if_stmt! {
+        cond: cond_expr,
+        when_true: block_stmt! { make_stmt!("A", int_lit_expr!(1))  },
+        when_false: block_stmt! { make_stmt!("B", int_lit_expr!(2)) }
+    };
 
     let expected = Ast {
         statements: vec![if_stmt],
@@ -349,11 +347,12 @@ fn repeat_stmt() {
         boxed_int_lit_expr!(2)
     );
 
-    let mut block = BlockStatement::new();
-    block.add_statement(make_stmt!("A", int_lit_expr!(3)));
-    block.add_statement(make_stmt!("B", int_lit_expr!(4)));
+    let block = block_stmt! {
+      make_stmt!("A", int_lit_expr!(3)),
+      make_stmt!("B", int_lit_expr!(4))
+    };
 
-    let repeat_stmt = Statement::Repeat(RepeatStmt { count_expr, block });
+    let repeat_stmt = repeat_stmt! { count_expr, block };
 
     let expected = Ast {
         statements: vec![repeat_stmt],
@@ -368,9 +367,10 @@ fn procedure_stmt_without_params() {
         .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
         .unwrap();
 
-    let mut block = BlockStatement::new();
-    block.add_statement(make_stmt!("A".to_string(), int_lit_expr!(3)));
-    block.add_statement(make_stmt!("B".to_string(), int_lit_expr!(4)));
+    let block = block_stmt! {
+      make_stmt!("A".to_string(), int_lit_expr!(3)),
+      make_stmt!("B".to_string(), int_lit_expr!(4))
+    };
 
     let proc_stmt = Statement::Procedure(ProcedureStmt {
         name: "MyProc".to_string(),
@@ -391,14 +391,15 @@ fn procedure_stmt_with_params() {
         .parse("TO MyProc :A :B \n MAKE \"C = 10 END")
         .unwrap();
 
-    let mut block = BlockStatement::new();
-    block.add_statement(make_stmt!("C".to_string(), int_lit_expr!(10)));
+    let block = block_stmt! {
+        make_stmt!("C", int_lit_expr!(10))
+    };
 
-    let proc_stmt = Statement::Procedure(ProcedureStmt {
-        name: "MyProc".to_string(),
-        params: vec!["A".to_string(), "B".to_string()],
-        block,
-    });
+    let proc_stmt = proc_stmt! {
+        name: "MyProc",
+        params: ["A", "B"],
+        body: block
+    };
 
     let expected = Ast {
         statements: vec![proc_stmt],

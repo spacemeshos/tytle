@@ -11,6 +11,6 @@ impl ProgramBuilder {
         let mut walker = ProgramWalker::new();
         walker.walk(&root_proc);
 
-        Program::new()
+        walker.program
     }
 }

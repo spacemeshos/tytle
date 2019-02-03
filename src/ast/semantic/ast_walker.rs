@@ -3,7 +3,7 @@ use crate::ast::statement::*;
 use crate::ast::Ast;
 
 pub trait AstWalker<'a> {
-    fn walk(&mut self, root: &'a ProcedureStmt) {
+    fn walk(&mut self, root: &ProcedureStmt) {
         assert_eq!(root.name, "__main__");
 
         self.walk_proc(None, root);

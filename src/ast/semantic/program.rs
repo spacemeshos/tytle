@@ -1,9 +1,9 @@
 use crate::ast::semantic::{Scope, Variable};
 use crate::ast::statement::ProcedureStmt;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct Program {
-    procedures: HashMap<String, ProcedureStmt>,
+    procedures: HashSet<String>,
     globals: HashMap<String, Variable>,
     scopes: Vec<Scope>,
 }

@@ -94,16 +94,69 @@ macro_rules! binary_expr {
     }};
 }
 
-// #[macro_export]
-// macro_rules! block_stmt {
-//     ($($stmt:tt)*) => {{
-//         use $crate::ast::statement::BlockStatement;
-//
-//         let mut block = BlockStatement::new();
-//
-//         $( block.add_statement($stmt); )*
-//
-//             block
-//
-//     }};
-// }
+#[macro_export]
+macro_rules! block_stmt {
+    ($($stmt:expr),*) => {{
+        use $crate::ast::statement::BlockStatement;
+
+        let mut block = BlockStatement::new();
+        $( block.add_statement($stmt); )*
+
+        block
+    }};
+}
+
+#[macro_export]
+macro_rules! proc_stmt {
+    (name: $proc_name:expr, params: [$( $param:expr ),*], body: $block:expr) => {{
+        use $crate::ast::statement::{Statement, ProcedureStmt};
+
+        let mut params = vec![];
+        $( params.push($param.to_string()); )*
+
+        let block_stmt = $block;
+
+        let proc_stmt = Statement::Procedure(ProcedureStmt {
+            name: $proc_name.to_string(),
+            params,
+            block: block_stmt,
+        });
+
+        proc_stmt
+    }};
+}
+
+#[macro_export]
+macro_rules! if_stmt {
+    (cond: $cond_expr:expr, when_true: $true_block:expr) => {{
+        use $crate::ast::statement::{IfStmt, Statement};
+
+        Statement::If(IfStmt {
+            cond_expr: $cond_expr,
+            true_block: $true_block,
+            false_block: None,
+        })
+    }};
+
+    (cond: $cond_expr:expr, when_true: $true_block:expr, when_false: $false_block:expr) => {{
+        use $crate::ast::statement::{IfStmt, Statement};
+
+        Statement::If(IfStmt {
+            cond_expr: $cond_expr,
+            true_block: $true_block,
+            false_block: Some($false_block),
+        })
+    }};
+}
+
+#[macro_export]
+macro_rules! repeat_stmt {
+    ($count:expr, $block:expr) => {{
+        use $crate::ast::statement::{RepeatStmt, Statement};
+
+        Statement::Repeat(RepeatStmt {
+            count_expr: $count,
+            block: $block,
+        })
+    }};
+}

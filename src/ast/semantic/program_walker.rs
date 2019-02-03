@@ -1,17 +1,16 @@
-use crate::ast::semantic::{AstWalker, Program, Scope, Variable};
-use crate::ast::Ast;
-
 use std::collections::HashMap;
 
+use crate::ast::semantic::{AstWalker, Program, Scope, Variable};
 use crate::ast::statement::{BlockStatement, ProcedureStmt};
+use crate::ast::Ast;
 
 pub struct ProgramWalker {
-    program: Option<Program>,
+    pub program: Program,
 }
 
 impl ProgramWalker {
     pub fn new() -> Self {
-        Self { program: None }
+        Self { program: Program::new() }
     }
 }
 
