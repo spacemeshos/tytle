@@ -3,6 +3,7 @@ mod program;
 mod program_builder;
 mod program_walker;
 mod scope;
+mod symbol;
 mod symbol_table;
 mod variable;
 
@@ -11,5 +12,6 @@ pub use program::Program;
 pub use program_builder::ProgramBuilder;
 pub use program_walker::ProgramWalker;
 pub use scope::Scope;
+pub use symbol::Symbol;
 pub use symbol_table::SymbolTable;
 pub use variable::Variable;

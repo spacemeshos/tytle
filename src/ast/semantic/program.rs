@@ -1,19 +1,17 @@
-use crate::ast::semantic::{Scope, Variable};
+use crate::ast::semantic::SymbolTable;
 use crate::ast::statement::ProcedureStmt;
 use std::collections::{HashMap, HashSet};
 
 pub struct Program {
     procedures: HashSet<String>,
-    globals: HashMap<String, Variable>,
-    scopes: Vec<Scope>,
+    symbol_table: SymbolTable,
 }
 
 impl Program {
     pub fn new() -> Self {
         Self {
             procedures: Default::default(),
-            globals: Default::default(),
-            scopes: Default::default(),
+            symbol_table: SymbolTable::new(),
         }
     }
 }

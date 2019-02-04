@@ -10,7 +10,9 @@ pub struct ProgramWalker {
 
 impl ProgramWalker {
     pub fn new() -> Self {
-        Self { program: Program::new() }
+        Self {
+            program: Program::new(),
+        }
     }
 }
 

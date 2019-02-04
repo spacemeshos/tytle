@@ -57,7 +57,7 @@ pub trait AstWalker<'a> {
 
     fn walk_expr(&mut self, proc: &ProcedureStmt, expr: &Expression) -> ExpressionType {
         match expr {
-            Expression::Literal(ref literal) => ExpressionType::NotSure,
+            Expression::Literal(ref lexpr) => self.walk_expr_literal(proc, lexpr),
             Expression::Binary(binary_op, ref lexpr, ref rexpr) => {
                 let lexpr_type = self.walk_expr(proc, lexpr);
                 let rexpr_type = self.walk_expr(proc, rexpr);
@@ -65,6 +65,10 @@ pub trait AstWalker<'a> {
                 ExpressionType::NotSure
             }
         }
+    }
+
+    fn walk_expr_literal(&mut self, proc: &ProcedureStmt, lexpr: &LiteralExpr) -> ExpressionType {
+        ExpressionType::NotSure
     }
 
     fn walk_command_stmt(&mut self, proc: &ProcedureStmt, cmd: &CommandStmt) {}

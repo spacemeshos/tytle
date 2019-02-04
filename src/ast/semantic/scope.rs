@@ -1,4 +1,4 @@
-use crate::ast::semantic::Variable;
+use crate::ast::semantic::{Symbol, Variable};
 use std::collections::HashMap;
 
 type ScopeId = u64;
@@ -7,7 +7,7 @@ type ScopeId = u64;
 pub struct Scope {
     pub id: ScopeId,
     pub parent_id: Option<ScopeId>,
-    variables: HashMap<String, Variable>,
+    symbols: HashMap<String, Symbol>,
 }
 
 impl Scope {
@@ -15,15 +15,15 @@ impl Scope {
         Self {
             id,
             parent_id,
-            variables: Default::default(),
+            symbols: Default::default(),
         }
     }
 
-    pub fn store(&mut self, var: Variable) {
-        self.variables.insert(var.name.clone(), var);
+    pub fn store(&mut self, sym: Symbol) {
+        self.symbols.insert(sym.name().clone(), sym);
     }
 
-    pub fn lookup_var(&self, var_name: &str) -> Option<&Variable> {
-        self.variables.get(var_name)
+    pub fn lookup_symbol(&self, sym_name: &str) -> Option<&Symbol> {
+        self.symbols.get(sym_name)
     }
 }
