@@ -21,18 +21,18 @@ macro_rules! boxed_int_lit_expr {
 }
 
 #[macro_export]
-macro_rules! var_lit_expr {
-    ($s:expr) => {{
-        use $crate::ast::expression::{Expression, LiteralExpr};
-        Expression::Literal(LiteralExpr::Var($s.to_string()))
-    }};
-}
-
-#[macro_export]
 macro_rules! str_lit_expr {
     ($s:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
         Expression::Literal(LiteralExpr::Str($s.to_string()))
+    }};
+}
+
+#[macro_export]
+macro_rules! var_lit_expr {
+    ($s:expr) => {{
+        use $crate::ast::expression::{Expression, LiteralExpr};
+        Expression::Literal(LiteralExpr::Var($s.to_string()))
     }};
 }
 
@@ -75,11 +75,11 @@ macro_rules! command_stmt {
 
 #[macro_export]
 macro_rules! make_stmt {
-    ($symbol:expr, $expr:expr) => {{
+    ($var:expr, $expr:expr) => {{
         use $crate::ast::statement::{MakeStmt, Statement};
 
         Statement::Make(MakeStmt {
-            symbol: $symbol.to_string(),
+            var: $var.to_string(),
             expr: $expr,
         })
     }};
@@ -174,4 +174,18 @@ macro_rules! ast {
             ast
         }
     }
+}
+
+#[macro_export]
+macro_rules! nop {
+    () => {
+        $crate::ast::statement::Statement::Nop
+    };
+}
+
+#[macro_export]
+macro_rules! empty_block {
+    () => {
+        block_stmt! { nop!() }
+    };
 }

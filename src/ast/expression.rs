@@ -17,6 +17,12 @@ pub enum Expression {
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
 }
 
+pub enum ExpressionType {
+    Int,
+    Str,
+    NotSure,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

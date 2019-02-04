@@ -1,5 +1,5 @@
-use crate::ast::Ast;
 use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
+use crate::ast::Ast;
 
 use crate::ast::statement::*;
 
@@ -33,6 +33,10 @@ impl LogosParser {
             if stmt != Statement::Nop {
                 ast.statements.push(stmt);
             }
+        }
+
+        if ast.statements.len() == 0 {
+            ast.statements.push(Statement::Nop);
         }
 
         ast
@@ -201,19 +205,19 @@ impl LogosParser {
     fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `MAKE` token
 
-        let mut symbol = self.expect_ident(lexer);
+        let mut var = self.expect_ident(lexer);
 
-        if symbol.starts_with("\"") {
-            symbol = symbol[1..].to_string();
+        if var.starts_with("\"") {
+            var = var[1..].to_string();
         } else {
-            panic!("Invalid `MAKE` exression: {}", symbol);
+            panic!("Invalid `MAKE` exression: {}", var);
         }
 
         self.expect_token(lexer, Token::ASSIGN);
 
         let expr = self.parse_expr(lexer);
 
-        let stmt = MakeStmt { symbol, expr };
+        let stmt = MakeStmt { var, expr };
 
         Statement::Make(stmt)
     }

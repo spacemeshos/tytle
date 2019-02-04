@@ -3,7 +3,15 @@ extern crate logos;
 
 use logos::parser::{LogosParser, Parser};
 
-use logos::ast::{expression::*, statement::*, Ast};
+use logos::ast::{expression::*, statement::*};
+
+#[test]
+fn nop_stmt() {
+    let actual = LogosParser.parse("").unwrap();
+    let expected = ast! { nop!() };
+
+    assert_eq!(actual, expected);
+}
 
 #[test]
 fn direction_forward() {
