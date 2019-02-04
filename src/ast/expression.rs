@@ -11,16 +11,39 @@ pub enum BinaryOp {
     Mul,
 }
 
+impl From<&str> for BinaryOp {
+    fn from(s: &str) -> BinaryOp {
+        match s {
+            "+" => BinaryOp::Add,
+            "*" => BinaryOp::Mul,
+            _ => panic!("Invalid binary operator: {}", s),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal(LiteralExpr),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
 }
 
+#[derive(Debug, PartialEq)]
 pub enum ExpressionType {
     Int,
     Str,
+    Bool,
     NotSure,
+}
+
+impl ExpressionType {
+    pub fn ensure_same(expr: &Expression, expected: ExpressionType, actual: ExpressionType) {
+        if expected != actual {
+            panic!(format!(
+                "expected expression `{:?}` to be of type `{:?}` (actual: `{:?}`",
+                expr, expected, actual
+            ));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -36,14 +59,12 @@ mod tests {
         assert_eq!(expr1, expr2);
         assert_ne!(expr1, expr3);
     }
-}
 
-impl From<&str> for BinaryOp {
-    fn from(s: &str) -> BinaryOp {
-        match s {
-            "+" => BinaryOp::Add,
-            "*" => BinaryOp::Mul,
-            _ => panic!("Invalid binary operator: {}", s),
-        }
+    #[test]
+    #[should_panic(expected = "expected expression `Literal(Int(10))` to be of type `Str`")]
+    fn expr_type_ensure_same_mismatch() {
+        let expr = Expression::Literal(LiteralExpr::Int(10));
+
+        ExpressionType::ensure_same(&expr, ExpressionType::Str, ExpressionType::Int);
     }
 }

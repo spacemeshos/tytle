@@ -29,7 +29,11 @@ impl Variable {
     }
 
     pub fn set_resolved_type(&mut self, rt: VariableType) {
-        self.resolved_type = Some(rt);
+        match self.resolved_type {
+            None => self.resolved_type = Some(rt),
+            Some(ref current_rt) if *current_rt == rt => {}
+            _ => panic!(format!("Type mismatch for variable `{}`", self.name)),
+        }
     }
 }
 
@@ -37,4 +41,27 @@ impl Variable {
 pub enum VariableType {
     Int,
     Str,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setting_to_var_the_same_variable_type_twice() {
+        let mut var = Variable::build_global("A");
+
+        var.set_resolved_type(VariableType::Int);
+        var.set_resolved_type(VariableType::Int);
+
+        assert_eq!(Some(VariableType::Int), var.resolved_type);
+    }
+
+    #[test]
+    #[should_panic(expected = "Type mismatch for variable `A`")]
+    fn raises_when_variable_type_mismatch() {
+        let mut var = Variable::build_global("A");
+
+        var.set_resolved_type(VariableType::Int);
+        var.set_resolved_type(VariableType::Str);
+    }
 }
