@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 
 use std::str::Chars;
 
-pub struct TypetleLexer<'a> {
+pub struct TytleLexer<'a> {
     code_size: usize,
     code_chars: Chars<'a>,
     location: Location,
@@ -14,7 +14,7 @@ pub struct TypetleLexer<'a> {
     tokens_buffer: VecDeque<(Token, Location)>,
 }
 
-impl<'a> TypetleLexer<'a> {
+impl<'a> TytleLexer<'a> {
     pub fn new(code: &'a str) -> Self {
         let mut lexer = Self {
             location: Location::default(),
@@ -30,7 +30,7 @@ impl<'a> TypetleLexer<'a> {
     }
 }
 
-impl<'a> Lexer for TypetleLexer<'a> {
+impl<'a> Lexer for TytleLexer<'a> {
     fn peek_current_token(&self) -> Option<&(Token, Location)> {
         self.peek_nth_token(0)
     }
@@ -127,7 +127,7 @@ impl<'a> Lexer for TypetleLexer<'a> {
     }
 }
 
-impl<'a> TypetleLexer<'a> {
+impl<'a> TytleLexer<'a> {
     fn peek_nth_token(&self, nth: usize) -> Option<&(Token, Location)> {
         if self.tokens_buffer.len() > nth {
             self.tokens_buffer.get(nth)

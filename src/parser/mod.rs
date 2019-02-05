@@ -1,5 +1,5 @@
 mod parse;
-mod typetle_parser;
+mod tytle_parser;
 
 pub use parse::{Parser, ParserResult};
-pub use typetle_parser::TypetleParser;
+pub use tytle_parser::TytleParser;

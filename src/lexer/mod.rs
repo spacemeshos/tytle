@@ -1,6 +1,6 @@
 mod location;
 mod token;
-mod typetle_lexer;
+mod tytle_lexer;
 
 pub trait Lexer {
     fn buffer_more_tokens(&mut self);
@@ -11,4 +11,4 @@ pub trait Lexer {
 
 pub use location::Location;
 pub use token::Token;
-pub use typetle_lexer::TypetleLexer;
+pub use tytle_lexer::TytleLexer;
