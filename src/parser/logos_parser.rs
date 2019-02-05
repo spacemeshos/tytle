@@ -1,7 +1,6 @@
-use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
-use crate::ast::Ast;
-
+use crate::ast::expression::*;
 use crate::ast::statement::*;
+use crate::ast::Ast;
 
 use crate::lexer::{Lexer, Location, LogosLexer, Token};
 use crate::parser::{Parser, ParserResult};
@@ -85,7 +84,7 @@ impl LogosParser {
         Some(Statement::Procedure(proc_stmt))
     }
 
-    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Vec<String> {
+    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Vec<ProcParam> {
         let mut params = Vec::new();
         let mut completed = false;
 
@@ -99,7 +98,7 @@ impl LogosParser {
 
                 if ident.starts_with(":") {
                     let param = ident[1..].to_string();
-                    params.push(param);
+                    params.push(ProcParam { name: param });
                 } else {
                     panic!("Invalid procedure parameter: {}", ident)
                 }

@@ -108,7 +108,7 @@ pub trait AstWalker<'a> {
     // hooks
     fn on_proc_start(&mut self, parent_proc: Option<&ProcedureStmt>, proc: &ProcedureStmt) {}
     fn on_proc_end(&mut self, parent_proc: Option<&ProcedureStmt>, proc: &ProcedureStmt) {}
-    fn on_proc_param(&mut self, proc: &ProcedureStmt, param: &str) {}
+    fn on_proc_param(&mut self, proc: &ProcedureStmt, param: &ProcParam) {}
     fn on_block_stmt_start(&mut self, proc: &ProcedureStmt) {}
     fn on_block_stmt_end(&mut self, proc: &ProcedureStmt) {}
     fn on_make_stmt(&mut self, proc: &ProcedureStmt, make_stmt: &MakeStmt) {}

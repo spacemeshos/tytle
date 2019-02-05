@@ -109,11 +109,11 @@ macro_rules! block_stmt {
 
 #[macro_export]
 macro_rules! proc_stmt {
-    (name: $proc_name:expr, params: [$( $param:expr ),*], body: $block:expr) => {{
+    (name: $proc_name:expr, params: [$( $proc_param:expr ),*], body: $block:expr) => {{
         use $crate::ast::statement::{Statement, ProcedureStmt};
 
         let mut params = vec![];
-        $( params.push($param.to_string()); )*
+        $( params.push($proc_param); )*
 
         let block_stmt = $block;
 
@@ -202,4 +202,15 @@ macro_rules! proc_call_expr {
             Expression::ProcCall($proc_name.to_string(), params)
         }
     };
+}
+
+#[macro_export]
+macro_rules! proc_param {
+    ($pname:expr) => {{
+        use $crate::ast::statement::ProcParam;
+
+        ProcParam {
+            name: $pname.to_string(),
+        }
+    }};
 }

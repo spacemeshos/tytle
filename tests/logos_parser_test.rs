@@ -349,7 +349,7 @@ fn procedure_stmt_with_params() {
     let expected = ast! {
         proc_stmt! {
             name: "MyProc",
-            params: ["A", "B"],
+            params: [proc_param!("A"), proc_param!("B")],
             body: block
         }
     };
