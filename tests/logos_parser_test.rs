@@ -171,6 +171,36 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 }
 
 #[test]
+fn expr_proc_call() {
+    let actual = LogosParser
+        .parse("FORWARD FOO(10, :X + 1, BAR(2, 3))")
+        .unwrap();
+
+    let expected = ast! {
+        direct_stmt!(
+            FORWARD,
+            proc_call_expr! {
+                name: "FOO",
+                params: [
+                    int_lit_expr!(10),
+                    binary_expr!(
+                        "+",
+                        boxed_var_lit_expr!("X"),
+                        boxed_int_lit_expr!(1)
+                    ),
+                    proc_call_expr! {
+                        name: "BAR",
+                        params: [int_lit_expr!(2), int_lit_expr!(3)]
+                    }
+                ]
+            }
+        )
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn make_variable_assign_an_integer() {
     let actual = LogosParser.parse("MAKE \"MyVar = 2").unwrap();
 
@@ -206,7 +236,7 @@ fn make_variable_assign_an_expr() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`")]
 fn make_variable_must_be_prefixed_with_quotation_marks() {
     LogosParser.parse("MAKE A=1").unwrap();
 }

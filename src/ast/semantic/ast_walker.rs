@@ -66,7 +66,7 @@ pub trait AstWalker<'a> {
     fn walk_expr(&mut self, proc: &ProcedureStmt, expr: &Expression) -> ExpressionType {
         match expr {
             Expression::Literal(ref lexpr) => self.walk_expr_literal(proc, lexpr),
-            Expression::Call(ref params) => unimplemented!(),
+            Expression::ProcCall(ref proc_name, ref params) => unimplemented!(),
             Expression::Binary(binary_op, ref lexpr, ref rexpr) => {
                 let lexpr_type = self.walk_expr(proc, lexpr);
                 let rexpr_type = self.walk_expr(proc, rexpr);

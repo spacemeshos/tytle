@@ -189,3 +189,17 @@ macro_rules! empty_block {
         block_stmt! { nop!() }
     };
 }
+
+#[macro_export]
+macro_rules! proc_call_expr {
+    (name: $proc_name:expr, params: [$( $param:expr ),*]) => {
+        {
+            use $crate::ast::expression::Expression;
+
+            let mut params = Vec::<Box<Expression>>::new();
+            $( params.push(Box::new($param)); )*
+
+            Expression::ProcCall($proc_name.to_string(), params)
+        }
+    };
+}

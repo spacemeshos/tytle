@@ -210,7 +210,11 @@ impl LogosParser {
         if var.starts_with("\"") {
             var = var[1..].to_string();
         } else {
-            panic!("Invalid `MAKE` exression: {}", var);
+            // TODO: return ParseError
+            panic!(
+                "Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`",
+                var
+            );
         }
 
         self.expect_token(lexer, Token::ASSIGN);
@@ -280,9 +284,60 @@ impl LogosParser {
 
             inner_expr
         } else {
+            self.parse_basic_expr(lexer)
+        }
+    }
+
+    fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> Expression {
+        let (token, _location) = self.peek_next_token(lexer).unwrap();
+
+        if *token == Token::LPAREN {
+            let (proc_name, proc_params) = self.parse_call_expr(lexer);
+            Expression::ProcCall(proc_name, proc_params)
+        } else {
             let expr = self.parse_literal_expr(lexer);
             Expression::Literal(expr)
         }
+    }
+
+    fn parse_call_expr(&self, lexer: &mut impl Lexer) -> (String, Vec<Box<Expression>>) {
+        let (token, _) = self.pop_current_token(lexer).unwrap();
+
+        if let Token::VALUE(proc_name) = token {
+            self.expect_token(lexer, Token::LPAREN);
+
+            let proc_params = self.parse_call_params(lexer);
+
+            self.expect_token(lexer, Token::RPAREN);
+
+            (proc_name, proc_params)
+        } else {
+            panic!("invalid call expr");
+        }
+    }
+
+    fn parse_call_params(&self, lexer: &mut impl Lexer) -> Vec<Box<Expression>> {
+        let mut params = Vec::new();
+
+        while self.peek_current_token_clone(lexer) != Token::RPAREN {
+            let param_expr = self.parse_call_param_expr(lexer);
+
+            if param_expr.is_some() {
+                params.push(param_expr.unwrap());
+            }
+        }
+
+        params
+    }
+
+    fn parse_call_param_expr(&self, lexer: &mut impl Lexer) -> Option<Box<Expression>> {
+        let expr = self.parse_expr(lexer);
+
+        if self.peek_current_token_clone(lexer) == Token::COMMA {
+            self.skip_token(lexer);
+        }
+
+        Some(Box::new(expr))
     }
 
     fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> LiteralExpr {
@@ -299,7 +354,7 @@ impl LogosParser {
                     } else if v.starts_with("\"") {
                         LiteralExpr::Str(v[1..].to_string())
                     } else {
-                        panic!("Invalid Literal: {}", v);
+                        panic!();
                     }
                 }
             }
@@ -307,14 +362,6 @@ impl LogosParser {
             panic!();
         }
     }
-
-    // fn parse_boolean_expr(&self, lexer: &mut impl Lexer) {
-    //     let lexpr = self.parse_expr(lexer);
-    //
-    //     let bool_token = self.expect_boolean_token(lexer)
-    //
-    //     let rexpr = self.parse_expr(lexer);
-    // }
 
     fn expect_newline(&self, lexer: &mut impl Lexer) {
         let tok_loc = self.pop_current_token(lexer);
@@ -347,6 +394,22 @@ impl LogosParser {
 
     fn peek_current_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
         lexer.peek_current_token()
+    }
+
+    fn peek_next_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
+        lexer.peek_next_token()
+    }
+
+    fn peek_current_token_clone<'a>(&self, lexer: &'a impl Lexer) -> Token {
+        let (token, _) = lexer.peek_current_token().unwrap();
+
+        token.clone()
+    }
+
+    fn peek_next_token_clone<'a>(&self, lexer: &'a impl Lexer) -> Token {
+        let (token, _) = lexer.peek_next_token().unwrap();
+
+        token.clone()
     }
 
     fn skip_token(&self, lexer: &mut impl Lexer) {

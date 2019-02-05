@@ -24,7 +24,7 @@ impl From<&str> for BinaryOp {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal(LiteralExpr),
-    Call(Vec<Box<Expression>>),
+    ProcCall(String, Vec<Box<Expression>>),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
 }
 
