@@ -1,11 +1,11 @@
 // #[macro_use]
-// extern crate logos;
+// extern crate typeyle;
 //
-// use logos::ast::expression::*;
-// use logos::ast::macros;
-// use logos::ast::statement::*;
+// use typeyle::ast::expression::*;
+// use typeyle::ast::macros;
+// use typeyle::ast::statement::*;
 //
-// use logos::ast::semantic::ProgramWalker;
+// use typeyle::ast::semantic::ProgramWalker;
 //
 // #[test]
 // #[ignore]

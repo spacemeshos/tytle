@@ -2,21 +2,21 @@ use crate::ast::expression::*;
 use crate::ast::statement::*;
 use crate::ast::Ast;
 
-use crate::lexer::{Lexer, Location, LogosLexer, Token};
+use crate::lexer::{Lexer, Location, Token, TypetleLexer};
 use crate::parser::{Parser, ParserResult};
 
-pub struct LogosParser;
+pub struct TypetleParser;
 
-impl LogosParser {
+impl TypetleParser {
     fn new() -> Self {
         Self {}
     }
 }
 
-impl Parser for LogosParser {
+impl Parser for TypetleParser {
     fn parse(&mut self, code: &str) -> ParserResult {
         let mut parser = Self::new();
-        let mut lexer = LogosLexer::new(code);
+        let mut lexer = TypetleLexer::new(code);
 
         let ast = parser.parse(&mut lexer);
 
@@ -24,7 +24,7 @@ impl Parser for LogosParser {
     }
 }
 
-impl LogosParser {
+impl TypetleParser {
     fn parse(&mut self, lexer: &mut impl Lexer) -> Ast {
         let mut ast = Ast::default();
 

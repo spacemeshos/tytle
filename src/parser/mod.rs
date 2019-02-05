@@ -1,5 +1,5 @@
-mod logos_parser;
 mod parse;
+mod typetle_parser;
 
-pub use logos_parser::LogosParser;
 pub use parse::{Parser, ParserResult};
+pub use typetle_parser::TypetleParser;

@@ -1,10 +1,10 @@
-extern crate logos;
+extern crate typetle;
 
-use logos::lexer::{Lexer, Location, LogosLexer, Token};
+use typetle::lexer::{Lexer, Location, Token, TypetleLexer};
 
 #[test]
 fn empty() {
-    let lexer = LogosLexer::new("");
+    let lexer = TypetleLexer::new("");
 
     let (tok, loc) = lexer.peek_current_token().unwrap();
 
@@ -14,7 +14,7 @@ fn empty() {
 
 #[test]
 fn just_spaces() {
-    let mut lexer = LogosLexer::new("   ");
+    let mut lexer = TypetleLexer::new("   ");
 
     // peek
     let (tok, loc) = lexer.peek_current_token().unwrap();
@@ -29,7 +29,7 @@ fn just_spaces() {
 
 #[test]
 fn one_line_1_token() {
-    let mut lexer = LogosLexer::new("111");
+    let mut lexer = TypetleLexer::new("111");
 
     // peek
     let (tok1, loc1) = lexer.peek_current_token().unwrap();
@@ -52,7 +52,7 @@ fn one_line_1_token() {
 
 #[test]
 fn one_line_1_token_with_spaces() {
-    let mut lexer = LogosLexer::new(" 1  ");
+    let mut lexer = TypetleLexer::new(" 1  ");
 
     // peek
     let (tok1, loc1) = lexer.peek_current_token().unwrap();
@@ -75,7 +75,7 @@ fn one_line_1_token_with_spaces() {
 
 #[test]
 fn one_line_2_tokens() {
-    let mut lexer = LogosLexer::new("111    222");
+    let mut lexer = TypetleLexer::new("111    222");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();;
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -91,7 +91,7 @@ fn one_line_2_tokens() {
 
 #[test]
 fn one_line_2_tokens_many_spaces() {
-    let mut lexer = LogosLexer::new("  1   2  ");
+    let mut lexer = TypetleLexer::new("  1   2  ");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -109,7 +109,7 @@ fn one_line_2_tokens_many_spaces() {
 
 #[test]
 fn one_line_3_tokens() {
-    let mut lexer = LogosLexer::new("1 2 3");
+    let mut lexer = TypetleLexer::new("1 2 3");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -131,7 +131,7 @@ fn one_line_3_tokens() {
 
 #[test]
 fn two_lines() {
-    let mut lexer = LogosLexer::new("1 22 \n 333 4444");
+    let mut lexer = TypetleLexer::new("1 22 \n 333 4444");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -161,7 +161,7 @@ fn two_lines() {
 
 #[test]
 fn add_op() {
-    let mut lexer = LogosLexer::new("1+2");
+    let mut lexer = TypetleLexer::new("1+2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -179,7 +179,7 @@ fn add_op() {
 
 #[test]
 fn add_op_surrounded_by_spaces() {
-    let mut lexer = LogosLexer::new("1 + 2");
+    let mut lexer = TypetleLexer::new("1 + 2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -197,7 +197,7 @@ fn add_op_surrounded_by_spaces() {
 
 #[test]
 fn mul_op() {
-    let mut lexer = LogosLexer::new("1*2");
+    let mut lexer = TypetleLexer::new("1*2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -215,7 +215,7 @@ fn mul_op() {
 
 #[test]
 fn parentheses() {
-    let mut lexer = LogosLexer::new("(111)");
+    let mut lexer = TypetleLexer::new("(111)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -233,7 +233,7 @@ fn parentheses() {
 
 #[test]
 fn brackets() {
-    let mut lexer = LogosLexer::new("[111]");
+    let mut lexer = TypetleLexer::new("[111]");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -251,7 +251,7 @@ fn brackets() {
 
 #[test]
 fn brackets_surrounded_by_parentheses() {
-    let mut lexer = LogosLexer::new("([])");
+    let mut lexer = TypetleLexer::new("([])");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -273,7 +273,7 @@ fn brackets_surrounded_by_parentheses() {
 
 #[test]
 fn parentheses_surrounded_by_brackets() {
-    let mut lexer = LogosLexer::new("[()]");
+    let mut lexer = TypetleLexer::new("[()]");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -295,7 +295,7 @@ fn parentheses_surrounded_by_brackets() {
 
 #[test]
 fn assign_an_int_expr() {
-    let mut lexer = LogosLexer::new("MyVar=10");
+    let mut lexer = TypetleLexer::new("MyVar=10");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -313,7 +313,7 @@ fn assign_an_int_expr() {
 
 #[test]
 fn assign_a_composite_expr() {
-    let mut lexer = LogosLexer::new("MyVar=(1+2)");
+    let mut lexer = TypetleLexer::new("MyVar=(1+2)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -347,7 +347,7 @@ fn assign_a_composite_expr() {
 
 #[test]
 fn less_than_expr() {
-    let mut lexer = LogosLexer::new("1<2");
+    let mut lexer = TypetleLexer::new("1<2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -365,7 +365,7 @@ fn less_than_expr() {
 
 #[test]
 fn greater_than_expr() {
-    let mut lexer = LogosLexer::new("1>2");
+    let mut lexer = TypetleLexer::new("1>2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -383,7 +383,7 @@ fn greater_than_expr() {
 
 #[test]
 fn procedure_call_expr() {
-    let mut lexer = LogosLexer::new("FOO(:X, 10, 1 + 2)");
+    let mut lexer = TypetleLexer::new("FOO(:X, 10, 1 + 2)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
