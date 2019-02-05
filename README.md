@@ -1,2 +1,1 @@
-# Typetyle - Typed Turtle
-TBD
+# Typed-Turtle Programming Language
