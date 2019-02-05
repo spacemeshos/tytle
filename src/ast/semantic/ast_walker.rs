@@ -32,7 +32,7 @@ pub trait AstWalker<'a> {
 
     fn walk_proc_stmt(&mut self, proc: &ProcedureStmt, stmt: &Statement) {
         match stmt {
-            Statement::Nop => {},
+            Statement::Nop => {}
             Statement::Command(ref cmd_stmt) => self.walk_command_stmt(proc, cmd_stmt),
             Statement::Direction(ref direct_stmt) => self.walk_direct_stmt(proc, direct_stmt),
             Statement::If(ref if_stmt) => self.walk_if_stmt(proc, if_stmt),
@@ -66,6 +66,7 @@ pub trait AstWalker<'a> {
     fn walk_expr(&mut self, proc: &ProcedureStmt, expr: &Expression) -> ExpressionType {
         match expr {
             Expression::Literal(ref lexpr) => self.walk_expr_literal(proc, lexpr),
+            Expression::Call(ref params) => unimplemented!(),
             Expression::Binary(binary_op, ref lexpr, ref rexpr) => {
                 let lexpr_type = self.walk_expr(proc, lexpr);
                 let rexpr_type = self.walk_expr(proc, rexpr);

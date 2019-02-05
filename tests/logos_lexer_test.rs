@@ -380,3 +380,45 @@ fn greater_than_expr() {
     assert_eq!(loc3, Location(1, 3));
     assert_eq!(tok3, Token::VALUE("2".to_string()));
 }
+
+#[test]
+fn procedure_call_expr() {
+    let mut lexer = LogosLexer::new("FOO(:X, 10, 1 + 2)");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+    let (tok2, loc2) = lexer.pop_current_token().unwrap();
+    let (tok3, loc3) = lexer.pop_current_token().unwrap();
+    let (tok4, loc4) = lexer.pop_current_token().unwrap();
+    let (tok5, loc5) = lexer.pop_current_token().unwrap();
+    let (tok6, loc6) = lexer.pop_current_token().unwrap();
+    let (tok7, loc7) = lexer.pop_current_token().unwrap();
+    let (tok8, loc8) = lexer.pop_current_token().unwrap();
+    let (tok9, loc9) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::VALUE("FOO".to_string()));
+
+    assert_eq!(loc2, Location(1, 4));
+    assert_eq!(tok2, Token::LPAREN);
+
+    assert_eq!(loc3, Location(1, 5));
+    assert_eq!(tok3, Token::VALUE(":X".to_string()));
+
+    assert_eq!(loc4, Location(1, 7));
+    assert_eq!(tok4, Token::COMMA);
+
+    assert_eq!(loc5, Location(1, 9));
+    assert_eq!(tok5, Token::VALUE("10".to_string()));
+
+    assert_eq!(loc6, Location(1, 11));
+    assert_eq!(tok6, Token::COMMA);
+
+    assert_eq!(loc7, Location(1, 13));
+    assert_eq!(tok7, Token::VALUE("1".to_string()));
+
+    assert_eq!(loc8, Location(1, 15));
+    assert_eq!(tok8, Token::ADD);
+
+    assert_eq!(loc9, Location(1, 17));
+    assert_eq!(tok9, Token::VALUE("2".to_string()));
+}

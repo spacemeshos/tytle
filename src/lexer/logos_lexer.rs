@@ -76,6 +76,12 @@ impl<'a> Lexer for LogosLexer<'a> {
                         self.location.increment_column();
                         break;
                     }
+                    ',' => {
+                        self.push_token(&mut token);
+                        self.push_comma();
+                        self.location.increment_column();
+                        break;
+                    }
                     '>' => {
                         self.push_token(&mut token);
                         self.push_greater_than();
@@ -169,6 +175,10 @@ impl<'a> LogosLexer<'a> {
             _ => panic!(),
         };
         self.tokens_buffer.push_back((token, self.location));
+    }
+
+    fn push_comma(&mut self) {
+        self.tokens_buffer.push_back((Token::COMMA, self.location));
     }
 
     fn push_assign(&mut self) {

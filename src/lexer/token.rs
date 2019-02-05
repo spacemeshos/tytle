@@ -13,6 +13,7 @@ pub enum Token {
     RBRACKET, // ]
 
     ASSIGN, // =
+    COMMA,  // ,
 
     LT, // <
     GT, // >
