@@ -1,5 +1,8 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
+    SOC, // START OF CODE
+    EOC, // END OF CODE
+
     FD, // Forward
     BK, // Backward
     RT, // Right
@@ -9,15 +12,4 @@ pub enum Opcode {
 
     ST, // ShowTurtle
     HT, // HideTurtle
-
-        // PE,  // PenErase
-        // RPT, // Repeat
-        // CS,  // ClearScreen
-
-        // XCOR,
-        // YCOR,
-        // SETPOS,
-        // DISTANCE,
-
-        // SETPEN, // SetPen
 }

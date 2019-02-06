@@ -44,7 +44,6 @@ pub trait AstWalker<'a> {
 
     fn walk_if_stmt(&mut self, proc: &ProcedureStmt, if_stmt: &IfStmt) {
         let expr_type = self.walk_expr(proc, &if_stmt.cond_expr);
-        ExpressionType::ensure_same(&if_stmt.cond_expr, ExpressionType::Bool, expr_type);
 
         self.walk_block_stmt(proc, &if_stmt.true_block);
 
@@ -63,27 +62,35 @@ pub trait AstWalker<'a> {
         self.on_block_stmt_end(proc);
     }
 
-    fn walk_expr(&mut self, proc: &ProcedureStmt, expr: &Expression) -> ExpressionType {
+    fn walk_expr(&mut self, proc: &ProcedureStmt, expr: &Expression) {
         match expr {
-            Expression::Literal(ref lexpr) => self.walk_expr_literal(proc, lexpr),
-            Expression::ProcCall(ref proc_name, ref params) => unimplemented!(),
-            Expression::Binary(binary_op, ref lexpr, ref rexpr) => {
-                let lexpr_type = self.walk_expr(proc, lexpr);
-                let rexpr_type = self.walk_expr(proc, rexpr);
+            Expression::Literal(ref lexpr) => self.on_literal_expr(proc, lexpr),
+            Expression::ProcCall(ref proc_name, ref params_exprs) => {
+                self.walk_proc_call_expr(proc, proc_name, params_exprs);
+            }
+            Expression::Binary(binary_op, lexpr, rexpr) => {
+                self.walk_expr(proc, lexpr);
+                self.walk_expr(proc, rexpr);
 
-                ExpressionType::ensure_same(expr, lexpr_type, rexpr_type);
-
-                ExpressionType::Bool
+                self.on_binary_expr_end(proc, binary_op);
             }
         }
     }
 
-    fn walk_expr_literal(&mut self, proc: &ProcedureStmt, lexpr: &LiteralExpr) -> ExpressionType {
-        match lexpr {
-            LiteralExpr::Int(_) => ExpressionType::Int,
-            LiteralExpr::Str(_) => ExpressionType::Str,
-            LiteralExpr::Var(_) => ExpressionType::NotSure,
+    fn walk_proc_call_expr(
+        &mut self,
+        proc: &ProcedureStmt,
+        proc_name: &str,
+        params_exprs: &Vec<Box<Expression>>,
+    ) {
+        self.on_proc_call_expr_start(proc, proc_name);
+
+        for param_expr in params_exprs {
+            self.walk_expr(proc, param_expr);
+            self.on_proc_param_expr_end(proc, param_expr);
         }
+
+        self.on_proc_call_expr_end(proc, proc_name);
     }
 
     fn walk_command_stmt(&mut self, proc: &ProcedureStmt, cmd: &CommandStmt) {
@@ -100,7 +107,6 @@ pub trait AstWalker<'a> {
 
     fn walk_repeat_stmt(&mut self, proc: &ProcedureStmt, repeat_stmt: &RepeatStmt) {
         let expr_type = self.walk_expr(proc, &repeat_stmt.count_expr);
-        ExpressionType::ensure_same(&repeat_stmt.count_expr, ExpressionType::Int, expr_type);
 
         self.walk_block_stmt(proc, &repeat_stmt.block);
     }
@@ -114,8 +120,14 @@ pub trait AstWalker<'a> {
     fn on_make_stmt(&mut self, proc: &ProcedureStmt, make_stmt: &MakeStmt) {}
     fn on_command_stmt(&mut self, proc: &ProcedureStmt, cmd: &CommandStmt) {}
 
+    fn on_literal_expr(&mut self, proc: &ProcedureStmt, expr: &LiteralExpr) {}
+    fn on_binary_expr_end(&mut self, proc: &ProcedureStmt, binary_op: &BinaryOp) {}
+
+    fn on_proc_call_expr_start(&mut self, proc: &ProcedureStmt, proc_name: &str) {}
+    fn on_proc_call_expr_end(&mut self, proc: &ProcedureStmt, proc_name: &str) {}
+    fn on_proc_param_expr_end(&mut self, proc: &ProcedureStmt, param_expr: &Expression) {}
+
     fn on_direct_stmt(&mut self, proc: &ProcedureStmt, direct_stmt: &DirectionStmt) {
-        let expr_type = self.walk_expr(proc, &direct_stmt.expr);
-        ExpressionType::ensure_same(&direct_stmt.expr, ExpressionType::Int, expr_type);
+        self.walk_expr(proc, &direct_stmt.expr)
     }
 }

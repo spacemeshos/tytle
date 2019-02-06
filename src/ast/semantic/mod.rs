@@ -9,8 +9,6 @@ mod variable;
 
 pub use ast_walker::AstWalker;
 pub use program::Program;
-pub use program_builder::ProgramBuilder;
-pub use program_walker::ProgramWalker;
 pub use scope::Scope;
 pub use symbol::Symbol;
 pub use symbol_table::SymbolTable;
