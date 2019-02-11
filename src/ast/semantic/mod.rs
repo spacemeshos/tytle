@@ -1,15 +1,20 @@
 mod ast_walker;
+mod constant;
+mod primitive_type;
+mod procedure;
 mod program;
-mod program_builder;
 mod program_walker;
 mod scope;
 mod symbol;
 mod symbol_table;
 mod variable;
 
-pub use ast_walker::AstWalker;
-pub use program::Program;
-pub use scope::Scope;
-pub use symbol::Symbol;
-pub use symbol_table::SymbolTable;
-pub use variable::Variable;
+pub use ast_walker::*;
+pub use constant::*;
+pub use primitive_type::*;
+pub use procedure::*;
+pub use program::*;
+pub use scope::*;
+pub use symbol::*;
+pub use symbol_table::*;
+pub use variable::*;

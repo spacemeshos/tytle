@@ -1,4 +1,5 @@
 #[derive(Debug, PartialEq)]
 pub enum Operand {
-    Int(String),
+    Int(usize),
+    Str(String),
 }

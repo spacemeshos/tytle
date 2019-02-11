@@ -1,9 +1,9 @@
 use crate::ast::semantic::{Symbol, Variable};
 use std::collections::HashMap;
 
-type ScopeId = u64;
+pub type ScopeId = u64;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
     pub id: ScopeId,
     pub parent_id: Option<ScopeId>,

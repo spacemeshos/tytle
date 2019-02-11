@@ -1,9 +1,11 @@
+use crate::ast::semantic::PrimitiveType;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub global: bool,
     pub name: String,
     pub reference: Option<u64>,
-    pub resolved_type: Option<VariableType>,
+    pub resolved_type: Option<PrimitiveType>,
 }
 
 impl Variable {
@@ -28,19 +30,13 @@ impl Variable {
         self.reference = Some(reference);
     }
 
-    pub fn set_resolved_type(&mut self, rt: VariableType) {
+    pub fn set_resolved_type(&mut self, rt: PrimitiveType) {
         match self.resolved_type {
             None => self.resolved_type = Some(rt),
             Some(ref current_rt) if *current_rt == rt => {}
             _ => panic!(format!("Type mismatch for variable `{}`", self.name)),
         }
     }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum VariableType {
-    Int,
-    Str,
 }
 
 #[cfg(test)]
@@ -50,10 +46,10 @@ mod tests {
     fn setting_to_var_the_same_variable_type_twice() {
         let mut var = Variable::build_global("A");
 
-        var.set_resolved_type(VariableType::Int);
-        var.set_resolved_type(VariableType::Int);
+        var.set_resolved_type(PrimitiveType::Int);
+        var.set_resolved_type(PrimitiveType::Int);
 
-        assert_eq!(Some(VariableType::Int), var.resolved_type);
+        assert_eq!(Some(PrimitiveType::Int), var.resolved_type);
     }
 
     #[test]
@@ -61,7 +57,7 @@ mod tests {
     fn raises_when_variable_type_mismatch() {
         let mut var = Variable::build_global("A");
 
-        var.set_resolved_type(VariableType::Int);
-        var.set_resolved_type(VariableType::Str);
+        var.set_resolved_type(PrimitiveType::Int);
+        var.set_resolved_type(PrimitiveType::Str);
     }
 }

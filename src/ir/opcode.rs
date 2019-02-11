@@ -12,4 +12,12 @@ pub enum Opcode {
 
     ST, // ShowTurtle
     HT, // HideTurtle
+
+    CONST,
+
+    GetLocal,
+    SetLocal,
+
+    GetGlobal,
+    SetGlobal,
 }
