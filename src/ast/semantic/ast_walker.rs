@@ -52,20 +52,30 @@ pub trait AstWalker<'a> {
         self.on_block_stmt_end(&block_stmt);
     }
 
-    fn walk_expr(&mut self, expr: &Expression) {
+    fn walk_expr(&mut self, expr: &Expression) -> Option<ExpressionType> {
         match expr {
             Expression::Literal(ref lexpr) => self.on_literal_expr(lexpr),
             Expression::ProcCall(ref proc_name, ref proc_params) => {
                 self.walk_proc_call_expr(proc_name, proc_params)
             }
             Expression::Binary(binary_op, lexpr, rexpr) => {
-                self.walk_expr(lexpr);
-                self.walk_expr(rexpr);
+                let lexpr_type = self.walk_expr(lexpr);
+                let rexpr_type = self.walk_expr(rexpr);
+
+                self.resolve_binary_expr(binary_op, lexpr_type, rexpr_type)
             }
         }
     }
 
-    fn walk_proc_call_expr(&mut self, proc_name: &str, params_exprs: &Vec<Box<Expression>>) {
+    fn resolve_proc_call_expr(&self, proc_name: &str) -> Option<ExpressionType> {
+        None
+    }
+
+    fn walk_proc_call_expr(
+        &mut self,
+        proc_name: &str,
+        params_exprs: &Vec<Box<Expression>>,
+    ) -> Option<ExpressionType> {
         self.on_proc_call_expr_start(proc_name);
 
         for param_expr in params_exprs {
@@ -75,6 +85,7 @@ pub trait AstWalker<'a> {
         }
 
         self.on_proc_call_expr_end(proc_name);
+        self.resolve_proc_call_expr(proc_name)
     }
 
     fn walk_command_stmt(&mut self, cmd: &CommandStmt) {
@@ -107,7 +118,18 @@ pub trait AstWalker<'a> {
     fn on_block_stmt_end(&mut self, block_stmt: &BlockStatement) {}
 
     // expression
-    fn on_literal_expr(&mut self, expr: &LiteralExpr) {}
+    fn on_literal_expr(&mut self, expr: &LiteralExpr) -> Option<ExpressionType> {
+        None
+    }
+
+    fn resolve_binary_expr(
+        &self,
+        binary_op: &BinaryOp,
+        lexpr_type: Option<ExpressionType>,
+        rexpr_type: Option<ExpressionType>,
+    ) -> Option<ExpressionType> {
+        None
+    }
 
     // procedure call
     fn on_proc_call_expr_start(&mut self, proc_name: &str) {}

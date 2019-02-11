@@ -1,5 +1,6 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralExpr {
+    Bool(bool),
     Int(usize),
     Var(String),
     Str(String),
@@ -9,6 +10,11 @@ pub enum LiteralExpr {
 pub enum BinaryOp {
     Add,
     Mul,
+    GT,
+    LT,
+    EQEQ,
+    GTE,
+    LTE,
 }
 
 impl From<&str> for BinaryOp {
@@ -33,11 +39,13 @@ pub enum ExpressionType {
     Int,
     Str,
     Bool,
-    NotSure,
 }
 
-impl ExpressionType {
-    pub fn ensure_same(expr: &Expression, expected: ExpressionType, actual: ExpressionType) {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_expr_equal(expr: &Expression, expected: ExpressionType, actual: ExpressionType) {
         if expected != actual {
             panic!(format!(
                 "expected expression `{:?}` to be of type `{:?}` (actual: `{:?}`",
@@ -45,11 +53,6 @@ impl ExpressionType {
             ));
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 
     #[test]
     fn int_expr_sanity() {
@@ -66,6 +69,6 @@ mod tests {
     fn expr_type_ensure_same_mismatch() {
         let expr = Expression::Literal(LiteralExpr::Int(10));
 
-        ExpressionType::ensure_same(&expr, ExpressionType::Str, ExpressionType::Int);
+        assert_expr_equal(&expr, ExpressionType::Str, ExpressionType::Int);
     }
 }

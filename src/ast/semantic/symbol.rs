@@ -1,4 +1,4 @@
-use crate::ast::semantic::{Constant, Procedure, Variable};
+use crate::ast::semantic::{Procedure, Variable};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Symbol {
@@ -9,8 +9,8 @@ pub enum Symbol {
 impl Symbol {
     pub fn name(&self) -> String {
         match self {
-            Symbol::Var(ref var) => var.name.clone(),
-            _ => unimplemented!(),
+            Symbol::Var(ref var) => var.name.to_owned(),
+            Symbol::Proc(ref proc) => proc.name.to_owned(),
         }
     }
 }
