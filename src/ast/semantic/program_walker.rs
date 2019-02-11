@@ -23,9 +23,9 @@ type ProgramResult<'a> = Result<&'a SymbolTable, ProgramError>;
 
 impl ProgramWalker {
     fn walk_ast(&mut self, ast: &Ast) -> ProgramResult {
-        self.scope_start();
+        self.start_scope();
         self.prewalk_procs_and_globals(&ast);
-        self.scope_end();
+        self.end_scope();
 
         Ok(&self.sym_table)
     }
@@ -33,11 +33,11 @@ impl ProgramWalker {
 
 impl<'a> AstWalker<'a> for ProgramWalker {
     fn on_block_stmt_start(&mut self, _block_stmt: &BlockStatement) {
-        self.scope_start();
+        self.start_scope();
     }
 
     fn on_block_stmt_end(&mut self, _block_stmt: &BlockStatement) {
-        self.scope_end();
+        self.end_scope();
     }
 
     fn on_proc_param(&mut self, proc_stmt: &ProcedureStmt, param: &ProcParam) {}
@@ -63,7 +63,7 @@ impl ProgramWalker {
     fn ensure_var_symbol(&mut self, var_ref: &str) {
         let var_sym = self
             .sym_table
-            .recursive_lookup_var(self.current_scope_id, var_ref);
+            .recursive_lookup_sym(self.current_scope_id, var_ref);
 
         if var_sym.is_none() {
             panic!("variable declaration is missing for {}", var_ref);
@@ -113,12 +113,12 @@ impl ProgramWalker {
         //
     }
 
-    fn scope_start(&mut self) {
-        self.sym_table.add_scope();
+    fn start_scope(&mut self) {
+        self.sym_table.start_scope();
         self.current_scope_id += 1;
     }
 
-    fn scope_end(&mut self) {
+    fn end_scope(&mut self) {
         self.current_scope_id -= 1;
     }
 }

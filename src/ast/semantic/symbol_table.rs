@@ -12,30 +12,41 @@ pub enum SymbolType {
 #[derive(Debug)]
 pub struct SymbolTable {
     scopes: HashMap<ScopeId, Scope>,
-    current_scope_id: u64,
+    next_scope_id: u64,
+    scope_depth: u64,
 }
 
 impl SymbolTable {
     pub fn new() -> Self {
         Self {
             scopes: Default::default(),
-            current_scope_id: 0,
+            next_scope_id: 1,
+            scope_depth: 0,
         }
     }
 
-    pub fn add_scope(&mut self) -> &mut Scope {
-        let parent_scope = match self.current_scope_id {
+    pub fn start_scope(&mut self) -> &mut Scope {
+        let parent_scope_id = match self.scope_depth {
             0 => None,
-            _ => Some(self.current_scope_id),
+            _ => Some(self.next_scope_id - 1),
         };
 
-        self.current_scope_id += 1;
+        let scope_id = self.next_scope_id;
 
-        let scope = Scope::new(self.current_scope_id, parent_scope);
+        let scope = Scope::new(scope_id, parent_scope_id);
 
-        self.scopes.insert(scope.id, scope);
+        self.scope_depth += 1;
+        self.next_scope_id += 1;
 
-        self.scopes.get_mut(&self.current_scope_id).unwrap()
+        self.scopes.insert(scope_id, scope);
+
+        self.scopes.get_mut(&scope_id).unwrap()
+    }
+
+    pub fn end_scope(&mut self) {
+        assert!(self.scope_depth > 0);
+
+        self.scope_depth -= 1;
     }
 
     pub fn get_scope(&self, scope_id: ScopeId) -> &Scope {
@@ -56,7 +67,7 @@ impl SymbolTable {
         scope.unwrap().lookup_symbol(sym_name)
     }
 
-    pub fn recursive_lookup_var(&self, root_scope_id: ScopeId, sym_name: &str) -> Option<&Symbol> {
+    pub fn recursive_lookup_sym(&self, root_scope_id: ScopeId, sym_name: &str) -> Option<&Symbol> {
         let mut scope = self.get_scope(root_scope_id);
 
         loop {
@@ -75,24 +86,24 @@ impl SymbolTable {
     }
 
     pub fn create_var_symbol(&mut self, var: Variable) {
-        let mut var_sym = self.lookup_symbol(self.current_scope_id, &var.name);
+        let mut var_sym = self.lookup_symbol(self.next_scope_id - 1, &var.name);
 
         if var_sym.is_some() {
             panic!("variable {} already exists under the scope", var.name);
         }
 
-        let scope = self.get_scope_mut(self.current_scope_id);
+        let scope = self.get_scope_mut(self.next_scope_id - 1);
         scope.store(Symbol::Var(var));
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
-        let mut proc_sym = self.lookup_symbol(self.current_scope_id, &proc.name);
+        let mut proc_sym = self.lookup_symbol(self.scope_depth, &proc.name);
 
         if proc_sym.is_some() {
             panic!("procedure {} already exists under the scope", proc.name);
         }
 
-        let scope = self.get_scope_mut(self.current_scope_id);
+        let scope = self.get_scope_mut(self.scope_depth);
         scope.store(Symbol::Proc(proc));
     }
 }
@@ -104,7 +115,7 @@ mod tests {
     #[test]
     fn one_scope_var_does_not_exist() {
         let mut sym_table = SymbolTable::new();
-        let scope = sym_table.add_scope();
+        let scope = sym_table.start_scope();
         let scope_id = scope.id;
 
         assert_eq!(None, sym_table.lookup_symbol(scope_id, "A"));
@@ -115,7 +126,7 @@ mod tests {
         let var = Variable::build_global("A");
 
         let mut sym_table = SymbolTable::new();
-        let scope = sym_table.add_scope();
+        let scope = sym_table.start_scope();
         let scope_id = scope.id;
 
         sym_table.create_var_symbol(var.clone());
@@ -127,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var() {
+    fn multiple_nested_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var() {
         //
         // Scope outer
         // |
@@ -141,7 +152,7 @@ mod tests {
         let mut sym_table = SymbolTable::new();
 
         // outer scope
-        let outer_scope = sym_table.add_scope();
+        let outer_scope = sym_table.start_scope();
         let outer_scope_id = outer_scope.id;
         let mut var_outer = Variable::build_local("A");
         var_outer.set_reference(100);
@@ -149,7 +160,7 @@ mod tests {
 
         let mut var_inner = Variable::build_local("A");
         var_inner.set_reference(200);
-        let inner_scope = sym_table.add_scope();
+        let inner_scope = sym_table.start_scope();
         let inner_scope_id = inner_scope.id;
         sym_table.create_var_symbol(var_inner.clone());
 
@@ -168,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_scopes_var_does_exist_on_parent_scope() {
+    fn multiple_nested_scopes_var_does_exist_on_parent_scope() {
         //
         // Scope X
         // |
@@ -182,7 +193,7 @@ mod tests {
         let mut sym_table = SymbolTable::new();
 
         // scope X
-        let scope_x = sym_table.add_scope();
+        let scope_x = sym_table.start_scope();
         let scope_x_id = scope_x.id;
 
         // var
@@ -191,29 +202,29 @@ mod tests {
         sym_table.create_var_symbol(var.clone());
 
         // scope Y
-        let scope_y = sym_table.add_scope();
+        let scope_y = sym_table.start_scope();
         let scope_y_id = scope_y.id;
 
         // scope Z
-        let scope_z = sym_table.add_scope();
+        let scope_z = sym_table.start_scope();
         let scope_z_id = scope_z.id;
 
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_var(scope_z_id, "A").unwrap()
+            *sym_table.recursive_lookup_sym(scope_z_id, "A").unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_var(scope_y_id, "A").unwrap()
+            *sym_table.recursive_lookup_sym(scope_y_id, "A").unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_var(scope_x_id, "A").unwrap()
+            *sym_table.recursive_lookup_sym(scope_x_id, "A").unwrap()
         );
     }
 
     #[test]
-    fn multiple_scopes_var_does_not_exist_at_any_scope() {
+    fn multiple_nested_scopes_var_does_not_exist_at_any_scope() {
         //
         // Scope X
         // |
@@ -222,11 +233,59 @@ mod tests {
         //     |---- Scope Z
 
         let mut sym_table = SymbolTable::new();
-        sym_table.add_scope(); // scope X
-        sym_table.add_scope(); // scope Y
-        let scope_z = sym_table.add_scope(); // scope Z
+        sym_table.start_scope(); // scope X
+        sym_table.start_scope(); // scope Y
+        let scope_z = sym_table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
 
-        assert_eq!(None, sym_table.recursive_lookup_var(scope_z_id, "A"));
+        assert_eq!(None, sym_table.recursive_lookup_sym(scope_z_id, "A"));
+    }
+
+    #[test]
+    fn multiple_not_nested_scopes_var_exist_under_exactly_one_scope() {
+        //
+        // Scope X
+        // |
+        // |------
+        //
+        //  Scope Y
+        // |
+        // | variable A (reference=100)
+        // |----
+        //
+        // Scope Z
+        // |
+        // |------
+
+        let mut sym_table = SymbolTable::new();
+
+        // scop X
+        let scope_x = sym_table.start_scope(); // scope X
+        let scope_x_id = scope_x.id;
+        sym_table.end_scope();
+
+        // scope Y
+        let scope_y = sym_table.start_scope(); // scope Y
+        let scope_y_id = scope_y.id;
+        let mut var = Variable::build_local("A");
+        var.set_reference(100);
+        sym_table.create_var_symbol(var.clone());
+        sym_table.end_scope();
+
+        // scope Z
+        let scope_z = sym_table.start_scope(); // scope Z
+        let scope_z_id = scope_z.id;
+        sym_table.end_scope();
+
+        assert_eq!(scope_x_id, 1);
+        assert_eq!(scope_y_id, 2);
+        assert_eq!(scope_z_id, 3);
+
+        assert_eq!(None, sym_table.recursive_lookup_sym(scope_x_id, "A"));
+        assert_eq!(None, sym_table.recursive_lookup_sym(scope_z_id, "A"));
+        assert_eq!(
+            Symbol::Var(var.clone()),
+            *sym_table.recursive_lookup_sym(scope_y_id, "A").unwrap()
+        );
     }
 }
