@@ -15,7 +15,6 @@ pub enum ProgramError {
 
 struct ProgramWalker {
     sym_table: SymbolTable,
-    current_scope_id: ScopeId,
     global_ref: u64,
 }
 
@@ -55,15 +54,16 @@ impl ProgramWalker {
     fn new() -> Self {
         Self {
             sym_table: SymbolTable::new(),
-            current_scope_id: 0,
             global_ref: 0,
         }
     }
 
     fn ensure_var_symbol(&mut self, var_ref: &str) {
+        let current_scope_id = self.sym_table.get_current_scope_id();
+
         let var_sym = self
             .sym_table
-            .recursive_lookup_sym(self.current_scope_id, var_ref);
+            .recursive_lookup_sym(current_scope_id, var_ref);
 
         if var_sym.is_none() {
             panic!("variable declaration is missing for {}", var_ref);
@@ -115,12 +115,9 @@ impl ProgramWalker {
 
     fn start_scope(&mut self) {
         self.sym_table.start_scope();
-        self.current_scope_id += 1;
     }
 
-    fn end_scope(&mut self) {
-        self.current_scope_id -= 1;
-    }
+    fn end_scope(&mut self) {}
 }
 
 #[cfg(test)]

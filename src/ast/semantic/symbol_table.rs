@@ -3,12 +3,6 @@ use std::collections::{HashMap, HashSet};
 
 type ScopeId = u64;
 
-pub enum SymbolType {
-    Constant,
-    Variable,
-    Procedure,
-}
-
 #[derive(Debug)]
 pub struct SymbolTable {
     scopes: HashMap<ScopeId, Scope>,
@@ -86,14 +80,13 @@ impl SymbolTable {
     }
 
     pub fn create_var_symbol(&mut self, var: Variable) {
-        let mut var_sym = self.lookup_symbol(self.next_scope_id - 1, &var.name);
+        let mut var_sym = self.lookup_symbol(self.get_current_scope_id(), &var.name);
 
         if var_sym.is_some() {
             panic!("variable {} already exists under the scope", var.name);
         }
 
-        let scope = self.get_scope_mut(self.next_scope_id - 1);
-        scope.store(Symbol::Var(var));
+        self.store_symbol_under_current_scope(Symbol::Var(var));
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
@@ -103,8 +96,18 @@ impl SymbolTable {
             panic!("procedure {} already exists under the scope", proc.name);
         }
 
-        let scope = self.get_scope_mut(self.scope_depth);
-        scope.store(Symbol::Proc(proc));
+        self.store_symbol_under_current_scope(Symbol::Proc(proc));
+    }
+
+    pub fn get_current_scope_id(&self) -> u64 {
+        self.next_scope_id - 1
+    }
+
+    fn store_symbol_under_current_scope(&mut self, symbol: Symbol) {
+        let scope_id = self.get_current_scope_id();
+
+        let scope = self.get_scope_mut(scope_id);
+        scope.store(symbol);
     }
 }
 
