@@ -183,7 +183,9 @@ impl TytleParser {
 
     fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Option<Statement> {
         let stmt = match val {
-            "MAKE" => self.parse_make(lexer),
+            "MAKE" => self.parse_make_assign(lexer),
+            "MAKEGLOBAL" => self.parse_make_global(lexer),
+            "MAKELOCAL" => self.parse_make_local(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => {
                 self.parse_direction(val, lexer)
             }
@@ -201,8 +203,20 @@ impl TytleParser {
         Statement::Command(stmt)
     }
 
-    fn parse_make(&self, lexer: &mut impl Lexer) -> Statement {
-        self.skip_token(lexer); // skipping the `MAKE` token
+    fn parse_make_global(&self, lexer: &mut impl Lexer) -> Statement {
+        self.build_make_stmt(lexer, MakeStmtKind::Global)
+    }
+
+    fn parse_make_local(&self, lexer: &mut impl Lexer) -> Statement {
+        self.build_make_stmt(lexer, MakeStmtKind::Local)
+    }
+
+    fn parse_make_assign(&self, lexer: &mut impl Lexer) -> Statement {
+        self.build_make_stmt(lexer, MakeStmtKind::Assign)
+    }
+
+    fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> Statement {
+        self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
         let mut var = self.expect_ident(lexer);
 
@@ -220,7 +234,7 @@ impl TytleParser {
 
         let expr = self.parse_expr(lexer);
 
-        let stmt = MakeStmt { var, expr };
+        let stmt = MakeStmt { var, expr, kind };
 
         Statement::Make(stmt)
     }

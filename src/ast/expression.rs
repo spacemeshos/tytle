@@ -12,9 +12,9 @@ pub enum BinaryOp {
     Mul,
     GT,
     LT,
-    EQEQ,
     GTE,
     LTE,
+    EQEQ,
 }
 
 impl From<&str> for BinaryOp {

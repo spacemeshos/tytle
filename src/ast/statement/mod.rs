@@ -12,7 +12,7 @@ pub use command_stmt::CommandStmt;
 pub use direction::Direction;
 pub use direction::DirectionStmt;
 pub use if_stmt::IfStmt;
-pub use make_stmt::MakeStmt;
+pub use make_stmt::*;
 pub use procedure_stmt::ProcParam;
 pub use procedure_stmt::ProcedureStmt;
 pub use repeat_stmt::RepeatStmt;

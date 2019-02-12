@@ -254,6 +254,28 @@ fn make_variable_assign_an_expr_containing_another_var() {
 }
 
 #[test]
+fn make_global_variable_assign_an_integer() {
+    let actual = TytleParser.parse("MAKEGLOBAL \"MyVar = 2").unwrap();
+
+    let expected = ast! {
+        make_global_stmt!("MyVar", int_lit_expr!(2))
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn make_local_variable_assign_an_integer() {
+    let actual = TytleParser.parse("MAKELOCAL \"MyVar = 2").unwrap();
+
+    let expected = ast! {
+        make_local_stmt!("MyVar", int_lit_expr!(2))
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn if_stmt_without_else() {
     let actual = TytleParser
         .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
@@ -264,8 +286,8 @@ fn if_stmt_without_else() {
     let if_stmt = if_stmt! {
         cond: cond_expr,
         when_true: block_stmt! {
-          make_stmt!("A", int_lit_expr!(3)),
-          make_stmt!("B", int_lit_expr!(4))
+            make_stmt!("A", int_lit_expr!(3)),
+            make_stmt!("B", int_lit_expr!(4))
         }
     };
 
@@ -302,8 +324,8 @@ fn repeat_stmt() {
     let count_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let block = block_stmt! {
-      make_stmt!("A", int_lit_expr!(3)),
-      make_stmt!("B", int_lit_expr!(4))
+        make_stmt!("A", int_lit_expr!(3)),
+        make_stmt!("B", int_lit_expr!(4))
     };
 
     let expected = ast! {
@@ -320,8 +342,8 @@ fn procedure_stmt_without_params() {
         .unwrap();
 
     let block = block_stmt! {
-      make_stmt!("A", int_lit_expr!(3)),
-      make_stmt!("B", int_lit_expr!(4))
+        make_stmt!("A", int_lit_expr!(3)),
+        make_stmt!("B", int_lit_expr!(4))
     };
 
     let expected = ast! {

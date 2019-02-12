@@ -74,14 +74,39 @@ macro_rules! command_stmt {
 }
 
 #[macro_export]
-macro_rules! make_stmt {
-    ($var:expr, $expr:expr) => {{
-        use $crate::ast::statement::{MakeStmt, Statement};
+macro_rules! __make_stmt {
+    ($kind:expr, $var:expr, $expr:expr) => {{
+        use $crate::ast::statement::{MakeStmt, MakeStmtKind, Statement};
 
         Statement::Make(MakeStmt {
+            kind: $kind,
             var: $var.to_string(),
             expr: $expr,
         })
+    }};
+}
+
+#[macro_export]
+macro_rules! make_global_stmt {
+    ($var:expr, $expr:expr) => {{
+        use $crate::ast::statement::MakeStmtKind;
+        __make_stmt!(MakeStmtKind::Global, $var.to_string(), $expr)
+    }};
+}
+
+#[macro_export]
+macro_rules! make_local_stmt {
+    ($var:expr, $expr:expr) => {{
+        use $crate::ast::statement::MakeStmtKind;
+        __make_stmt!(MakeStmtKind::Local, $var.to_string(), $expr)
+    }};
+}
+
+#[macro_export]
+macro_rules! make_stmt {
+    ($var:expr, $expr:expr) => {{
+        use $crate::ast::statement::MakeStmtKind;
+        __make_stmt!(MakeStmtKind::Assign, $var.to_string(), $expr)
     }};
 }
 
