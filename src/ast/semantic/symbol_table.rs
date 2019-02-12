@@ -262,7 +262,7 @@ mod tests {
 
         let mut sym_table = SymbolTable::new();
 
-        // scop X
+        // scope X
         let scope_x = sym_table.start_scope(); // scope X
         let scope_x_id = scope_x.id;
         sym_table.end_scope();
