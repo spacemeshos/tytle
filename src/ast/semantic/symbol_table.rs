@@ -1,4 +1,4 @@
-use crate::ast::semantic::{PrimitiveType, Procedure, Scope, Symbol, Variable};
+use crate::ast::semantic::*;
 use std::collections::{HashMap, HashSet};
 
 type ScopeId = u64;
@@ -51,21 +51,31 @@ impl SymbolTable {
         self.scopes.get_mut(&scope_id).unwrap()
     }
 
-    pub fn lookup_symbol(&self, scope_id: ScopeId, sym_name: &str) -> Option<&Symbol> {
+    pub fn lookup_symbol(
+        &self,
+        scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&Symbol> {
         let scope = self.scopes.get(&scope_id);
 
         if scope.is_none() {
             return None;
         }
 
-        scope.unwrap().lookup_symbol(sym_name)
+        scope.unwrap().lookup_symbol(sym_name, &sym_kind)
     }
 
-    pub fn recursive_lookup_sym(&self, root_scope_id: ScopeId, sym_name: &str) -> Option<&Symbol> {
+    pub fn recursive_lookup_sym(
+        &self,
+        root_scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&Symbol> {
         let mut scope = self.get_scope(root_scope_id);
 
         loop {
-            let var = self.lookup_symbol(scope.id, sym_name);
+            let var = self.lookup_symbol(scope.id, sym_name, sym_kind);
             if var.is_some() {
                 return var;
             }
@@ -80,34 +90,35 @@ impl SymbolTable {
     }
 
     pub fn create_var_symbol(&mut self, var: Variable) {
-        let mut var_sym = self.lookup_symbol(self.get_current_scope_id(), &var.name);
+        let mut var_sym =
+            self.lookup_symbol(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
 
         if var_sym.is_some() {
             panic!("variable {} already exists under the scope", var.name);
         }
 
-        self.store_symbol_under_current_scope(Symbol::Var(var));
+        self.store_symbol_under_current_scope(Symbol::Var(var), &SymbolKind::Var);
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
-        let mut proc_sym = self.lookup_symbol(self.scope_depth, &proc.name);
+        let mut proc_sym = self.lookup_symbol(self.scope_depth, &proc.name, &SymbolKind::Proc);
 
         if proc_sym.is_some() {
             panic!("procedure {} already exists under the scope", proc.name);
         }
 
-        self.store_symbol_under_current_scope(Symbol::Proc(proc));
+        self.store_symbol_under_current_scope(Symbol::Proc(proc), &SymbolKind::Proc);
     }
 
     pub fn get_current_scope_id(&self) -> u64 {
         self.next_scope_id - 1
     }
 
-    fn store_symbol_under_current_scope(&mut self, symbol: Symbol) {
+    fn store_symbol_under_current_scope(&mut self, symbol: Symbol, kind: &SymbolKind) {
         let scope_id = self.get_current_scope_id();
 
         let scope = self.get_scope_mut(scope_id);
-        scope.store(symbol);
+        scope.store(symbol, kind);
     }
 }
 
@@ -121,7 +132,10 @@ mod tests {
         let scope = sym_table.start_scope();
         let scope_id = scope.id;
 
-        assert_eq!(None, sym_table.lookup_symbol(scope_id, "A"));
+        assert_eq!(
+            None,
+            sym_table.lookup_symbol(scope_id, "A", &SymbolKind::Var)
+        );
     }
 
     #[test]
@@ -136,7 +150,9 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var),
-            *sym_table.lookup_symbol(scope_id, "A").unwrap()
+            *sym_table
+                .lookup_symbol(scope_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
     }
 
@@ -172,12 +188,16 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var_inner),
-            *sym_table.lookup_symbol(inner_scope_id, "A").unwrap()
+            *sym_table
+                .lookup_symbol(inner_scope_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
 
         assert_eq!(
             Symbol::Var(var_outer),
-            *sym_table.lookup_symbol(outer_scope_id, "A").unwrap()
+            *sym_table
+                .lookup_symbol(outer_scope_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
     }
 
@@ -214,15 +234,21 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_sym(scope_z_id, "A").unwrap()
+            *sym_table
+                .recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_sym(scope_y_id, "A").unwrap()
+            *sym_table
+                .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_sym(scope_x_id, "A").unwrap()
+            *sym_table
+                .recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
     }
 
@@ -241,7 +267,10 @@ mod tests {
         let scope_z = sym_table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
 
-        assert_eq!(None, sym_table.recursive_lookup_sym(scope_z_id, "A"));
+        assert_eq!(
+            None,
+            sym_table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+        );
     }
 
     #[test]
@@ -284,11 +313,19 @@ mod tests {
         assert_eq!(scope_y_id, 2);
         assert_eq!(scope_z_id, 3);
 
-        assert_eq!(None, sym_table.recursive_lookup_sym(scope_x_id, "A"));
-        assert_eq!(None, sym_table.recursive_lookup_sym(scope_z_id, "A"));
+        assert_eq!(
+            None,
+            sym_table.recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
+        );
+        assert_eq!(
+            None,
+            sym_table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+        );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table.recursive_lookup_sym(scope_y_id, "A").unwrap()
+            *sym_table
+                .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
+                .unwrap()
         );
     }
 }

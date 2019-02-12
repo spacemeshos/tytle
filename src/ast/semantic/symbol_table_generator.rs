@@ -8,6 +8,7 @@ struct SymbolTableGenerator {
     sym_table: SymbolTable,
     global_ref: u64,
     proc_ref: u64,
+    proc_locals_ref: u64,
 }
 
 type SymbolTableResult<'a> = Result<&'a SymbolTable, AstWalkError>;
@@ -17,11 +18,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     // * TODO: ensure expression-procedure call symbol exists
     // * TODO: avoid duplicate global/local declarations
     // * TODO: ensure that each global variable reference in a procedure
-    // * takes place only after global global variable
-
-    fn on_make_global_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        self.create_global_var_symbol(&make_stmt)
-    }
+    //         takes place only after global global variable
 
     fn on_make_local_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
         self.create_local_var_symbol(&make_stmt)
@@ -32,17 +29,6 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_proc_start(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
-        let proc = Procedure {
-            name: proc_stmt.name.to_owned(),
-            reference: Some(self.proc_ref),
-            params_types: None,
-            return_type: None,
-        };
-
-        self.proc_ref += 1;
-
-        self.sym_table.create_proc_symbol(proc);
-
         Ok(())
     }
 
@@ -69,19 +55,51 @@ impl SymbolTableGenerator {
             sym_table: SymbolTable::new(),
             global_ref: 0,
             proc_ref: 0,
+            proc_locals_ref: 0,
         }
     }
 
     pub fn build_sym_table(&mut self, ast: &Ast) -> SymbolTableResult {
         self.start_scope();
+        self.prewalk_ast(ast);
         self.walk_ast(ast);
         self.end_scope();
 
         Ok(&self.sym_table)
     }
 
+    pub fn prewalk_ast(&mut self, ast: &Ast) -> AstWalkResult {
+        for stmt in &ast.statements {
+            match stmt {
+                Statement::Make(make_stmt) => match make_stmt.kind {
+                    MakeStmtKind::Global => {
+                        self.create_global_var_symbol(make_stmt);
+                    }
+                    MakeStmtKind::Local => {
+                        let err = AstWalkError::new(format!(
+                            "not allowed to delcare local variables under root scope (`{}`)",
+                            make_stmt.var
+                        ));
+
+                        return Err(err);
+                    }
+                    MakeStmtKind::Assign => {
+                        // will return an error in case there is no global variable `make_stmt.var`
+                        self.get_var_symbol(&make_stmt.var)?;
+                    }
+                },
+                Statement::Procedure(proc_stmt) => {
+                    self.create_proc_symbol(proc_stmt)?;
+                }
+                _ => continue,
+            }
+        }
+
+        Ok(())
+    }
+
     fn get_var_symbol(&self, var_name: &str) -> Result<&Variable, AstWalkError> {
-        let symbol = self.try_get_symbol(var_name);
+        let symbol = self.try_get_symbol(var_name, SymbolKind::Var);
 
         if symbol.is_some() {
             if let Symbol::Var(ref var) = symbol.unwrap() {
@@ -98,7 +116,7 @@ impl SymbolTableGenerator {
     }
 
     fn get_proc_symbol(&self, proc_name: &str) -> Result<&Procedure, AstWalkError> {
-        let symbol = self.try_get_symbol(proc_name);
+        let symbol = self.try_get_symbol(proc_name, SymbolKind::Proc);
 
         if symbol.is_some() {
             if let Symbol::Proc(ref proc) = symbol.unwrap() {
@@ -114,25 +132,59 @@ impl SymbolTableGenerator {
         }
     }
 
-    fn try_get_symbol(&self, name: &str) -> Option<&Symbol> {
+    fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
         let current_scope_id = self.sym_table.get_current_scope_id();
 
-        self.sym_table.recursive_lookup_sym(current_scope_id, name)
+        self.sym_table
+            .recursive_lookup_sym(current_scope_id, name, &kind)
+    }
+
+    fn create_proc_symbol(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+        let symbol = self.try_get_symbol(&proc_stmt.name, SymbolKind::Proc);
+
+        if symbol.is_some() {
+            panic!("duplicate direction!");
+        }
+
+        let proc = Procedure {
+            name: proc_stmt.name.to_owned(),
+            reference: Some(self.proc_ref),
+            params_types: None,
+            return_type: None,
+        };
+
+        self.proc_ref += 1;
+        self.proc_locals_ref = 0; // we reset the new procedure locals counter
+
+        self.sym_table.create_proc_symbol(proc);
+
+        Ok(())
     }
 
     fn create_global_var_symbol(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        self.create_var_symbol(make_stmt, true)
+        let symbol = self.try_get_symbol(&make_stmt.var, SymbolKind::Var);
+
+        if symbol.is_none() {
+            self.create_var_symbol(make_stmt, true, self.global_ref)
+        } else {
+            panic!("duplicate declaration!")
+        }
     }
 
     fn create_local_var_symbol(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        self.create_var_symbol(make_stmt, false)
+        self.create_var_symbol(make_stmt, false, self.proc_locals_ref)
     }
 
-    fn create_var_symbol(&mut self, make_stmt: &MakeStmt, is_global: bool) -> AstWalkResult {
+    fn create_var_symbol(
+        &mut self,
+        make_stmt: &MakeStmt,
+        is_global: bool,
+        reference: u64,
+    ) -> AstWalkResult {
         let var = Variable {
             global: is_global,
             name: make_stmt.var.to_owned(),
-            reference: Some(self.global_ref),
+            reference: Some(reference),
             resolved_type: None,
         };
 
@@ -140,6 +192,8 @@ impl SymbolTableGenerator {
 
         if is_global {
             self.global_ref += 1;
+        } else {
+            self.proc_locals_ref += 1;
         }
 
         Ok(())
@@ -176,5 +230,8 @@ mod tests {
             "#;
 
         let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        generator.build_sym_table(&ast);
     }
 }

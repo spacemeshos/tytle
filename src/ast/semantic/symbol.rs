@@ -6,6 +6,12 @@ pub enum Symbol {
     Proc(Procedure),
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum SymbolKind {
+    Var,
+    Proc,
+}
+
 impl Symbol {
     pub fn name(&self) -> String {
         match self {
