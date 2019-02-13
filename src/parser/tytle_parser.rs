@@ -3,7 +3,10 @@ use crate::ast::statement::*;
 use crate::ast::Ast;
 
 use crate::lexer::{Lexer, Location, Token, TytleLexer};
-use crate::parser::{Parser, ParserResult};
+use crate::parser::{ParseError, Parser, ParserResult};
+
+pub type StatementResult = Result<Statement, ParseError>;
+pub type ExpressionResult = Result<Expression, ParseError>;
 
 pub struct TytleParser;
 
@@ -15,21 +18,18 @@ impl TytleParser {
 
 impl Parser for TytleParser {
     fn parse(&mut self, code: &str) -> ParserResult {
-        let mut parser = Self::new();
         let mut lexer = TytleLexer::new(code);
 
-        let ast = parser.parse(&mut lexer);
-
-        Ok(ast)
+        self.parse(&mut lexer)
     }
 }
 
 impl TytleParser {
-    fn parse(&mut self, lexer: &mut impl Lexer) -> Ast {
+    fn parse(&mut self, lexer: &mut impl Lexer) -> ParserResult {
         let mut ast = Ast::default();
 
         loop {
-            let stmt = self.parse_statement(lexer);
+            let stmt = self.parse_statement(lexer)?;
 
             match stmt {
                 Statement::NOP => continue,
@@ -39,45 +39,47 @@ impl TytleParser {
         }
 
         if ast.statements.len() == 0 {
-            ast.statements.push(Statement::NOP);
+            ast.statements.push(Statement::EOF);
         }
 
-        ast
+        Ok(ast)
     }
 
-    fn parse_statement(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_statement(&self, lexer: &mut impl Lexer) -> StatementResult {
         let tok_loc = self.peek_current_token(lexer);
         if tok_loc.is_none() {
-            return Statement::EOF;
+            return Ok(Statement::EOF);
         }
 
         let (token, location) = tok_loc.unwrap();
 
-        match token {
-            Token::EOF => return Statement::EOF,
+        let stmt = match token {
+            Token::EOF => Statement::EOF,
             Token::NEWLINE => {
                 self.skip_token(lexer);
                 Statement::NOP
             }
             Token::VALUE(val) => match val.as_str() {
-                "REPEAT" => self.parse_repeat_stmt(lexer),
-                "IF" => self.parse_if_stmt(lexer),
-                "TO" => self.parse_proc_stmt(lexer),
-                _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
+                "REPEAT" => self.parse_repeat_stmt(lexer)?,
+                "IF" => self.parse_if_stmt(lexer)?,
+                "TO" => self.parse_proc_stmt(lexer)?,
+                _ => self.parse_basic_stmt(val.clone().as_str(), lexer)?,
             },
             _ => panic!("Syntax error, unexpected token: {:?}", token),
-        }
+        };
+
+        Ok(stmt)
     }
 
-    fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.skip_token(lexer); // skipping the `TO` token
 
-        let name = self.expect_ident(lexer);
+        let name = self.expect_ident(lexer)?;
         let borders = (None, Token::VALUE("END".to_string()));
 
-        let params = self.parse_proc_params(lexer);
+        let params = self.parse_proc_params(lexer)?;
 
-        let block = self.parse_block_stmt(lexer, borders);
+        let block = self.parse_block_stmt(lexer, borders)?;
 
         let proc_stmt = ProcedureStmt {
             name,
@@ -85,10 +87,10 @@ impl TytleParser {
             params,
         };
 
-        Statement::Procedure(proc_stmt)
+        Ok(Statement::Procedure(proc_stmt))
     }
 
-    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Vec<ProcParam> {
+    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Result<Vec<ProcParam>, ParseError> {
         let mut params = Vec::new();
         let mut completed = false;
 
@@ -98,7 +100,7 @@ impl TytleParser {
             if *tok == Token::NEWLINE {
                 completed = true
             } else {
-                let ident = self.expect_ident(lexer);
+                let ident = self.expect_ident(lexer)?;
 
                 if ident.starts_with(":") {
                     let param = ident[1..].to_string();
@@ -109,30 +111,27 @@ impl TytleParser {
             }
         }
 
-        params
+        Ok(params)
     }
 
-    fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.skip_token(lexer); // skipping the `REPEAT` token
 
-        let count_expr = self.parse_expr(lexer);
-
+        let count_expr = self.parse_expr(lexer)?;
         let borders = (Some(Token::LBRACKET), Token::RBRACKET);
-
-        let block = self.parse_block_stmt(lexer, borders);
-
+        let block = self.parse_block_stmt(lexer, borders)?;
         let repeat_stmt = RepeatStmt { count_expr, block };
 
-        Statement::Repeat(repeat_stmt)
+        Ok(Statement::Repeat(repeat_stmt))
     }
 
-    fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.skip_token(lexer); // skipping the `IF` token
 
         let borders = (Some(Token::LBRACKET), Token::RBRACKET);
 
-        let cond_expr = self.parse_expr(lexer);
-        let true_block = self.parse_block_stmt(lexer, borders.clone());
+        let cond_expr = self.parse_expr(lexer)?;
+        let true_block = self.parse_block_stmt(lexer, borders.clone())?;
         let mut false_block = None;
 
         let tok_loc = self.peek_current_token(lexer);
@@ -141,7 +140,8 @@ impl TytleParser {
             let (tok, loc) = tok_loc.unwrap();
 
             if *tok == Token::LBRACKET {
-                false_block = Some(self.parse_block_stmt(lexer, borders.clone()));
+                let block_stmt = self.parse_block_stmt(lexer, borders.clone())?;
+                false_block = Some(block_stmt);
             }
         }
 
@@ -151,41 +151,41 @@ impl TytleParser {
             false_block,
         };
 
-        Statement::If(if_stmt)
+        Ok(Statement::If(if_stmt))
     }
 
     fn parse_block_stmt(
         &self,
         lexer: &mut impl Lexer,
         block_borders: (Option<Token>, Token),
-    ) -> BlockStatement {
+    ) -> Result<BlockStatement, ParseError> {
         let mut block = BlockStatement::new();
 
-        let (block_start_token, block_end_token) = block_borders;
+        let (start_tok, end_tok) = block_borders;
 
-        if block_start_token.is_some() {
-            self.expect_token(lexer, block_start_token.unwrap());
+        if start_tok.is_some() {
+            self.expect_token(lexer, start_tok.unwrap())?;
         }
 
         let mut completed = false;
 
         while !completed {
-            let stmt = self.parse_statement(lexer);
+            let stmt = self.parse_statement(lexer)?;
 
             block.add_statement(stmt);
 
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-            if *tok == block_end_token {
+            if *tok == end_tok {
                 self.skip_token(lexer); // skipping the block `ending token`
                 completed = true;
             }
         }
 
-        block
+        Ok(block)
     }
 
-    fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Statement {
+    fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
         match val {
             "MAKE" => self.parse_make_assign(lexer),
             "MAKEGLOBAL" => self.parse_make_global(lexer),
@@ -197,30 +197,30 @@ impl TytleParser {
         }
     }
 
-    fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> Statement {
+    fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
         self.skip_token(lexer); // skipping the `command` token
 
         let stmt = CommandStmt::from(val);
 
-        Statement::Command(stmt)
+        Ok(Statement::Command(stmt))
     }
 
-    fn parse_make_global(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_make_global(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Global)
     }
 
-    fn parse_make_local(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_make_local(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Local)
     }
 
-    fn parse_make_assign(&self, lexer: &mut impl Lexer) -> Statement {
+    fn parse_make_assign(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Assign)
     }
 
-    fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> Statement {
+    fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> StatementResult {
         self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
-        let mut var = self.expect_ident(lexer);
+        let mut var = self.expect_ident(lexer)?;
 
         if var.starts_with("\"") {
             var = var[1..].to_string();
@@ -232,142 +232,156 @@ impl TytleParser {
             );
         }
 
-        self.expect_token(lexer, Token::ASSIGN);
+        self.expect_token(lexer, Token::ASSIGN)?;
 
-        let expr = self.parse_expr(lexer);
-
+        let expr = self.parse_expr(lexer)?;
         let stmt = MakeStmt { var, expr, kind };
 
-        Statement::Make(stmt)
+        Ok(Statement::Make(stmt))
     }
 
-    fn parse_direction(&self, direction: &str, lexer: &mut impl Lexer) -> Statement {
+    fn parse_direction(&self, direction: &str, lexer: &mut impl Lexer) -> StatementResult {
         // skipping the direction token
         // we already have the value under `direction`
         self.skip_token(lexer);
 
-        let expr = self.parse_expr(lexer);
+        let expr = self.parse_expr(lexer)?;
 
-        self.expect_newline(lexer);
+        self.expect_newline(lexer)?;
 
         let stmt = DirectionStmt {
             expr,
             direction: Direction::from(direction),
         };
 
-        Statement::Direction(stmt)
+        Ok(Statement::Direction(stmt))
     }
 
-    fn parse_expr(&self, lexer: &mut impl Lexer) -> Expression {
-        let left_expr = self.parse_mul_expr(lexer);
+    fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let left_expr = self.parse_mul_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        if *tok == Token::ADD {
+        let expr = if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
-            let right_expr = self.parse_expr(lexer);
+            let right_expr = self.parse_expr(lexer)?;
             Expression::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr))
         } else {
             left_expr
-        }
+        };
+
+        Ok(expr)
     }
 
-    fn parse_mul_expr(&self, lexer: &mut impl Lexer) -> Expression {
-        let lparen_expr = self.parse_parens_expr(lexer);
+    fn parse_mul_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let lparen_expr = self.parse_parens_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        if *tok == Token::MUL {
+        let mul_expr = if *tok == Token::MUL {
             self.skip_token(lexer); // skip the `*`
 
-            let rparen_expr = self.parse_parens_expr(lexer);
+            let rparen_expr = self.parse_parens_expr(lexer)?;
             Expression::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr))
         } else {
             lparen_expr
-        }
+        };
+
+        Ok(mul_expr)
     }
 
-    fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> Expression {
+    fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
         if *tok == Token::LPAREN {
             self.skip_token(lexer); // skip the `(`
 
-            let inner_expr = self.parse_expr(lexer);
+            let inner_expr = self.parse_expr(lexer)?;
 
-            self.expect_token(lexer, Token::RPAREN);
+            self.expect_token(lexer, Token::RPAREN)?;
 
-            inner_expr
+            Ok(inner_expr)
         } else {
             self.parse_basic_expr(lexer)
         }
     }
 
-    fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> Expression {
+    fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (token, _location) = self.peek_next_token(lexer).unwrap();
 
-        if *token == Token::LPAREN {
-            let (proc_name, proc_params) = self.parse_call_expr(lexer);
+        let basic_expr = if *token == Token::LPAREN {
+            let (proc_name, proc_params) = self.parse_call_expr(lexer)?;
             Expression::ProcCall(proc_name, proc_params)
         } else {
-            let expr = self.parse_literal_expr(lexer);
+            let expr = self.parse_literal_expr(lexer)?;
             Expression::Literal(expr)
-        }
+        };
+
+        Ok(basic_expr)
     }
 
-    fn parse_call_expr(&self, lexer: &mut impl Lexer) -> (String, Vec<Box<Expression>>) {
+    fn parse_call_expr(
+        &self,
+        lexer: &mut impl Lexer,
+    ) -> Result<(String, Vec<Box<Expression>>), ParseError> {
         let (token, _) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(proc_name) = token {
-            self.expect_token(lexer, Token::LPAREN);
+            self.expect_token(lexer, Token::LPAREN)?;
 
-            let proc_params = self.parse_call_params(lexer);
+            let proc_params = self.parse_call_params(lexer)?;
 
-            self.expect_token(lexer, Token::RPAREN);
+            self.expect_token(lexer, Token::RPAREN)?;
 
-            (proc_name, proc_params)
+            Ok((proc_name, proc_params))
         } else {
             panic!("invalid call expr");
         }
     }
 
-    fn parse_call_params(&self, lexer: &mut impl Lexer) -> Vec<Box<Expression>> {
+    fn parse_call_params(
+        &self,
+        lexer: &mut impl Lexer,
+    ) -> Result<Vec<Box<Expression>>, ParseError> {
         let mut params = Vec::new();
 
         while self.peek_current_token_clone(lexer) != Token::RPAREN {
-            let param_expr = self.parse_call_param_expr(lexer);
+            let param_expr = self.parse_call_param_expr(lexer)?;
 
             if param_expr.is_some() {
                 params.push(param_expr.unwrap());
             }
         }
 
-        params
+        Ok(params)
     }
 
-    fn parse_call_param_expr(&self, lexer: &mut impl Lexer) -> Option<Box<Expression>> {
-        let expr = self.parse_expr(lexer);
+    fn parse_call_param_expr(
+        &self,
+        lexer: &mut impl Lexer,
+    ) -> Result<Option<Box<Expression>>, ParseError> {
+        let expr = self.parse_expr(lexer)?;
 
         if self.peek_current_token_clone(lexer) == Token::COMMA {
             self.skip_token(lexer);
         }
 
-        Some(Box::new(expr))
+        Ok(Some(Box::new(expr)))
     }
 
-    fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> LiteralExpr {
+    fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> Result<LiteralExpr, ParseError> {
         let pair = self.pop_current_token(lexer);
 
         let (tok, loc) = pair.unwrap();
 
         if let Token::VALUE(v) = tok {
             match v.parse::<usize>() {
-                Ok(num) => LiteralExpr::Int(num),
+                Ok(num) => Ok(LiteralExpr::Int(num)),
                 Err(_) => {
                     if v.starts_with(":") {
-                        LiteralExpr::Var(v[1..].to_string())
+                        Ok(LiteralExpr::Var(v[1..].to_string()))
                     } else if v.starts_with("\"") {
-                        LiteralExpr::Str(v[1..].to_string())
+                        Ok(LiteralExpr::Str(v[1..].to_string()))
                     } else {
                         panic!();
                     }
@@ -378,33 +392,37 @@ impl TytleParser {
         }
     }
 
-    fn expect_newline(&self, lexer: &mut impl Lexer) {
+    fn expect_newline(&self, lexer: &mut impl Lexer) -> Result<(), ParseError> {
         let tok_loc = self.pop_current_token(lexer);
 
         if tok_loc.is_some() {
             let (tok, loc) = tok_loc.unwrap();
 
             match tok {
-                Token::EOF | Token::NEWLINE => return,
+                Token::EOF | Token::NEWLINE => return Ok(()),
                 _ => panic!("invalid input"),
             }
         }
+
+        Ok(())
     }
 
-    fn expect_ident(&self, lexer: &mut impl Lexer) -> String {
+    fn expect_ident(&self, lexer: &mut impl Lexer) -> Result<String, ParseError> {
         let (token, loc) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
-            return v;
+            return Ok(v);
         } else {
             panic!("Expected an identifier");
         }
     }
 
-    fn expect_token(&self, lexer: &mut impl Lexer, expected: Token) {
+    fn expect_token(&self, lexer: &mut impl Lexer, expected: Token) -> Result<(), ParseError> {
         let (actual, loc) = self.pop_current_token(lexer).unwrap();
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     fn peek_current_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {

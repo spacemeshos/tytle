@@ -7,7 +7,7 @@ use tytle::parser::{Parser, TytleParser};
 #[test]
 fn nop_stmt() {
     let actual = TytleParser.parse("").unwrap();
-    let expected = ast! { nop!() };
+    let expected = ast! { eof!() };
 
     assert_eq!(actual, expected);
 }

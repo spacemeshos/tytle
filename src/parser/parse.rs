@@ -7,6 +7,8 @@ pub struct ParseError {
     location: Location,
 }
 
+pub type ParserResult = Result<Ast, ParseError>;
+
 impl ParseError {
     fn new(message: &str, location: Location) -> Self {
         Self {
@@ -15,8 +17,6 @@ impl ParseError {
         }
     }
 }
-
-pub type ParserResult = Result<Ast, ParseError>;
 
 pub trait Parser {
     fn parse(&mut self, code: &str) -> ParserResult;
