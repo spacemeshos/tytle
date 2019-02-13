@@ -6,7 +6,7 @@ pub enum ParseError {
     NewLineExpected,
     IdentifierExpected,
     UnexpectedToken { expected: Token, actual: Token },
-    UnknownToken(Token),
+    UnexpectedKeyword { keyword: String },
     InvalidProcParam { param: String },
     Custom { message: String },
 }

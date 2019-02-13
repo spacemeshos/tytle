@@ -2,7 +2,7 @@
 extern crate tytle;
 
 use tytle::ast::{expression::*, statement::*};
-use tytle::parser::{Parser, TytleParser};
+use tytle::parser::{ParseError, Parser, TytleParser};
 
 #[test]
 fn nop_stmt() {
@@ -62,7 +62,12 @@ fn direction_sety() {
 
 #[test]
 fn direction_forward_and_then_backward_no_empty_lines() {
-    let actual = TytleParser.parse("FORWARD 10\nRIGHT 20").unwrap();
+    let code = r#"
+    FORWARD 10
+    RIGHT 20
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let expected = ast! {
         direct_lit_expr!(FORWARD, 10),
@@ -74,7 +79,15 @@ fn direction_forward_and_then_backward_no_empty_lines() {
 
 #[test]
 fn direction_forward_and_then_backward_with_empty_lines() {
-    let actual = TytleParser.parse("\n\nFORWARD 10\n\nRIGHT 20\n\n").unwrap();
+    let code = r#"
+
+    FORWARD 10
+
+    RIGHT 20
+
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let expected = ast! {
         direct_lit_expr!(FORWARD, 10),
@@ -201,10 +214,10 @@ fn expr_proc_call() {
 
 #[test]
 fn make_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKE \"MyVar = 2").unwrap();
+    let actual = TytleParser.parse("MAKE \"MYVAR = 2").unwrap();
 
     let expected = ast! {
-        make_stmt!("MyVar", int_lit_expr!(2))
+        make_stmt!("MYVAR", int_lit_expr!(2))
     };
 
     assert_eq!(actual, expected);
@@ -212,10 +225,10 @@ fn make_variable_assign_an_integer() {
 
 #[test]
 fn make_variable_assign_a_string() {
-    let actual = TytleParser.parse("MAKE \"MyVar = \"Hello").unwrap();
+    let actual = TytleParser.parse("MAKE \"MYVAR = \"Hello").unwrap();
 
     let expected = ast! {
-        make_stmt!("MyVar", str_lit_expr!("Hello"))
+        make_stmt!("MYVAR", str_lit_expr!("Hello"))
     };
 
     assert_eq!(actual, expected);
@@ -223,21 +236,15 @@ fn make_variable_assign_a_string() {
 
 #[test]
 fn make_variable_assign_an_expr() {
-    let actual = TytleParser.parse("MAKE \"MyVar = 1 + 2").unwrap();
+    let actual = TytleParser.parse("MAKE \"MYVAR = 1 + 2").unwrap();
 
     let expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let expected = ast! {
-        make_stmt!("MyVar", expr)
+        make_stmt!("MYVAR", expr)
     };
 
     assert_eq!(actual, expected);
-}
-
-#[test]
-#[should_panic(expected = "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`")]
-fn make_variable_must_be_prefixed_with_quotation_marks() {
-    TytleParser.parse("MAKE A=1").unwrap();
 }
 
 #[test]
@@ -255,10 +262,10 @@ fn make_variable_assign_an_expr_containing_another_var() {
 
 #[test]
 fn make_global_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKEGLOBAL \"MyVar = 2").unwrap();
+    let actual = TytleParser.parse("MAKEGLOBAL \"MYVAR = 2").unwrap();
 
     let expected = ast! {
-        make_global_stmt!("MyVar", int_lit_expr!(2))
+        make_global_stmt!("MYVAR", int_lit_expr!(2))
     };
 
     assert_eq!(actual, expected);
@@ -266,10 +273,10 @@ fn make_global_variable_assign_an_integer() {
 
 #[test]
 fn make_local_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKELOCAL \"MyVar = 2").unwrap();
+    let actual = TytleParser.parse("MAKELOCAL \"MYVAR = 2").unwrap();
 
     let expected = ast! {
-        make_local_stmt!("MyVar", int_lit_expr!(2))
+        make_local_stmt!("MYVAR", int_lit_expr!(2))
     };
 
     assert_eq!(actual, expected);
@@ -277,9 +284,14 @@ fn make_local_variable_assign_an_integer() {
 
 #[test]
 fn if_stmt_without_else() {
-    let actual = TytleParser
-        .parse("IF 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
-        .unwrap();
+    let code = r#"
+    IF 1 + 2 [
+        MAKE "A = 3
+        MAKE "B = 4
+    ]
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
@@ -298,9 +310,10 @@ fn if_stmt_without_else() {
 
 #[test]
 fn if_stmt_with_else() {
-    let actual = TytleParser
-        .parse("IF 1 + 2 [MAKE \"A = 1] [MAKE \"B = 2]")
-        .unwrap();
+    let code = r#"
+    IF 1 + 2 [MAKE "A = 1] [MAKE "B = 2]
+    "#;
+    let actual = TytleParser.parse(code).unwrap();
 
     let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
@@ -317,9 +330,14 @@ fn if_stmt_with_else() {
 
 #[test]
 fn repeat_stmt() {
-    let actual = TytleParser
-        .parse("REPEAT 1 + 2 [MAKE \"A = 3 \n MAKE \"B = 4]")
-        .unwrap();
+    let code = r#"
+    REPEAT 1 + 2 [
+        MAKE "A = 3
+        MAKE "B = 4
+    ]
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let count_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
@@ -337,9 +355,13 @@ fn repeat_stmt() {
 
 #[test]
 fn procedure_stmt_without_params() {
-    let actual = TytleParser
-        .parse("TO MyProc \n MAKE \"A = 3 \n MAKE \"B = 4 \n END")
-        .unwrap();
+    let code = r#"
+    TO MYPROC
+        MAKE "A = 3
+        MAKE "B = 4
+    END
+    "#;
+    let actual = TytleParser.parse(code).unwrap();
 
     let block = block_stmt! {
         make_stmt!("A", int_lit_expr!(3)),
@@ -348,7 +370,7 @@ fn procedure_stmt_without_params() {
 
     let expected = ast! {
         proc_stmt! {
-            name: "MyProc",
+            name: "MYPROC",
             params: [],
             body: block
         }
@@ -359,9 +381,13 @@ fn procedure_stmt_without_params() {
 
 #[test]
 fn procedure_stmt_with_params() {
-    let actual = TytleParser
-        .parse("TO MyProc :A :B \n MAKE \"C = 10 END")
-        .unwrap();
+    let code = r#"
+    TO MYPROC :A :B
+        MAKE "C = 10
+    END
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let block = block_stmt! {
         make_stmt!("C", int_lit_expr!(10))
@@ -369,7 +395,7 @@ fn procedure_stmt_with_params() {
 
     let expected = ast! {
         proc_stmt! {
-            name: "MyProc",
+            name: "MYPROC",
             params: [proc_param!("A"), proc_param!("B")],
             body: block
         }
@@ -478,6 +504,32 @@ fn command_wait() {
 fn command_stop() {
     let actual = TytleParser.parse("STOP").unwrap();
     let expected = ast! { command_stmt!(STOP) };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_invalid_proc_param() {
+    let code = r#"
+    TO MYPROC :X Y
+    END
+    "#;
+
+    let expected = Err(ParseError::InvalidProcParam {
+        param: "Y".to_string(),
+    });
+    let actual = TytleParser.parse(code);
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_make_variable_must_be_prefixed_with_quotation_marks() {
+    let expected = Err(ParseError::Custom {
+        message: "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`".to_string(),
+    });
+
+    let actual = TytleParser.parse("MAKE A=1");
 
     assert_eq!(expected, actual);
 }

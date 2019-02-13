@@ -65,7 +65,7 @@ impl TytleParser {
                 "TO" => self.parse_proc_stmt(lexer),
                 _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
             },
-            _ => Err(ParseError::UnknownToken(token.clone()))
+            _ => unimplemented!(),
         }
     }
 
@@ -102,7 +102,7 @@ impl TytleParser {
                     let param = ident[1..].to_string();
                     params.push(ProcParam { name: param });
                 } else {
-                    return Err(ParseError::InvalidProcParam { param: ident })
+                    return Err(ParseError::InvalidProcParam { param: ident });
                 }
             }
         }
@@ -221,11 +221,12 @@ impl TytleParser {
         if var.starts_with("\"") {
             var = var[1..].to_string();
         } else {
-            return Err(
-                ParseError::Custom {
-                    message: format!("Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`", var),
-                }
-            );
+            return Err(ParseError::Custom {
+                message: format!(
+                    "Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`",
+                    var
+                ),
+            });
         }
 
         self.expect_token(lexer, Token::ASSIGN)?;
@@ -331,14 +332,13 @@ impl TytleParser {
 
             Ok((proc_name, proc_params))
         } else {
-            Err(ParseError::Custom { message: "Invaldi Call Expression".to_string() })
+            Err(ParseError::Custom {
+                message: "Invaldi Call Expression".to_string(),
+            })
         }
     }
 
-    fn parse_call_params(
-        &self,
-        lexer: &mut impl Lexer,
-    ) -> Result<Vec<Expression>, ParseError> {
+    fn parse_call_params(&self, lexer: &mut impl Lexer) -> Result<Vec<Expression>, ParseError> {
         let mut params = Vec::new();
 
         while self.peek_current_token_clone(lexer) != Token::RPAREN {
@@ -396,7 +396,7 @@ impl TytleParser {
 
             match tok {
                 Token::EOF | Token::NEWLINE => return Ok(()),
-                _ => return Err(ParseError::NewLineExpected)
+                _ => return Err(ParseError::NewLineExpected),
             }
         }
 
@@ -418,8 +418,7 @@ impl TytleParser {
 
         if actual == expected {
             Ok(())
-        }
-        else {
+        } else {
             Err(ParseError::UnexpectedToken { expected, actual })
         }
     }
