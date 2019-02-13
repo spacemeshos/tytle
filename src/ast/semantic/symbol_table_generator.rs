@@ -213,6 +213,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn prewalk_make_and_procs() {
         let code = r#"
             MAKE "A=20

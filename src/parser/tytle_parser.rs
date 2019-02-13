@@ -28,32 +28,36 @@ impl TytleParser {
     fn parse(&mut self, lexer: &mut impl Lexer) -> Ast {
         let mut ast = Ast::default();
 
-        while let Some(stmt) = self.parse_statement(lexer) {
-            if stmt != Statement::Nop {
-                ast.statements.push(stmt);
+        loop {
+            let stmt = self.parse_statement(lexer);
+
+            match stmt {
+                Statement::NOP => continue,
+                Statement::EOF => break,
+                _ => ast.statements.push(stmt),
             }
         }
 
         if ast.statements.len() == 0 {
-            ast.statements.push(Statement::Nop);
+            ast.statements.push(Statement::NOP);
         }
 
         ast
     }
 
-    fn parse_statement(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+    fn parse_statement(&self, lexer: &mut impl Lexer) -> Statement {
         let tok_loc = self.peek_current_token(lexer);
         if tok_loc.is_none() {
-            return None;
+            return Statement::EOF;
         }
 
         let (token, location) = tok_loc.unwrap();
 
         match token {
-            Token::EOF => return None,
+            Token::EOF => return Statement::EOF,
             Token::NEWLINE => {
                 self.skip_token(lexer);
-                Some(Statement::Nop)
+                Statement::NOP
             }
             Token::VALUE(val) => match val.as_str() {
                 "REPEAT" => self.parse_repeat_stmt(lexer),
@@ -65,7 +69,7 @@ impl TytleParser {
         }
     }
 
-    fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+    fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `TO` token
 
         let name = self.expect_ident(lexer);
@@ -81,7 +85,7 @@ impl TytleParser {
             params,
         };
 
-        Some(Statement::Procedure(proc_stmt))
+        Statement::Procedure(proc_stmt)
     }
 
     fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Vec<ProcParam> {
@@ -108,7 +112,7 @@ impl TytleParser {
         params
     }
 
-    fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+    fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `REPEAT` token
 
         let count_expr = self.parse_expr(lexer);
@@ -119,10 +123,10 @@ impl TytleParser {
 
         let repeat_stmt = RepeatStmt { count_expr, block };
 
-        Some(Statement::Repeat(repeat_stmt))
+        Statement::Repeat(repeat_stmt)
     }
 
-    fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Option<Statement> {
+    fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> Statement {
         self.skip_token(lexer); // skipping the `IF` token
 
         let borders = (Some(Token::LBRACKET), Token::RBRACKET);
@@ -147,7 +151,7 @@ impl TytleParser {
             false_block,
         };
 
-        Some(Statement::If(if_stmt))
+        Statement::If(if_stmt)
     }
 
     fn parse_block_stmt(
@@ -166,7 +170,7 @@ impl TytleParser {
         let mut completed = false;
 
         while !completed {
-            let stmt = self.parse_statement(lexer).unwrap();
+            let stmt = self.parse_statement(lexer);
 
             block.add_statement(stmt);
 
@@ -181,8 +185,8 @@ impl TytleParser {
         block
     }
 
-    fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Option<Statement> {
-        let stmt = match val {
+    fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> Statement {
+        match val {
             "MAKE" => self.parse_make_assign(lexer),
             "MAKEGLOBAL" => self.parse_make_global(lexer),
             "MAKELOCAL" => self.parse_make_local(lexer),
@@ -190,9 +194,7 @@ impl TytleParser {
                 self.parse_direction(val, lexer)
             }
             _ => self.parse_command(val, lexer),
-        };
-
-        Some(stmt)
+        }
     }
 
     fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> Statement {

@@ -13,17 +13,8 @@ impl BlockStatement {
     }
 
     pub fn add_statement(&mut self, stmt: Statement) {
-        if stmt != Statement::Nop {
+        if stmt != Statement::NOP {
             self.stmts.push(stmt);
         }
     }
 }
-
-// impl<'a> IntoIterator for &'a BlockStatement {
-//     type Item = &'a Statement;
-//     type IntoIter = std::vec::IntoIter<Statement>;
-//
-//     fn into_iter(self) -> Self::IntoIter {
-//         self.stmts.into_iter()
-//     }
-// }

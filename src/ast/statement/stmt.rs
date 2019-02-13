@@ -4,7 +4,8 @@ use crate::ast::statement::{
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
-    Nop,
+    NOP,
+    EOF,
     Command(CommandStmt),
     Direction(DirectionStmt),
     Make(MakeStmt),

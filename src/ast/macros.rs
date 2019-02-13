@@ -204,7 +204,14 @@ macro_rules! ast {
 #[macro_export]
 macro_rules! nop {
     () => {
-        $crate::ast::statement::Statement::Nop
+        $crate::ast::statement::Statement::NOP
+    };
+}
+
+#[macro_export]
+macro_rules! eof {
+    () => {
+        $crate::ast::statement::Statement::EOF
     };
 }
 

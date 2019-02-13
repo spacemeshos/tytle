@@ -25,7 +25,7 @@ pub trait AstWalker<'a> {
 
     fn walk_stmt(&mut self, stmt: &Statement) -> AstWalkResult {
         match stmt {
-            Statement::Nop => {}
+            Statement::NOP | Statement::EOF => {}
             Statement::Command(ref cmd_stmt) => self.walk_command_stmt(cmd_stmt)?,
             Statement::Direction(ref direct_stmt) => self.walk_direct_stmt(direct_stmt)?,
             Statement::If(ref if_stmt) => self.walk_if_stmt(if_stmt)?,
