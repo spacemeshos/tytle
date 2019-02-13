@@ -1,18 +1,21 @@
 use crate::ast::Ast;
-use crate::lexer::Location;
+use crate::lexer::{Location, Token};
 
 #[derive(Debug, PartialEq)]
-pub struct ParseError {
-    message: String,
-    location: Location,
+pub enum ParseError {
+    NewLineExpected,
+    IdentifierExpected,
+    UnexpectedToken { expected: Token, actual: Token },
+    UnknownToken(Token),
+    InvalidProcParam { param: String },
+    Custom { message: String },
 }
 
 pub type ParserResult = Result<Ast, ParseError>;
 
 impl ParseError {
-    fn new(message: &str, location: Location) -> Self {
-        Self {
-            location,
+    fn new(message: &str, _location: Location) -> Self {
+        ParseError::Custom {
             message: message.to_string(),
         }
     }

@@ -53,22 +53,20 @@ impl TytleParser {
 
         let (token, location) = tok_loc.unwrap();
 
-        let stmt = match token {
-            Token::EOF => Statement::EOF,
+        match token {
+            Token::EOF => Ok(Statement::EOF),
             Token::NEWLINE => {
                 self.skip_token(lexer);
-                Statement::NOP
+                Ok(Statement::NOP)
             }
             Token::VALUE(val) => match val.as_str() {
-                "REPEAT" => self.parse_repeat_stmt(lexer)?,
-                "IF" => self.parse_if_stmt(lexer)?,
-                "TO" => self.parse_proc_stmt(lexer)?,
-                _ => self.parse_basic_stmt(val.clone().as_str(), lexer)?,
+                "REPEAT" => self.parse_repeat_stmt(lexer),
+                "IF" => self.parse_if_stmt(lexer),
+                "TO" => self.parse_proc_stmt(lexer),
+                _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
             },
-            _ => panic!("Syntax error, unexpected token: {:?}", token),
-        };
-
-        Ok(stmt)
+            _ => Err(ParseError::UnknownToken(token.clone()))
+        }
     }
 
     fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -76,9 +74,7 @@ impl TytleParser {
 
         let name = self.expect_ident(lexer)?;
         let borders = (None, Token::VALUE("END".to_string()));
-
         let params = self.parse_proc_params(lexer)?;
-
         let block = self.parse_block_stmt(lexer, borders)?;
 
         let proc_stmt = ProcedureStmt {
@@ -106,7 +102,7 @@ impl TytleParser {
                     let param = ident[1..].to_string();
                     params.push(ProcParam { name: param });
                 } else {
-                    panic!("Invalid procedure parameter: {}", ident)
+                    return Err(ParseError::InvalidProcParam { param: ident })
                 }
             }
         }
@@ -225,10 +221,10 @@ impl TytleParser {
         if var.starts_with("\"") {
             var = var[1..].to_string();
         } else {
-            // TODO: return ParseError
-            panic!(
-                "Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`",
-                var
+            return Err(
+                ParseError::Custom {
+                    message: format!("Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`", var),
+                }
             );
         }
 
@@ -335,7 +331,7 @@ impl TytleParser {
 
             Ok((proc_name, proc_params))
         } else {
-            panic!("invalid call expr");
+            Err(ParseError::Custom { message: "Invaldi Call Expression".to_string() })
         }
     }
 
@@ -400,7 +396,7 @@ impl TytleParser {
 
             match tok {
                 Token::EOF | Token::NEWLINE => return Ok(()),
-                _ => panic!("invalid input"),
+                _ => return Err(ParseError::NewLineExpected)
             }
         }
 
@@ -411,18 +407,21 @@ impl TytleParser {
         let (token, loc) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
-            return Ok(v);
+            Ok(v)
         } else {
-            panic!("Expected an identifier");
+            Err(ParseError::IdentifierExpected)
         }
     }
 
     fn expect_token(&self, lexer: &mut impl Lexer, expected: Token) -> Result<(), ParseError> {
         let (actual, loc) = self.pop_current_token(lexer).unwrap();
 
-        assert_eq!(actual, expected);
-
-        Ok(())
+        if actual == expected {
+            Ok(())
+        }
+        else {
+            Err(ParseError::UnexpectedToken { expected, actual })
+        }
     }
 
     fn peek_current_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
