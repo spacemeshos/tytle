@@ -36,7 +36,7 @@ impl From<&str> for BinaryOp {
         match s {
             "+" => BinaryOp::Add,
             "*" => BinaryOp::Mul,
-            _ => panic!("Invalid binary operator: {}", s),
+            _ => panic!("Invalid binary operator: `{}`", s),
         }
     }
 }
