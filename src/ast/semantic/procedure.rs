@@ -7,3 +7,14 @@ pub struct Procedure {
     pub params_types: Option<Vec<PrimitiveType>>,
     pub return_type: Option<PrimitiveType>,
 }
+
+impl Procedure {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            reference: None,
+            params_types: None,
+            return_type: None
+        }
+    }
+}

@@ -525,11 +525,33 @@ fn parse_error_invalid_proc_param() {
 
 #[test]
 fn parse_error_make_variable_must_be_prefixed_with_quotation_marks() {
-    let expected = Err(ParseError::Custom {
+    let expected = Err(ParseError::Syntax {
         message: "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`".to_string(),
     });
 
     let actual = TytleParser.parse("MAKE A=1");
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_variable_with_lowercase_letters() {
+    let expected = ParseError::InvalidIdentifierDeclaration(
+        "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
+    );
+
+    let actual = TytleParser.parse("MAKE \"myvar=1").err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_variable_must_not_begin_with_a_digit() {
+    let expected = ParseError::InvalidIdentifierDeclaration(
+        "Variable name isn't allowed to begin with a digit (got `2MYVAR`)".to_string(),
+    );
+
+    let actual = TytleParser.parse("MAKE \"2MYVAR=1").err().unwrap();
 
     assert_eq!(expected, actual);
 }

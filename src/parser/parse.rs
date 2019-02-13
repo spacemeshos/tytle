@@ -5,21 +5,14 @@ use crate::lexer::{Location, Token};
 pub enum ParseError {
     NewLineExpected,
     IdentifierExpected,
+    InvalidIdentifierDeclaration(String),
     UnexpectedToken { expected: Token, actual: Token },
     UnexpectedKeyword { keyword: String },
     InvalidProcParam { param: String },
-    Custom { message: String },
+    Syntax { message: String },
 }
 
 pub type ParserResult = Result<Ast, ParseError>;
-
-impl ParseError {
-    fn new(message: &str, _location: Location) -> Self {
-        ParseError::Custom {
-            message: message.to_string(),
-        }
-    }
-}
 
 pub trait Parser {
     fn parse(&mut self, code: &str) -> ParserResult;

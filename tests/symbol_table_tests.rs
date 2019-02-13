@@ -1,6 +1,6 @@
 extern crate tytle;
 
-use tytle::ast::semantic::{Symbol, SymbolKind, SymbolTable, Variable};
+use tytle::ast::semantic::{Procedure, Symbol, SymbolKind, SymbolTable, Variable};
 
 #[cfg(test)]
 mod tests {
@@ -8,30 +8,72 @@ mod tests {
 
     #[test]
     fn one_scope_var_does_not_exist() {
-        let mut sym_table = SymbolTable::new();
-        let scope = sym_table.start_scope();
+        let mut table = SymbolTable::new();
+        let scope = table.start_scope();
         let scope_id = scope.id;
 
-        assert_eq!(
-            None,
-            sym_table.lookup_symbol(scope_id, "A", &SymbolKind::Var)
-        );
+        assert_eq!(None, table.lookup_symbol(scope_id, "A", &SymbolKind::Var));
     }
 
     #[test]
     fn one_scope_var_exists() {
         let var = Variable::build_global("A");
 
-        let mut sym_table = SymbolTable::new();
-        let scope = sym_table.start_scope();
+        let mut table = SymbolTable::new();
+        let scope = table.start_scope();
         let scope_id = scope.id;
 
-        sym_table.create_var_symbol(var.clone());
+        table.create_var_symbol(var.clone());
 
         assert_eq!(
             Symbol::Var(var),
-            *sym_table
+            *table
                 .lookup_symbol(scope_id, "A", &SymbolKind::Var)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn one_scope_proc_exists() {
+        let proc = Procedure::new("MYPROC");
+
+        let mut table = SymbolTable::new();
+        let scope = table.start_scope();
+        let scope_id = scope.id;
+
+        table.create_proc_symbol(proc.clone());
+
+        assert_eq!(
+            Symbol::Proc(proc),
+            *table
+                .lookup_symbol(scope_id, "MYPROC", &SymbolKind::Proc)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn one_scope_var_and_proc_with_the_same_name() {
+        let var = Variable::build_global("A");
+        let proc = Procedure::new("A");
+
+        let mut table = SymbolTable::new();
+        let scope = table.start_scope();
+        let scope_id = scope.id;
+
+        table.create_var_symbol(var.clone());
+        table.create_proc_symbol(proc.clone());
+
+        assert_eq!(
+            Symbol::Var(var),
+            *table
+                .lookup_symbol(scope_id, "A", &SymbolKind::Var)
+                .unwrap()
+        );
+
+        assert_eq!(
+            Symbol::Proc(proc),
+            *table
+                .lookup_symbol(scope_id, "A", &SymbolKind::Proc)
                 .unwrap()
         );
     }
@@ -48,34 +90,34 @@ mod tests {
         //     | variable A=200 (inner)
         //     |
 
-        let mut sym_table = SymbolTable::new();
+        let mut table = SymbolTable::new();
 
         // outer scope
-        let outer_scope = sym_table.start_scope();
+        let outer_scope = table.start_scope();
         let outer_scope_id = outer_scope.id;
         let mut var_outer = Variable::build_local("A");
         var_outer.set_reference(100);
-        sym_table.create_var_symbol(var_outer.clone());
+        table.create_var_symbol(var_outer.clone());
 
         let mut var_inner = Variable::build_local("A");
         var_inner.set_reference(200);
-        let inner_scope = sym_table.start_scope();
+        let inner_scope = table.start_scope();
         let inner_scope_id = inner_scope.id;
-        sym_table.create_var_symbol(var_inner.clone());
+        table.create_var_symbol(var_inner.clone());
 
         assert_eq!(outer_scope_id, 1);
         assert_eq!(inner_scope_id, 2);
 
         assert_eq!(
             Symbol::Var(var_inner),
-            *sym_table
+            *table
                 .lookup_symbol(inner_scope_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
 
         assert_eq!(
             Symbol::Var(var_outer),
-            *sym_table
+            *table
                 .lookup_symbol(outer_scope_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
@@ -93,40 +135,40 @@ mod tests {
         //     |
         //     |---- Scope Z
 
-        let mut sym_table = SymbolTable::new();
+        let mut table = SymbolTable::new();
 
         // scope X
-        let scope_x = sym_table.start_scope();
+        let scope_x = table.start_scope();
         let scope_x_id = scope_x.id;
 
         // var
         let mut var = Variable::build_local("A");
         var.set_reference(100);
-        sym_table.create_var_symbol(var.clone());
+        table.create_var_symbol(var.clone());
 
         // scope Y
-        let scope_y = sym_table.start_scope();
+        let scope_y = table.start_scope();
         let scope_y_id = scope_y.id;
 
         // scope Z
-        let scope_z = sym_table.start_scope();
+        let scope_z = table.start_scope();
         let scope_z_id = scope_z.id;
 
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table
+            *table
                 .recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table
+            *table
                 .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table
+            *table
                 .recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
@@ -141,15 +183,15 @@ mod tests {
         //     |
         //     |---- Scope Z
 
-        let mut sym_table = SymbolTable::new();
-        sym_table.start_scope(); // scope X
-        sym_table.start_scope(); // scope Y
-        let scope_z = sym_table.start_scope(); // scope Z
+        let mut table = SymbolTable::new();
+        table.start_scope(); // scope X
+        table.start_scope(); // scope Y
+        let scope_z = table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
 
         assert_eq!(
             None,
-            sym_table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+            table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
         );
     }
 
@@ -169,25 +211,25 @@ mod tests {
         // |
         // |------
 
-        let mut sym_table = SymbolTable::new();
+        let mut table = SymbolTable::new();
 
         // scope X
-        let scope_x = sym_table.start_scope(); // scope X
+        let scope_x = table.start_scope(); // scope X
         let scope_x_id = scope_x.id;
-        sym_table.end_scope();
+        table.end_scope();
 
         // scope Y
-        let scope_y = sym_table.start_scope(); // scope Y
+        let scope_y = table.start_scope(); // scope Y
         let scope_y_id = scope_y.id;
         let mut var = Variable::build_local("A");
         var.set_reference(100);
-        sym_table.create_var_symbol(var.clone());
-        sym_table.end_scope();
+        table.create_var_symbol(var.clone());
+        table.end_scope();
 
         // scope Z
-        let scope_z = sym_table.start_scope(); // scope Z
+        let scope_z = table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
-        sym_table.end_scope();
+        table.end_scope();
 
         assert_eq!(scope_x_id, 1);
         assert_eq!(scope_y_id, 2);
@@ -195,15 +237,15 @@ mod tests {
 
         assert_eq!(
             None,
-            sym_table.recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
+            table.recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
         );
         assert_eq!(
             None,
-            sym_table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+            table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
         );
         assert_eq!(
             Symbol::Var(var.clone()),
-            *sym_table
+            *table
                 .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );

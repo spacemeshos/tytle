@@ -43,7 +43,8 @@ impl Variable {
 mod tests {
     use super::*;
 
-    fn setting_to_var_the_same_variable_type_twice() {
+    #[test]
+    fn setting_to_a_variable_the_same_primitive_type_twice() {
         let mut var = Variable::build_global("A");
 
         var.set_resolved_type(PrimitiveType::Int);
@@ -54,7 +55,7 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Type mismatch for variable `A`")]
-    fn raises_when_variable_type_mismatch() {
+    fn error_when_variable_type_mismatch() {
         let mut var = Variable::build_global("A");
 
         var.set_resolved_type(PrimitiveType::Int);

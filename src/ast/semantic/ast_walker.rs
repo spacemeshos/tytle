@@ -2,13 +2,18 @@ use crate::ast::expression::*;
 use crate::ast::statement::*;
 use crate::ast::Ast;
 
-pub struct AstWalkError {
-    pub message: String,
+#[derive(Debug, Clone, PartialEq)]
+pub enum AstWalkError {
+    DuplicateGlobalVar(String),
+    MissingVarDeclaration(String),
+    Custom { message: String },
 }
 
 impl AstWalkError {
-    pub fn new(message: String) -> Self {
-        Self { message }
+    pub fn new(message: &str) -> Self {
+        AstWalkError::Custom {
+            message: message.to_owned(),
+        }
     }
 }
 

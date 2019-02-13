@@ -3,21 +3,23 @@ pub enum Opcode {
     SOC, // START OF CODE
     EOC, // END OF CODE
 
+    // builtins
     FD, // Forward
     BK, // Backward
     RT, // Right
     LT, // Left
     PU, // PenUp
     PD, // PenDown
-
     ST, // ShowTurtle
     HT, // HideTurtle
 
-    CONST,
+    CALL,
+    RETURN,
 
-    GetLocal,
-    SetLocal,
+    JMP,
+    BEQ,
+    BNE,
 
-    GetGlobal,
-    SetGlobal,
+    STORE,
+    LOAD,
 }

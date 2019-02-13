@@ -221,13 +221,15 @@ impl TytleParser {
         if var.starts_with("\"") {
             var = var[1..].to_string();
         } else {
-            return Err(ParseError::Custom {
+            return Err(ParseError::Syntax {
                 message: format!(
                     "Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`",
                     var
                 ),
             });
         }
+
+        self.validate_var_name(var.as_str())?;
 
         self.expect_token(lexer, Token::ASSIGN)?;
 
@@ -332,8 +334,8 @@ impl TytleParser {
 
             Ok((proc_name, proc_params))
         } else {
-            Err(ParseError::Custom {
-                message: "Invaldi Call Expression".to_string(),
+            Err(ParseError::Syntax {
+                message: "Invalid Call Expression".to_string(),
             })
         }
     }
@@ -449,5 +451,31 @@ impl TytleParser {
 
     fn pop_current_token(&self, lexer: &mut impl Lexer) -> Option<(Token, Location)> {
         lexer.pop_current_token()
+    }
+
+    pub fn validate_var_name(&self, name: &str) -> Result<(), ParseError> {
+        let upper = name
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_digit(10) || c == '_');
+
+        if !upper {
+            let err = ParseError::InvalidIdentifierDeclaration(format!(
+                "All characters must be capital, digit or `_` (got `{}`)",
+                name
+            ));
+            return Err(err);
+        };
+
+        let starts_with_digit = name.chars().next().unwrap().is_digit(10);
+
+        if starts_with_digit {
+            let err = ParseError::InvalidIdentifierDeclaration(format!(
+                "Variable name isn't allowed to begin with a digit (got `{}`)",
+                name
+            ));
+            return Err(err);
+        }
+
+        Ok(())
     }
 }

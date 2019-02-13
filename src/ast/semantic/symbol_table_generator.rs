@@ -13,12 +13,22 @@ struct SymbolTableGenerator {
 
 type SymbolTableResult<'a> = Result<&'a SymbolTable, AstWalkError>;
 
+macro_rules! walk_err {
+    ($($arg:tt)*) => {
+        {
+            let msg = format!($($arg)*);
+            let err = AstWalkError::new(&msg);
+            Err(err)
+        }
+    }
+}
+
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
     // * TODO: ensure expression-literal symbol exists
     // * TODO: ensure expression-procedure call symbol exists
     // * TODO: avoid duplicate global/local declarations
     // * TODO: ensure that each global variable reference in a procedure
-    //         takes place only after global global variable
+    //         takes place only after global variable
 
     fn on_make_local_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
         self.create_local_var_symbol(&make_stmt)
@@ -59,9 +69,9 @@ impl SymbolTableGenerator {
         }
     }
 
-    pub fn build_sym_table(&mut self, ast: &Ast) -> SymbolTableResult {
+    pub fn generate(&mut self, ast: &Ast) -> SymbolTableResult {
         self.start_scope();
-        self.prewalk_ast(ast);
+        self.prewalk_ast(ast)?;
         self.walk_ast(ast);
         self.end_scope();
 
@@ -73,18 +83,16 @@ impl SymbolTableGenerator {
             match stmt {
                 Statement::Make(make_stmt) => match make_stmt.kind {
                     MakeStmtKind::Global => {
-                        self.create_global_var_symbol(make_stmt);
+                        self.create_global_var_symbol(make_stmt)?;
                     }
                     MakeStmtKind::Local => {
-                        let err = AstWalkError::new(format!(
+                        return walk_err!(
                             "not allowed to delcare local variables under root scope (`{}`)",
                             make_stmt.var
-                        ));
-
-                        return Err(err);
+                        );
                     }
                     MakeStmtKind::Assign => {
-                        // will return an error in case there is no global variable `make_stmt.var`
+                        // TODO: will return an error in case there is no global variable `make_stmt.var`
                         self.get_var_symbol(&make_stmt.var)?;
                     }
                 },
@@ -105,12 +113,10 @@ impl SymbolTableGenerator {
             if let Symbol::Var(ref var) = symbol.unwrap() {
                 Ok(var)
             } else {
-                let err = AstWalkError::new(format!("expected a variable for symbol {}", var_name));
-                Err(err)
+                panic!("symbol should have been a variable")
             }
         } else {
-            let err =
-                AstWalkError::new(format!("variable declaration is missing for {}", var_name));
+            let err = AstWalkError::MissingVarDeclaration(var_name.to_owned());
             Err(err)
         }
     }
@@ -122,13 +128,10 @@ impl SymbolTableGenerator {
             if let Symbol::Proc(ref proc) = symbol.unwrap() {
                 Ok(proc)
             } else {
-                let err =
-                    AstWalkError::new(format!("expected a variable for symbol {}", proc_name));
-                Err(err)
+                walk_err!("expected a variable for symbol {}", proc_name)
             }
         } else {
-            let err = AstWalkError::new(format!("procedure declaration missing for {}", proc_name));
-            Err(err)
+            walk_err!("procedure declaration missing for {}", proc_name)
         }
     }
 
@@ -167,7 +170,8 @@ impl SymbolTableGenerator {
         if symbol.is_none() {
             self.create_var_symbol(make_stmt, true, self.global_ref)
         } else {
-            panic!("duplicate declaration!")
+            let err = AstWalkError::DuplicateGlobalVar(make_stmt.var.to_owned());
+            Err(err)
         }
     }
 
@@ -213,10 +217,44 @@ mod tests {
     use super::*;
 
     #[test]
+    fn error_global_assign_before_declare() {
+        let code = r#"
+            MAKE "A=20
+        "#;
+
+        let expected = AstWalkError::MissingVarDeclaration("A".to_string());
+
+        let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        let actual = generator.generate(&ast).err().unwrap();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn error_duplicate_global_variable_declaration() {
+        let code = r#"
+            MAKEGLOBAL "A=10
+            MAKEGLOBAL "A=20
+        "#;
+
+        let expected = AstWalkError::DuplicateGlobalVar("A".to_string());
+
+        let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        let actual = generator.generate(&ast).err().unwrap();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
     #[ignore]
     fn prewalk_make_and_procs() {
         let code = r#"
             MAKE "A=20
+
             TO MOVE_FORWARD
                 FORWARD 10
             END
@@ -233,6 +271,6 @@ mod tests {
         let ast = TytleParser.parse(code).unwrap();
 
         let mut generator = SymbolTableGenerator::new();
-        generator.build_sym_table(&ast);
+        generator.generate(&ast);
     }
 }

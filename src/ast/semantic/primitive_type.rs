@@ -5,4 +5,5 @@ use std::convert::Into;
 pub enum PrimitiveType {
     Int,
     Str,
+    Bool,
 }
