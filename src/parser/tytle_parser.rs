@@ -319,7 +319,7 @@ impl TytleParser {
     fn parse_call_expr(
         &self,
         lexer: &mut impl Lexer,
-    ) -> Result<(String, Vec<Box<Expression>>), ParseError> {
+    ) -> Result<(String, Vec<Expression>), ParseError> {
         let (token, _) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(proc_name) = token {
@@ -338,7 +338,7 @@ impl TytleParser {
     fn parse_call_params(
         &self,
         lexer: &mut impl Lexer,
-    ) -> Result<Vec<Box<Expression>>, ParseError> {
+    ) -> Result<Vec<Expression>, ParseError> {
         let mut params = Vec::new();
 
         while self.peek_current_token_clone(lexer) != Token::RPAREN {
@@ -355,14 +355,14 @@ impl TytleParser {
     fn parse_call_param_expr(
         &self,
         lexer: &mut impl Lexer,
-    ) -> Result<Option<Box<Expression>>, ParseError> {
+    ) -> Result<Option<Expression>, ParseError> {
         let expr = self.parse_expr(lexer)?;
 
         if self.peek_current_token_clone(lexer) == Token::COMMA {
             self.skip_token(lexer);
         }
 
-        Ok(Some(Box::new(expr)))
+        Ok(Some(expr))
     }
 
     fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> Result<LiteralExpr, ParseError> {

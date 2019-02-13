@@ -228,8 +228,8 @@ macro_rules! proc_call_expr {
         {
             use $crate::ast::expression::Expression;
 
-            let mut params = Vec::<Box<Expression>>::new();
-            $( params.push(Box::new($param)); )*
+            let mut params = Vec::<Expression>::new();
+            $( params.push($param); )*
 
             Expression::ProcCall($proc_name.to_string(), params)
         }

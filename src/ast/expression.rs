@@ -17,20 +17,10 @@ pub enum BinaryOp {
     EQEQ,
 }
 
-impl From<&str> for BinaryOp {
-    fn from(s: &str) -> BinaryOp {
-        match s {
-            "+" => BinaryOp::Add,
-            "*" => BinaryOp::Mul,
-            _ => panic!("Invalid binary operator: {}", s),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal(LiteralExpr),
-    ProcCall(String, Vec<Box<Expression>>),
+    ProcCall(String, Vec<Expression>),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
 }
 
@@ -39,6 +29,16 @@ pub enum ExpressionType {
     Int,
     Str,
     Bool,
+}
+
+impl From<&str> for BinaryOp {
+    fn from(s: &str) -> BinaryOp {
+        match s {
+            "+" => BinaryOp::Add,
+            "*" => BinaryOp::Mul,
+            _ => panic!("Invalid binary operator: {}", s),
+        }
+    }
 }
 
 #[cfg(test)]

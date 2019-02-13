@@ -96,7 +96,7 @@ pub trait AstWalker<'a> {
     fn walk_proc_call_expr(
         &mut self,
         proc_name: &str,
-        params_exprs: &Vec<Box<Expression>>,
+        params_exprs: &Vec<Expression>,
     ) -> Result<Option<ExpressionType>, AstWalkError> {
         self.on_proc_call_expr_start(proc_name)?;
 
