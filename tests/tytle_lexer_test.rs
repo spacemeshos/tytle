@@ -2,14 +2,46 @@ extern crate tytle;
 
 use tytle::lexer::{Lexer, Location, Token, TytleLexer};
 
+macro_rules! assert_current_token {
+    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {
+        {
+            assert_current_token!($lexer, $expected_tok);
+
+            let (_, actual_loc) = $lexer.peek_current_token().unwrap();
+            assert_eq!($expected_loc, *actual_loc);
+        }
+    };
+
+    ($lexer:ident, $expected_tok:expr) => {
+        {
+            let (actual_tok, _) = $lexer.peek_current_token().unwrap();
+            assert_eq!($expected_tok, *actual_tok);
+        }
+    };
+}
+
+macro_rules! assert_next_token {
+    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {
+        {
+            assert_next_token!($lexer, $expected_tok);
+
+            let (_, actual_loc) = $lexer.peek_next_token().unwrap();
+            assert_eq!($expected_loc, *actual_loc);
+        }
+    };
+
+    ($lexer:ident, $expected_tok:expr) => {
+        {
+            let (actual_tok, _) = $lexer.peek_next_token().unwrap();
+            assert_eq!($expected_tok, *actual_tok);
+        }
+    };
+}
+
 #[test]
 fn empty() {
     let lexer = TytleLexer::new("");
-
-    let (tok, loc) = lexer.peek_current_token().unwrap();
-
-    assert_eq!(*tok, Token::EOF);
-    assert_eq!(*loc, Location(2, 1));
+    assert_current_token!(lexer, Token::EOF, Location(2, 1));
 }
 
 #[test]
@@ -17,9 +49,7 @@ fn just_spaces() {
     let mut lexer = TytleLexer::new("   ");
 
     // peek
-    let (tok, loc) = lexer.peek_current_token().unwrap();
-    assert_eq!(*loc, Location(2, 1));
-    assert_eq!(*tok, Token::EOF);
+    assert_current_token!(lexer, Token::EOF, Location(2, 1));
 
     // pop
     let (tok, loc) = lexer.pop_current_token().unwrap();
@@ -32,13 +62,8 @@ fn one_line_1_token() {
     let mut lexer = TytleLexer::new("111");
 
     // peek
-    let (tok1, loc1) = lexer.peek_current_token().unwrap();
-    let (tok2, loc2) = lexer.peek_next_token().unwrap();
-
-    assert_eq!(*loc1, Location(1, 1));
-    assert_eq!(*tok1, Token::VALUE("111".to_string()));
-    assert_eq!(*loc2, Location(2, 1));
-    assert_eq!(*tok2, Token::EOF);
+    assert_current_token!(lexer, Token::VALUE("111".to_string()), Location(1, 1));
+    assert_next_token!(lexer, Token::EOF, Location(2, 1));
 
     // pop
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -55,13 +80,8 @@ fn one_line_1_token_with_spaces() {
     let mut lexer = TytleLexer::new(" 1  ");
 
     // peek
-    let (tok1, loc1) = lexer.peek_current_token().unwrap();
-    let (tok2, loc2) = lexer.peek_next_token().unwrap();
-
-    assert_eq!(*loc1, Location(1, 2));
-    assert_eq!(*tok1, Token::VALUE("1".to_string()));
-    assert_eq!(*loc2, Location(2, 1));
-    assert_eq!(*tok2, Token::EOF);
+    assert_current_token!(lexer, Token::VALUE("1".to_string()), Location(1, 2));
+    assert_next_token!(lexer, Token::EOF, Location(2, 1));
 
     // pop
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -295,14 +315,14 @@ fn parentheses_surrounded_by_brackets() {
 
 #[test]
 fn assign_an_int_expr() {
-    let mut lexer = TytleLexer::new("MyVar=10");
+    let mut lexer = TytleLexer::new("MYVAR=10");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
     let (tok3, loc3) = lexer.pop_current_token().unwrap();
 
     assert_eq!(loc1, Location(1, 1));
-    assert_eq!(tok1, Token::VALUE("MyVar".to_string()));
+    assert_eq!(tok1, Token::VALUE("MYVAR".to_string()));
 
     assert_eq!(loc2, Location(1, 6));
     assert_eq!(tok2, Token::ASSIGN);
@@ -313,7 +333,7 @@ fn assign_an_int_expr() {
 
 #[test]
 fn assign_a_composite_expr() {
-    let mut lexer = TytleLexer::new("MyVar=(1+2)");
+    let mut lexer = TytleLexer::new("MYVAR=(1+2)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -324,7 +344,7 @@ fn assign_a_composite_expr() {
     let (tok7, loc7) = lexer.pop_current_token().unwrap();
 
     assert_eq!(loc1, Location(1, 1));
-    assert_eq!(tok1, Token::VALUE("MyVar".to_string()));
+    assert_eq!(tok1, Token::VALUE("MYVAR".to_string()));
 
     assert_eq!(loc2, Location(1, 6));
     assert_eq!(tok2, Token::ASSIGN);
