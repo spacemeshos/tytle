@@ -7,7 +7,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn one_scope_var_does_not_exist() {
+    fn sym_table_one_scope_var_does_not_exist() {
         let mut table = SymbolTable::new();
         let scope = table.start_scope();
         let scope_id = scope.id;
@@ -16,7 +16,7 @@ mod tests {
     }
 
     #[test]
-    fn one_scope_var_exists() {
+    fn sym_table_one_scope_var_exists() {
         let var = Variable::build_global("A");
 
         let mut table = SymbolTable::new();
@@ -34,7 +34,7 @@ mod tests {
     }
 
     #[test]
-    fn one_scope_proc_exists() {
+    fn sym_table_one_scope_proc_exists() {
         let proc = Procedure::new("MYPROC");
 
         let mut table = SymbolTable::new();
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    fn one_scope_var_and_proc_with_the_same_name() {
+    fn sym_table_one_scope_var_and_proc_with_the_same_name() {
         let var = Variable::build_global("A");
         let proc = Procedure::new("A");
 
@@ -79,7 +79,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_nested_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var() {
+    fn sym_multiple_nested_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var() {
         //
         // Scope outer
         // |
@@ -124,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_nested_scopes_var_does_exist_on_parent_scope() {
+    fn sym_table_multiple_nested_scopes_var_does_exist_on_parent_scope() {
         //
         // Scope X
         // |
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_nested_scopes_var_does_not_exist_at_any_scope() {
+    fn sym_table_multiple_nested_scopes_var_does_not_exist_at_any_scope() {
         //
         // Scope X
         // |
@@ -196,7 +196,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_not_nested_scopes_var_exist_under_exactly_one_scope() {
+    fn sym_table_multiple_not_nested_scopes_var_exist_under_exactly_one_scope() {
         //
         // Scope X
         // |

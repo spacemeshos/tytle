@@ -358,9 +358,30 @@ fn parse_repeat_stmt() {
 }
 
 #[test]
-fn parse_proc_stmt_without_params() {
+fn parse_proc_with_empty_block() {
     let code = r#"
-    TO MYPROC
+    TO MYPROC()
+    END
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expected = ast! {
+        proc_stmt! {
+            name: "MYPROC",
+            params: [],
+            returns: UNIT,
+            body: block_stmt! { }
+        }
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_proc_stmt_without_params_with_implicit_return_type() {
+    let code = r#"
+    TO MYPROC()
         MAKELOCAL A = 3
         MAKELOCAL B = 4
     END
@@ -377,6 +398,7 @@ fn parse_proc_stmt_without_params() {
         proc_stmt! {
             name: "MYPROC",
             params: [],
+            returns: UNIT,
             body: block
         }
     };
@@ -385,10 +407,37 @@ fn parse_proc_stmt_without_params() {
 }
 
 #[test]
-#[ignore]
-fn parse_proc_stmt_with_params() {
+fn parse_proc_stmt_without_params_with_explicit_return_type() {
     let code = r#"
-    TO MYPROC "A INT, "B STR
+    TO MYPROC() : BOOL
+        MAKELOCAL A = 3
+        MAKELOCAL B = 4
+    END
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let block = block_stmt! {
+        make_local_stmt!("A", int_lit_expr!(3)),
+        make_local_stmt!("B", int_lit_expr!(4))
+    };
+
+    let expected = ast! {
+        proc_stmt! {
+            name: "MYPROC",
+            params: [],
+            returns: BOOL,
+            body: block
+        }
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_proc_stmt_with_params_and_explicit_return_value() {
+    let code = r#"
+    TO MYPROC(A: INT, B: STR) : INT
         MAKELOCAL C = 10
     END
     "#;
@@ -402,7 +451,8 @@ fn parse_proc_stmt_with_params() {
     let expected = ast! {
         proc_stmt! {
             name: "MYPROC",
-            params: [proc_param!("A"), proc_param!("B")],
+            params: [proc_param!("A", "INT"), proc_param!("B", "STR")],
+            returns: INT,
             body: block
         }
     };
@@ -515,29 +565,14 @@ fn parse_command_stop() {
 }
 
 #[test]
-#[ignore]
-fn parse_error_invalid_proc_param() {
+fn parse_error_proc_param_missing_colon() {
     let code = r#"
-    TO MYPROC X Y
+    TO MYPROC(X: INT,  123 INT) : BOOL
     END
     "#;
 
-    let expected = Err(ParseError::InvalidProcParam {
-        param: "Y".to_string(),
-    });
+    let expected = Err(ParseError::MissingColon);
     let actual = TytleParser.parse(code);
-
-    assert_eq!(expected, actual);
-}
-
-#[test]
-#[ignore]
-fn parse_error_make_variable_must_be_prefixed_with_quotation_marks() {
-    let expected = Err(ParseError::Syntax {
-        message: "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`".to_string(),
-    });
-
-    let actual = TytleParser.parse("MAKE A=1");
 
     assert_eq!(expected, actual);
 }

@@ -76,6 +76,12 @@ impl<'a> Lexer for TytleLexer<'a> {
                         self.location.increment_column();
                         break;
                     }
+                    ':' => {
+                        self.push_token(&mut token);
+                        self.push_colon();
+                        self.location.increment_column();
+                        break;
+                    }
                     ',' => {
                         self.push_token(&mut token);
                         self.push_comma();
@@ -183,6 +189,10 @@ impl<'a> TytleLexer<'a> {
 
     fn push_assign(&mut self) {
         self.tokens_buffer.push_back((Token::ASSIGN, self.location));
+    }
+
+    fn push_colon(&mut self) {
+        self.tokens_buffer.push_back((Token::COLON, self.location));
     }
 
     fn push_less_than(&mut self) {

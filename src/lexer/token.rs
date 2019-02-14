@@ -18,5 +18,7 @@ pub enum Token {
     LT, // <
     GT, // >
 
+    COLON, // :
+
     VALUE(String),
 }

@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate tytle;
 
 use tytle::lexer::{Lexer, Location, Token, TytleLexer};
@@ -32,13 +31,13 @@ macro_rules! assert_next_token {
 }
 
 #[test]
-fn empty() {
+fn lexer_empty() {
     let lexer = TytleLexer::new("");
     assert_current_token!(lexer, Token::EOF, Location(2, 1));
 }
 
 #[test]
-fn just_spaces() {
+fn lexer_just_spaces() {
     let mut lexer = TytleLexer::new("   ");
 
     // peek
@@ -51,7 +50,7 @@ fn just_spaces() {
 }
 
 #[test]
-fn one_line_1_token() {
+fn lexer_one_line_1_token() {
     let mut lexer = TytleLexer::new("111");
 
     // peek
@@ -69,7 +68,7 @@ fn one_line_1_token() {
 }
 
 #[test]
-fn one_line_1_token_with_spaces() {
+fn lexer_one_line_1_token_with_spaces() {
     let mut lexer = TytleLexer::new(" 1  ");
 
     // peek
@@ -87,7 +86,7 @@ fn one_line_1_token_with_spaces() {
 }
 
 #[test]
-fn one_line_2_tokens() {
+fn lexer_one_line_2_tokens() {
     let mut lexer = TytleLexer::new("111    222");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();;
@@ -103,7 +102,7 @@ fn one_line_2_tokens() {
 }
 
 #[test]
-fn one_line_2_tokens_many_spaces() {
+fn lexer_one_line_2_tokens_many_spaces() {
     let mut lexer = TytleLexer::new("  1   2  ");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -121,7 +120,7 @@ fn one_line_2_tokens_many_spaces() {
 }
 
 #[test]
-fn one_line_3_tokens() {
+fn lexer_one_line_3_tokens() {
     let mut lexer = TytleLexer::new("1 2 3");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -143,7 +142,7 @@ fn one_line_3_tokens() {
 }
 
 #[test]
-fn two_lines() {
+fn lexer_two_lines() {
     let mut lexer = TytleLexer::new("1 22 \n 333 4444");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -173,7 +172,7 @@ fn two_lines() {
 }
 
 #[test]
-fn add_op() {
+fn lexer_add_op() {
     let mut lexer = TytleLexer::new("1+2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -191,7 +190,7 @@ fn add_op() {
 }
 
 #[test]
-fn add_op_surrounded_by_spaces() {
+fn lexer_add_op_surrounded_by_spaces() {
     let mut lexer = TytleLexer::new("1 + 2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -209,7 +208,7 @@ fn add_op_surrounded_by_spaces() {
 }
 
 #[test]
-fn mul_op() {
+fn lexer_mul_op() {
     let mut lexer = TytleLexer::new("1*2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -227,7 +226,7 @@ fn mul_op() {
 }
 
 #[test]
-fn parentheses() {
+fn lexer_parentheses() {
     let mut lexer = TytleLexer::new("(111)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -245,7 +244,7 @@ fn parentheses() {
 }
 
 #[test]
-fn brackets() {
+fn lexer_brackets() {
     let mut lexer = TytleLexer::new("[111]");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -263,7 +262,7 @@ fn brackets() {
 }
 
 #[test]
-fn brackets_surrounded_by_parentheses() {
+fn lexer_brackets_surrounded_by_parentheses() {
     let mut lexer = TytleLexer::new("([])");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -285,7 +284,7 @@ fn brackets_surrounded_by_parentheses() {
 }
 
 #[test]
-fn parentheses_surrounded_by_brackets() {
+fn lexer_parentheses_surrounded_by_brackets() {
     let mut lexer = TytleLexer::new("[()]");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -307,7 +306,7 @@ fn parentheses_surrounded_by_brackets() {
 }
 
 #[test]
-fn assign_an_int_expr() {
+fn lexer_assign_an_int_expr() {
     let mut lexer = TytleLexer::new("MYVAR=10");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -325,7 +324,7 @@ fn assign_an_int_expr() {
 }
 
 #[test]
-fn assign_a_composite_expr() {
+fn lexer_assign_a_composite_expr() {
     let mut lexer = TytleLexer::new("MYVAR=(1+2)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -359,7 +358,7 @@ fn assign_a_composite_expr() {
 }
 
 #[test]
-fn less_than_expr() {
+fn lexer_less_than_expr() {
     let mut lexer = TytleLexer::new("1<2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -377,7 +376,7 @@ fn less_than_expr() {
 }
 
 #[test]
-fn greater_than_expr() {
+fn lexer_greater_than_expr() {
     let mut lexer = TytleLexer::new("1>2");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
@@ -395,8 +394,8 @@ fn greater_than_expr() {
 }
 
 #[test]
-fn procedure_call_expr() {
-    let mut lexer = TytleLexer::new("FOO(:X, 10, 1 + 2)");
+fn lexer_procedure_call_expr() {
+    let mut lexer = TytleLexer::new("FOO(X, 10, 1 + 2)");
 
     let (tok1, loc1) = lexer.pop_current_token().unwrap();
     let (tok2, loc2) = lexer.pop_current_token().unwrap();
@@ -415,23 +414,49 @@ fn procedure_call_expr() {
     assert_eq!(tok2, Token::LPAREN);
 
     assert_eq!(loc3, Location(1, 5));
-    assert_eq!(tok3, Token::VALUE(":X".to_string()));
+    assert_eq!(tok3, Token::VALUE("X".to_string()));
 
-    assert_eq!(loc4, Location(1, 7));
+    assert_eq!(loc4, Location(1, 6));
     assert_eq!(tok4, Token::COMMA);
 
-    assert_eq!(loc5, Location(1, 9));
+    assert_eq!(loc5, Location(1, 8));
     assert_eq!(tok5, Token::VALUE("10".to_string()));
 
-    assert_eq!(loc6, Location(1, 11));
+    assert_eq!(loc6, Location(1, 10));
     assert_eq!(tok6, Token::COMMA);
 
-    assert_eq!(loc7, Location(1, 13));
+    assert_eq!(loc7, Location(1, 12));
     assert_eq!(tok7, Token::VALUE("1".to_string()));
 
-    assert_eq!(loc8, Location(1, 15));
+    assert_eq!(loc8, Location(1, 14));
     assert_eq!(tok8, Token::ADD);
 
-    assert_eq!(loc9, Location(1, 17));
+    assert_eq!(loc9, Location(1, 16));
     assert_eq!(tok9, Token::VALUE("2".to_string()));
+}
+
+#[test]
+fn lexer_colon() {
+    let mut lexer = TytleLexer::new("A:B :C");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+    let (tok2, loc2) = lexer.pop_current_token().unwrap();
+    let (tok3, loc3) = lexer.pop_current_token().unwrap();
+    let (tok4, loc4) = lexer.pop_current_token().unwrap();
+    let (tok5, loc5) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::VALUE("A".to_string()));
+
+    assert_eq!(loc2, Location(1, 2));
+    assert_eq!(tok2, Token::COLON);
+
+    assert_eq!(loc3, Location(1, 3));
+    assert_eq!(tok3, Token::VALUE("B".to_string()));
+
+    assert_eq!(loc4, Location(1, 5));
+    assert_eq!(tok4, Token::COLON);
+
+    assert_eq!(loc5, Location(1, 6));
+    assert_eq!(tok5, Token::VALUE("C".to_string()));
 }

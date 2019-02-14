@@ -74,38 +74,66 @@ impl TytleParser {
 
         let name = self.expect_ident(lexer)?;
         let borders = (None, Token::VALUE("END".to_string()));
-        let params = self.parse_proc_params(lexer)?;
+        let (params, return_type) = self.parse_proc_signature(lexer)?;
         let block = self.parse_block_stmt(lexer, borders)?;
 
         let proc_stmt = ProcedureStmt {
             name,
             block,
             params,
+            return_type,
         };
 
         Ok(Statement::Procedure(proc_stmt))
     }
 
-    fn parse_proc_params(&self, lexer: &mut impl Lexer) -> Result<Vec<ProcParam>, ParseError> {
+    fn parse_proc_signature(
+        &self,
+        lexer: &mut impl Lexer,
+    ) -> Result<(Vec<ProcParam>, Option<String>), ParseError> {
         let mut params = Vec::new();
         let mut completed = false;
+
+        // expecting signature to start with `(`
+        self.expect_token(lexer, Token::LPAREN)?;
 
         while !completed {
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-            if *tok == Token::NEWLINE {
+            if *tok == Token::RPAREN {
+                self.skip_token(lexer); // skipping the `)`
                 completed = true
             } else {
-                let ident = self.expect_ident(lexer)?;
+                let param_name = self.expect_ident(lexer)?;
 
-                // self.validate_var_name(ident.as_str())?;
+                self.expect_token(lexer, Token::COLON)?;
 
-                let param = ident.to_string();
-                params.push(ProcParam { name: param });
+                let param_type = self.expect_ident(lexer)?;
+
+                let param = ProcParam {
+                    param_name: param_name.to_string(),
+                    param_type: param_type.to_string(),
+                };
+
+                params.push(param);
+
+                if self.peek_current_token_clone(lexer) == Token::COMMA {
+                    self.skip_token(lexer);
+                }
             }
         }
 
-        Ok(params)
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+        let return_type = if *tok == Token::COLON {
+            self.skip_token(lexer); // skipping the `:`
+
+            Some(self.expect_ident(lexer)?)
+        } else {
+            None
+        };
+
+        Ok((params, return_type))
     }
 
     fn parse_repeat_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -296,7 +324,7 @@ impl TytleParser {
         let (token, _location) = self.peek_next_token(lexer).unwrap();
 
         let basic_expr = if *token == Token::LPAREN {
-            let (proc_name, proc_params) = self.parse_call_expr(lexer)?;
+            let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
             Expression::ProcCall(proc_name, proc_params)
         } else {
             let expr = self.parse_literal_expr(lexer)?;
@@ -306,7 +334,7 @@ impl TytleParser {
         Ok(basic_expr)
     }
 
-    fn parse_call_expr(
+    fn parse_proc_call_expr(
         &self,
         lexer: &mut impl Lexer,
     ) -> Result<(String, Vec<Expression>), ParseError> {
@@ -315,7 +343,7 @@ impl TytleParser {
         if let Token::VALUE(proc_name) = token {
             self.expect_token(lexer, Token::LPAREN)?;
 
-            let proc_params = self.parse_call_params(lexer)?;
+            let proc_params = self.parse_proc_call_params_expr(lexer)?;
 
             self.expect_token(lexer, Token::RPAREN)?;
 
@@ -327,7 +355,10 @@ impl TytleParser {
         }
     }
 
-    fn parse_call_params(&self, lexer: &mut impl Lexer) -> Result<Vec<Expression>, ParseError> {
+    fn parse_proc_call_params_expr(
+        &self,
+        lexer: &mut impl Lexer,
+    ) -> Result<Vec<Expression>, ParseError> {
         let mut params = Vec::new();
 
         while self.peek_current_token_clone(lexer) != Token::RPAREN {
@@ -407,7 +438,13 @@ impl TytleParser {
         if actual == expected {
             Ok(())
         } else {
-            Err(ParseError::UnexpectedToken { expected, actual })
+            let err =
+                match expected {
+                    Token::COLON => ParseError::MissingColon,
+                    _ => ParseError::UnexpectedToken { expected, actual }
+                };
+
+            Err(err)
         }
     }
 
