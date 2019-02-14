@@ -106,6 +106,8 @@ impl TytleParser {
             } else {
                 let param_name = self.expect_ident(lexer)?;
 
+                self.validate_var_name(param_name.as_str())?;
+
                 self.expect_token(lexer, Token::COLON)?;
 
                 let param_type = self.expect_ident(lexer)?;
@@ -438,11 +440,10 @@ impl TytleParser {
         if actual == expected {
             Ok(())
         } else {
-            let err =
-                match expected {
-                    Token::COLON => ParseError::MissingColon,
-                    _ => ParseError::UnexpectedToken { expected, actual }
-                };
+            let err = match expected {
+                Token::COLON => ParseError::MissingColon,
+                _ => ParseError::UnexpectedToken { expected, actual },
+            };
 
             Err(err)
         }

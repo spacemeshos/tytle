@@ -578,7 +578,7 @@ fn parse_error_proc_param_missing_colon() {
 }
 
 #[test]
-fn parse_error_variable_with_lowercase_letters() {
+fn parse_error_variable_must_not_contain_lowercase_letters() {
     let expected = ParseError::InvalidIdentifierDeclaration(
         "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
     );
@@ -595,6 +595,38 @@ fn parse_error_variable_must_not_begin_with_a_digit() {
     );
 
     let actual = TytleParser.parse("MAKE 2MYVAR=1").err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_param_must_not_begin_with_a_digit() {
+    let code = r#"
+    TO MYPROC(2MYVAR: INT)
+    END
+    "#;
+
+    let expected = ParseError::InvalidIdentifierDeclaration(
+        "Variable name isn't allowed to begin with a digit (got `2MYVAR`)".to_string(),
+    );
+
+    let actual = TytleParser.parse(code).err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_param_must_not_contain_lowercase_letters() {
+    let code = r#"
+    TO MYPROC(myvar: INT)
+    END
+    "#;
+
+    let expected = ParseError::InvalidIdentifierDeclaration(
+        "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
+    );
+
+    let actual = TytleParser.parse(code).err().unwrap();
 
     assert_eq!(expected, actual);
 }
