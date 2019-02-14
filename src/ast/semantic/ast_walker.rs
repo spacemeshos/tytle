@@ -1,21 +1,7 @@
 use crate::ast::expression::*;
+use crate::ast::semantic::AstWalkError;
 use crate::ast::statement::*;
 use crate::ast::Ast;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum AstWalkError {
-    DuplicateGlobalVar(String),
-    MissingVarDeclaration(String),
-    Custom { message: String },
-}
-
-impl AstWalkError {
-    pub fn new(message: &str) -> Self {
-        AstWalkError::Custom {
-            message: message.to_owned(),
-        }
-    }
-}
 
 pub type AstWalkResult = Result<(), AstWalkError>;
 

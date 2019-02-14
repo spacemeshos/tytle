@@ -34,7 +34,7 @@ impl Variable {
         match self.resolved_type {
             None => self.resolved_type = Some(rt),
             Some(ref current_rt) if *current_rt == rt => {}
-            _ => panic!(format!("Type mismatch for variable `{}`", self.name)),
+            _ => panic!("Type mismatch for variable `{}`", self.name),
         }
     }
 }

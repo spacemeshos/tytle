@@ -4,7 +4,7 @@ use crate::ast::{expression::*, statement::*};
 
 use crate::parser::{Parser, TytleParser};
 
-struct SymbolTableGenerator {
+pub struct SymbolTableGenerator {
     sym_table: SymbolTable,
     global_ref: u64,
     proc_ref: u64,
@@ -92,7 +92,6 @@ impl SymbolTableGenerator {
                         );
                     }
                     MakeStmtKind::Assign => {
-                        // TODO: will return an error in case there is no global variable `make_stmt.var`
                         self.get_var_symbol(&make_stmt.var)?;
                     }
                 },
@@ -121,47 +120,27 @@ impl SymbolTableGenerator {
         }
     }
 
-    fn get_proc_symbol(&self, proc_name: &str) -> Result<&Procedure, AstWalkError> {
-        let symbol = self.try_get_symbol(proc_name, SymbolKind::Proc);
-
-        if symbol.is_some() {
-            if let Symbol::Proc(ref proc) = symbol.unwrap() {
-                Ok(proc)
-            } else {
-                walk_err!("expected a variable for symbol {}", proc_name)
-            }
-        } else {
-            walk_err!("procedure declaration missing for {}", proc_name)
-        }
-    }
-
-    fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
-        let current_scope_id = self.sym_table.get_current_scope_id();
-
-        self.sym_table
-            .recursive_lookup_sym(current_scope_id, name, &kind)
-    }
-
     fn create_proc_symbol(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
         let symbol = self.try_get_symbol(&proc_stmt.name, SymbolKind::Proc);
 
-        if symbol.is_some() {
-            panic!("duplicate direction!");
+        if symbol.is_none() {
+            let proc = Procedure {
+                name: proc_stmt.name.to_owned(),
+                reference: Some(self.proc_ref),
+                params_types: None,
+                return_type: None,
+            };
+
+            self.proc_ref += 1;
+            self.proc_locals_ref = 0; // we reset the new procedure locals counter
+
+            self.sym_table.create_proc_symbol(proc);
+
+            Ok(())
+        } else {
+            let err = AstWalkError::DuplicateProc(proc_stmt.name.to_owned());
+            Err(err)
         }
-
-        let proc = Procedure {
-            name: proc_stmt.name.to_owned(),
-            reference: Some(self.proc_ref),
-            params_types: None,
-            return_type: None,
-        };
-
-        self.proc_ref += 1;
-        self.proc_locals_ref = 0; // we reset the new procedure locals counter
-
-        self.sym_table.create_proc_symbol(proc);
-
-        Ok(())
     }
 
     fn create_global_var_symbol(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
@@ -203,74 +182,18 @@ impl SymbolTableGenerator {
         Ok(())
     }
 
+    fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
+        let current_scope_id = self.sym_table.get_current_scope_id();
+
+        self.sym_table
+            .recursive_lookup_sym(current_scope_id, name, &kind)
+    }
+
     fn start_scope(&mut self) {
         self.sym_table.start_scope();
     }
 
     fn end_scope(&mut self) {
         self.sym_table.end_scope();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn error_global_assign_before_declare() {
-        let code = r#"
-            MAKE "A=20
-        "#;
-
-        let expected = AstWalkError::MissingVarDeclaration("A".to_string());
-
-        let ast = TytleParser.parse(code).unwrap();
-
-        let mut generator = SymbolTableGenerator::new();
-        let actual = generator.generate(&ast).err().unwrap();
-
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn error_duplicate_global_variable_declaration() {
-        let code = r#"
-            MAKEGLOBAL "A=10
-            MAKEGLOBAL "A=20
-        "#;
-
-        let expected = AstWalkError::DuplicateGlobalVar("A".to_string());
-
-        let ast = TytleParser.parse(code).unwrap();
-
-        let mut generator = SymbolTableGenerator::new();
-        let actual = generator.generate(&ast).err().unwrap();
-
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    #[ignore]
-    fn prewalk_make_and_procs() {
-        let code = r#"
-            MAKE "A=20
-
-            TO MOVE_FORWARD
-                FORWARD 10
-            END
-
-            TO MOVE_BACKWARD
-                BACKWARD 10
-            END
-
-            MAKE "B=30
-            MAKE "C=40
-
-            "#;
-
-        let ast = TytleParser.parse(code).unwrap();
-
-        let mut generator = SymbolTableGenerator::new();
-        generator.generate(&ast);
     }
 }

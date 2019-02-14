@@ -1,4 +1,5 @@
 mod ast_walker;
+mod ast_walker_error;
 mod primitive_type;
 mod procedure;
 mod program;
@@ -9,6 +10,7 @@ mod symbol_table_generator;
 mod variable;
 
 pub use ast_walker::*;
+pub use ast_walker_error::*;
 pub use primitive_type::*;
 pub use procedure::*;
 pub use program::*;

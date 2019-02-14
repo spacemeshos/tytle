@@ -47,10 +47,10 @@ mod tests {
 
     fn assert_expr_equal(expr: &Expression, expected: ExpressionType, actual: ExpressionType) {
         if expected != actual {
-            panic!(format!(
+            panic!(
                 "expected expression `{:?}` to be of type `{:?}` (actual: `{:?}`",
                 expr, expected, actual
-            ));
+            );
         }
     }
 

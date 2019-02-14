@@ -1,41 +1,34 @@
+#[macro_use]
 extern crate tytle;
 
 use tytle::lexer::{Lexer, Location, Token, TytleLexer};
 
 macro_rules! assert_current_token {
-    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {
-        {
-            assert_current_token!($lexer, $expected_tok);
+    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {{
+        assert_current_token!($lexer, $expected_tok);
 
-            let (_, actual_loc) = $lexer.peek_current_token().unwrap();
-            assert_eq!($expected_loc, *actual_loc);
-        }
-    };
+        let (_, actual_loc) = $lexer.peek_current_token().unwrap();
+        assert_eq!($expected_loc, *actual_loc);
+    }};
 
-    ($lexer:ident, $expected_tok:expr) => {
-        {
-            let (actual_tok, _) = $lexer.peek_current_token().unwrap();
-            assert_eq!($expected_tok, *actual_tok);
-        }
-    };
+    ($lexer:ident, $expected_tok:expr) => {{
+        let (actual_tok, _) = $lexer.peek_current_token().unwrap();
+        assert_eq!($expected_tok, *actual_tok);
+    }};
 }
 
 macro_rules! assert_next_token {
-    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {
-        {
-            assert_next_token!($lexer, $expected_tok);
+    ($lexer:ident, $expected_tok:expr, $expected_loc:expr) => {{
+        assert_next_token!($lexer, $expected_tok);
 
-            let (_, actual_loc) = $lexer.peek_next_token().unwrap();
-            assert_eq!($expected_loc, *actual_loc);
-        }
-    };
+        let (_, actual_loc) = $lexer.peek_next_token().unwrap();
+        assert_eq!($expected_loc, *actual_loc);
+    }};
 
-    ($lexer:ident, $expected_tok:expr) => {
-        {
-            let (actual_tok, _) = $lexer.peek_next_token().unwrap();
-            assert_eq!($expected_tok, *actual_tok);
-        }
-    };
+    ($lexer:ident, $expected_tok:expr) => {{
+        let (actual_tok, _) = $lexer.peek_next_token().unwrap();
+        assert_eq!($expected_tok, *actual_tok);
+    }};
 }
 
 #[test]
