@@ -44,8 +44,6 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_proc_param(&mut self, proc_stmt: &ProcedureStmt, param: &ProcParam) -> AstWalkResult {
-        // TODO: create local symbol for param
-
         Ok(())
     }
 

@@ -263,8 +263,6 @@ impl TytleParser {
 
         let expr = self.parse_expr(lexer)?;
 
-        self.expect_newline(lexer)?;
-
         let stmt = DirectionStmt {
             expr,
             direction: Direction::from(direction),

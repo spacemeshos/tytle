@@ -45,6 +45,22 @@ fn parse_direction_right() {
 }
 
 #[test]
+fn parse_multiple_multiple_direction_statements_under_single_line() {
+    let actual = TytleParser
+        .parse("RIGHT 10 LEFT 20 BACKWARD 30 FORWARD 40")
+        .unwrap();
+
+    let expected = ast! {
+        direct_lit_expr!(RIGHT, 10),
+        direct_lit_expr!(LEFT, 20),
+        direct_lit_expr!(BACKWARD, 30),
+        direct_lit_expr!(FORWARD, 40)
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_direction_setx() {
     let actual = TytleParser.parse("SETX 20").unwrap();
     let expected = ast! { direct_lit_expr!(SETX, 20) };
