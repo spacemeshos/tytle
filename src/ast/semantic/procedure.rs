@@ -14,7 +14,7 @@ impl Procedure {
             name: name.to_owned(),
             reference: None,
             params_types: None,
-            return_type: None
+            return_type: None,
         }
     }
 }

@@ -5,63 +5,63 @@ use tytle::ast::{expression::*, statement::*};
 use tytle::parser::{ParseError, Parser, TytleParser};
 
 #[test]
-fn nop_stmt() {
+fn parse_nop_stmt() {
     let actual = TytleParser.parse("").unwrap();
     let expected = ast! { eof!() };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_forward() {
+fn parse_direction_forward() {
     let actual = TytleParser.parse("FORWARD 20").unwrap();
     let expected = ast! { direct_lit_expr!(FORWARD, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_backward() {
+fn parse_direction_backward() {
     let actual = TytleParser.parse("BACKWARD 20").unwrap();
     let expected = ast! { direct_lit_expr!(BACKWARD, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_left() {
+fn parse_direction_left() {
     let actual = TytleParser.parse("LEFT 20").unwrap();
     let expected = ast! { direct_lit_expr!(LEFT, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_right() {
+fn parse_direction_right() {
     let actual = TytleParser.parse("RIGHT 20").unwrap();
     let expected = ast! { direct_lit_expr!(RIGHT, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_setx() {
+fn parse_direction_setx() {
     let actual = TytleParser.parse("SETX 20").unwrap();
     let expected = ast! { direct_lit_expr!(SETX, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_sety() {
+fn parse_direction_sety() {
     let actual = TytleParser.parse("SETY 20").unwrap();
     let expected = ast! { direct_lit_expr!(SETY, 20) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_forward_and_then_backward_no_empty_lines() {
+fn parse_direction_forward_and_then_backward_no_empty_lines() {
     let code = r#"
     FORWARD 10
     RIGHT 20
@@ -74,11 +74,11 @@ fn direction_forward_and_then_backward_no_empty_lines() {
         direct_lit_expr!(RIGHT, 20)
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn direction_forward_and_then_backward_with_empty_lines() {
+fn parse_direction_forward_and_then_backward_with_empty_lines() {
     let code = r#"
 
     FORWARD 10
@@ -94,19 +94,19 @@ fn direction_forward_and_then_backward_with_empty_lines() {
         direct_lit_expr!(RIGHT, 20)
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_integer_surrounded_by_parentheses() {
+fn parse_expr_integer_surrounded_by_parentheses() {
     let actual = TytleParser.parse("FORWARD (10)").unwrap();
     let expected = ast! { direct_lit_expr!(FORWARD, 10) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_add_integers_with_spaces() {
+fn parse_expr_add_integers_with_spaces() {
     let actual = TytleParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = ast! {
@@ -120,11 +120,11 @@ fn expr_add_integers_with_spaces() {
         )
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_add_integers_without_spaces() {
+fn parse_expr_add_integers_without_spaces() {
     let actual = TytleParser.parse("FORWARD 1 + 2").unwrap();
 
     let expected = ast! {
@@ -138,11 +138,11 @@ fn expr_add_integers_without_spaces() {
         )
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_add_and_mul_integers() {
+fn parse_expr_add_and_mul_integers() {
     let actual = TytleParser.parse("FORWARD 1 * 2 + 3 * 4").unwrap();
 
     let clause1 = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
@@ -151,22 +151,22 @@ fn expr_add_and_mul_integers() {
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_mul_integers_without_spaces() {
+fn parse_expr_mul_integers_without_spaces() {
     let actual = TytleParser.parse("FORWARD 1 * 2").unwrap();
 
     let expr = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
+fn parse_expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let actual = TytleParser.parse("FORWARD (1*1 + 2) * (3*3 + 4)").unwrap();
 
     let ones_mul = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(1));
@@ -179,13 +179,13 @@ fn expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn expr_proc_call() {
+fn parse_expr_proc_call() {
     let actual = TytleParser
-        .parse("FORWARD FOO(10, :X + 1, BAR(2, 3))")
+        .parse("FORWARD FOO(10, X + 1, BAR(2, 3))")
         .unwrap();
 
     let expected = ast! {
@@ -209,34 +209,38 @@ fn expr_proc_call() {
         )
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKE \"MYVAR = 2").unwrap();
+fn parse_make_variable_assign_an_integer() {
+    let actual = TytleParser.parse("MAKE MYVAR = 2").unwrap();
 
     let expected = ast! {
         make_stmt!("MYVAR", int_lit_expr!(2))
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_variable_assign_a_string() {
-    let actual = TytleParser.parse("MAKE \"MYVAR = \"Hello").unwrap();
+fn parse_make_variable_assign_a_string() {
+    let code = r#"
+        MAKE MYVAR = "Hello"
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
 
     let expected = ast! {
         make_stmt!("MYVAR", str_lit_expr!("Hello"))
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_variable_assign_an_expr() {
-    let actual = TytleParser.parse("MAKE \"MYVAR = 1 + 2").unwrap();
+fn parse_make_variable_assign_an_expr() {
+    let actual = TytleParser.parse("MAKE MYVAR = 1 + 2").unwrap();
 
     let expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
@@ -244,12 +248,12 @@ fn make_variable_assign_an_expr() {
         make_stmt!("MYVAR", expr)
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_variable_assign_an_expr_containing_another_var() {
-    let actual = TytleParser.parse("MAKE \"A = :B + 2").unwrap();
+fn parse_make_variable_assign_an_expr_containing_another_var() {
+    let actual = TytleParser.parse("MAKE A = B + 2").unwrap();
 
     let expr = binary_expr!("+", boxed_var_lit_expr!("B"), boxed_int_lit_expr!(2));
 
@@ -257,37 +261,37 @@ fn make_variable_assign_an_expr_containing_another_var() {
         make_stmt!("A", expr)
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_global_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKEGLOBAL \"MYVAR = 2").unwrap();
+fn parse_make_global_variable_assign_an_integer() {
+    let actual = TytleParser.parse("MAKEGLOBAL MYVAR = 2").unwrap();
 
     let expected = ast! {
         make_global_stmt!("MYVAR", int_lit_expr!(2))
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn make_local_variable_assign_an_integer() {
-    let actual = TytleParser.parse("MAKELOCAL \"MYVAR = 2").unwrap();
+fn parse_make_local_variable_assign_an_integer() {
+    let actual = TytleParser.parse("MAKELOCAL MYVAR = 2").unwrap();
 
     let expected = ast! {
         make_local_stmt!("MYVAR", int_lit_expr!(2))
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
 }
 
 #[test]
-fn if_stmt_without_else() {
+fn parse_if_stmt_without_else() {
     let code = r#"
     IF 1 + 2 [
-        MAKE "A = 3
-        MAKE "B = 4
+        MAKE A = 3
+        MAKE B = 4
     ]
     "#;
 
@@ -309,9 +313,9 @@ fn if_stmt_without_else() {
 }
 
 #[test]
-fn if_stmt_with_else() {
+fn parse_if_stmt_with_else() {
     let code = r#"
-    IF 1 + 2 [MAKE "A = 1] [MAKE "B = 2]
+    IF 1 + 2 [MAKE A = 1] [MAKE B = 2]
     "#;
     let actual = TytleParser.parse(code).unwrap();
 
@@ -329,11 +333,11 @@ fn if_stmt_with_else() {
 }
 
 #[test]
-fn repeat_stmt() {
+fn parse_repeat_stmt() {
     let code = r#"
     REPEAT 1 + 2 [
-        MAKE "A = 3
-        MAKE "B = 4
+        MAKE A = 3
+        MAKE B = 4
     ]
     "#;
 
@@ -354,18 +358,19 @@ fn repeat_stmt() {
 }
 
 #[test]
-fn procedure_stmt_without_params() {
+fn parse_proc_stmt_without_params() {
     let code = r#"
     TO MYPROC
-        MAKE "A = 3
-        MAKE "B = 4
+        MAKELOCAL A = 3
+        MAKELOCAL B = 4
     END
     "#;
+
     let actual = TytleParser.parse(code).unwrap();
 
     let block = block_stmt! {
-        make_stmt!("A", int_lit_expr!(3)),
-        make_stmt!("B", int_lit_expr!(4))
+        make_local_stmt!("A", int_lit_expr!(3)),
+        make_local_stmt!("B", int_lit_expr!(4))
     };
 
     let expected = ast! {
@@ -380,17 +385,18 @@ fn procedure_stmt_without_params() {
 }
 
 #[test]
-fn procedure_stmt_with_params() {
+#[ignore]
+fn parse_proc_stmt_with_params() {
     let code = r#"
-    TO MYPROC :A :B
-        MAKE "C = 10
+    TO MYPROC "A INT, "B STR
+        MAKELOCAL C = 10
     END
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
 
     let block = block_stmt! {
-        make_stmt!("C", int_lit_expr!(10))
+        make_local_stmt!("C", int_lit_expr!(10))
     };
 
     let expected = ast! {
@@ -405,7 +411,7 @@ fn procedure_stmt_with_params() {
 }
 
 #[test]
-fn command_xcor() {
+fn parse_command_xcor() {
     let actual = TytleParser.parse("XCOR").unwrap();
     let expected = ast! { command_stmt!(XCOR) };
 
@@ -413,7 +419,7 @@ fn command_xcor() {
 }
 
 #[test]
-fn command_ycor() {
+fn parse_command_ycor() {
     let actual = TytleParser.parse("YCOR").unwrap();
     let expected = ast! { command_stmt!(YCOR) };
 
@@ -421,7 +427,7 @@ fn command_ycor() {
 }
 
 #[test]
-fn command_pen_up() {
+fn parse_command_pen_up() {
     let actual = TytleParser.parse("PENUP").unwrap();
     let expected = ast! { command_stmt!(PENUP) };
 
@@ -429,7 +435,7 @@ fn command_pen_up() {
 }
 
 #[test]
-fn command_pen_down() {
+fn parse_command_pen_down() {
     let actual = TytleParser.parse("PENDOWN").unwrap();
     let expected = ast! { command_stmt!(PENDOWN) };
 
@@ -437,7 +443,7 @@ fn command_pen_down() {
 }
 
 #[test]
-fn command_show_turtle() {
+fn parse_command_show_turtle() {
     let actual = TytleParser.parse("SHOWTURTLE").unwrap();
     let expected = ast! { command_stmt!(SHOWTURTLE) };
 
@@ -445,7 +451,7 @@ fn command_show_turtle() {
 }
 
 #[test]
-fn command_hide_turtle() {
+fn parse_command_hide_turtle() {
     let actual = TytleParser.parse("HIDETURTLE").unwrap();
     let expected = ast! { command_stmt!(HIDETURTLE) };
 
@@ -453,7 +459,7 @@ fn command_hide_turtle() {
 }
 
 #[test]
-fn command_pen_erase() {
+fn parse_command_pen_erase() {
     let actual = TytleParser.parse("PENERASE").unwrap();
     let expected = ast! { command_stmt!(PENERASE) };
 
@@ -461,7 +467,7 @@ fn command_pen_erase() {
 }
 
 #[test]
-fn command_clean() {
+fn parse_command_clean() {
     let actual = TytleParser.parse("CLEAN").unwrap();
     let expected = ast! { command_stmt!(CLEAN) };
 
@@ -469,7 +475,7 @@ fn command_clean() {
 }
 
 #[test]
-fn command_clear_screen() {
+fn parse_command_clear_screen() {
     let actual = TytleParser.parse("CLEARSCREEN").unwrap();
     let expected = ast! { command_stmt!(CLEARSCREEN) };
 
@@ -477,7 +483,7 @@ fn command_clear_screen() {
 }
 
 #[test]
-fn command_set_pen_color() {
+fn parse_command_set_pen_color() {
     let actual = TytleParser.parse("SETPENCOLOR").unwrap();
     let expected = ast! { command_stmt!(SETPENCOLOR) };
 
@@ -485,7 +491,7 @@ fn command_set_pen_color() {
 }
 
 #[test]
-fn command_set_background_color() {
+fn parse_command_set_background_color() {
     let actual = TytleParser.parse("SETBACKGROUND").unwrap();
     let expected = ast! { command_stmt!(SETBACKGROUND) };
 
@@ -493,7 +499,7 @@ fn command_set_background_color() {
 }
 
 #[test]
-fn command_wait() {
+fn parse_command_wait() {
     let actual = TytleParser.parse("WAIT").unwrap();
     let expected = ast! { command_stmt!(WAIT) };
 
@@ -501,7 +507,7 @@ fn command_wait() {
 }
 
 #[test]
-fn command_stop() {
+fn parse_command_stop() {
     let actual = TytleParser.parse("STOP").unwrap();
     let expected = ast! { command_stmt!(STOP) };
 
@@ -509,9 +515,10 @@ fn command_stop() {
 }
 
 #[test]
+#[ignore]
 fn parse_error_invalid_proc_param() {
     let code = r#"
-    TO MYPROC :X Y
+    TO MYPROC X Y
     END
     "#;
 
@@ -524,6 +531,7 @@ fn parse_error_invalid_proc_param() {
 }
 
 #[test]
+#[ignore]
 fn parse_error_make_variable_must_be_prefixed_with_quotation_marks() {
     let expected = Err(ParseError::Syntax {
         message: "Invalid `MAKE` expression: A. Variable should be prefixed with `\"`".to_string(),
@@ -540,7 +548,7 @@ fn parse_error_variable_with_lowercase_letters() {
         "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
     );
 
-    let actual = TytleParser.parse("MAKE \"myvar=1").err().unwrap();
+    let actual = TytleParser.parse("MAKE myvar=1").err().unwrap();
 
     assert_eq!(expected, actual);
 }
@@ -551,7 +559,7 @@ fn parse_error_variable_must_not_begin_with_a_digit() {
         "Variable name isn't allowed to begin with a digit (got `2MYVAR`)".to_string(),
     );
 
-    let actual = TytleParser.parse("MAKE \"2MYVAR=1").err().unwrap();
+    let actual = TytleParser.parse("MAKE 2MYVAR=1").err().unwrap();
 
     assert_eq!(expected, actual);
 }

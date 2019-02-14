@@ -98,12 +98,10 @@ impl TytleParser {
             } else {
                 let ident = self.expect_ident(lexer)?;
 
-                if ident.starts_with(":") {
-                    let param = ident[1..].to_string();
-                    params.push(ProcParam { name: param });
-                } else {
-                    return Err(ParseError::InvalidProcParam { param: ident });
-                }
+                // self.validate_var_name(ident.as_str())?;
+
+                let param = ident.to_string();
+                params.push(ProcParam { name: param });
             }
         }
 
@@ -217,17 +215,6 @@ impl TytleParser {
         self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
         let mut var = self.expect_ident(lexer)?;
-
-        if var.starts_with("\"") {
-            var = var[1..].to_string();
-        } else {
-            return Err(ParseError::Syntax {
-                message: format!(
-                    "Invalid `MAKE` expression: {}. Variable should be prefixed with `\"`",
-                    var
-                ),
-            });
-        }
 
         self.validate_var_name(var.as_str())?;
 
@@ -376,12 +363,11 @@ impl TytleParser {
             match v.parse::<usize>() {
                 Ok(num) => Ok(LiteralExpr::Int(num)),
                 Err(_) => {
-                    if v.starts_with(":") {
-                        Ok(LiteralExpr::Var(v[1..].to_string()))
-                    } else if v.starts_with("\"") {
-                        Ok(LiteralExpr::Str(v[1..].to_string()))
+                    if v.starts_with("\"") {
+                        let s = v[1..v.len() - 1].to_string();
+                        Ok(LiteralExpr::Str(s))
                     } else {
-                        panic!();
+                        Ok(LiteralExpr::Var(v.to_string()))
                     }
                 }
             }

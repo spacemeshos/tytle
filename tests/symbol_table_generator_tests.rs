@@ -1,9 +1,7 @@
-#[macro_use]
 extern crate tytle;
 
+use tytle::ast::semantic::{AstWalkError, SymbolTableGenerator};
 use tytle::parser::{Parser, TytleParser};
-use tytle::ast::semantic::{SymbolTableGenerator, AstWalkError};
-
 
 #[cfg(test)]
 mod tests {
@@ -12,7 +10,7 @@ mod tests {
     #[test]
     fn error_global_assign_before_declare() {
         let code = r#"
-            MAKE "A=20
+            MAKE A=20
         "#;
 
         let expected = AstWalkError::MissingVarDeclaration("A".to_string());
@@ -28,8 +26,8 @@ mod tests {
     #[test]
     fn error_duplicate_global_variable_declaration() {
         let code = r#"
-            MAKEGLOBAL "A=10
-            MAKEGLOBAL "A=20
+            MAKEGLOBAL A=10
+            MAKEGLOBAL A=20
         "#;
 
         let expected = AstWalkError::DuplicateGlobalVar("A".to_string());
@@ -64,26 +62,34 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn prewalk_make_and_procs() {
+    fn proc_param_is_considered_a_local_variable() {
         let code = r#"
-            MAKE "A=20
-
-            TO MOVE_FORWARD
-                FORWARD 10
+            TO MYPROC A: STR, B: INT, C: BOOL
             END
-
-            TO MOVE_BACKWARD
-                BACKWARD 10
-            END
-
-            MAKE "B=30
-            MAKE "C=40
-
-            "#;
+        "#;
 
         let ast = TytleParser.parse(code).unwrap();
 
         let mut generator = SymbolTableGenerator::new();
-        generator.generate(&ast);
+        let actual = generator.generate(&ast).unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn error_proc_cannot_declare_global_variables() {
+        let code = r#"
+            TO MYPROC
+                MAKEGLOBAL A=10
+            END
+        "#;
+
+        let expected = AstWalkError::ProcNotAllowedToDeclareGlobals("A".to_string());
+
+        let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        // let actual = generator.generate(&ast).err().unwrap();
+
+        // assert_eq!(expected, actual);
     }
 }

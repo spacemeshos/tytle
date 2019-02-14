@@ -24,11 +24,12 @@ macro_rules! walk_err {
 }
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
-    // * TODO: ensure expression-literal symbol exists
-    // * TODO: ensure expression-procedure call symbol exists
-    // * TODO: avoid duplicate global/local declarations
-    // * TODO: ensure that each global variable reference in a procedure
-    //         takes place only after global variable
+    fn on_make_global_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
+        // if within root scope do nothing since prewalk already added global var symbol
+        // else, we're within a procedure -> should return an error
+
+        Ok(())
+    }
 
     fn on_make_local_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
         self.create_local_var_symbol(&make_stmt)
