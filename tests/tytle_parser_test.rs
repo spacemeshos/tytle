@@ -583,7 +583,7 @@ fn parse_command_stop() {
 #[test]
 fn parse_error_proc_param_missing_colon() {
     let code = r#"
-    TO MYPROC(X: INT,  123 INT) : BOOL
+    TO MYPROC(X: INT,  Y INT) : BOOL
     END
     "#;
 
@@ -641,6 +641,62 @@ fn parse_error_proc_param_must_not_contain_lowercase_letters() {
     let expected = ParseError::InvalidIdentifierDeclaration(
         "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
     );
+
+    let actual = TytleParser.parse(code).err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_missing_colon_before_return_type() {
+    let code = r#"
+    TO MYPROC(MYVAR: INT) INT
+    END
+    "#;
+
+    let expected = ParseError::MissingColon;
+
+    let actual = TytleParser.parse(code).err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_missing_return_type() {
+    let code = r#"
+    TO MYPROC(MYVAR: INT) :
+    END
+    "#;
+
+    let expected = ParseError::MissingProcReturnType;
+
+    let actual = TytleParser.parse(code).err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_invalid_param_type() {
+    let code = r#"
+    TO MYPROC(MYVAR: INTEGER)
+    END
+    "#;
+
+    let expected = ParseError::InvalidDataType("INTEGER".to_string());
+
+    let actual = TytleParser.parse(code).err().unwrap();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_error_proc_invalid_return_type() {
+    let code = r#"
+    TO MYPROC(MYVAR: INT) : STRING
+    END
+    "#;
+
+    let expected = ParseError::InvalidDataType("STRING".to_string());
 
     let actual = TytleParser.parse(code).err().unwrap();
 

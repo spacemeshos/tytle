@@ -72,7 +72,7 @@ impl TytleParser {
     fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.skip_token(lexer); // skipping the `TO` token
 
-        let name = self.expect_ident(lexer)?;
+        let name = self.expect_value(lexer)?;
         let borders = (None, Token::VALUE("END".to_string()));
         let (params, return_type) = self.parse_proc_signature(lexer)?;
         let block = self.parse_block_stmt(lexer, borders)?;
@@ -104,13 +104,14 @@ impl TytleParser {
                 self.skip_token(lexer); // skipping the `)`
                 completed = true
             } else {
-                let param_name = self.expect_ident(lexer)?;
+                let param_name = self.expect_value(lexer)?;
 
                 self.validate_var_name(param_name.as_str())?;
 
                 self.expect_token(lexer, Token::COLON)?;
 
-                let param_type = self.expect_ident(lexer)?;
+                let param_type = self.expect_value(lexer)?;
+                self.validate_data_type(param_type.as_str())?;
 
                 let param = ProcParam {
                     param_name: param_name.to_string(),
@@ -130,9 +131,25 @@ impl TytleParser {
         let return_type = if *tok == Token::COLON {
             self.skip_token(lexer); // skipping the `:`
 
-            Some(self.expect_ident(lexer)?)
+            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+            if *tok == Token::NEWLINE {
+                return Err(ParseError::MissingProcReturnType);
+            } else {
+                let return_type = self.expect_value(lexer)?;
+                self.validate_data_type(return_type.as_str())?;
+
+                Some(return_type)
+            }
         } else {
-            None
+            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+            if *tok == Token::NEWLINE {
+                None
+            // a Procedure with no return value
+            } else {
+                return Err(ParseError::MissingColon);
+            }
         };
 
         Ok((params, return_type))
@@ -244,7 +261,7 @@ impl TytleParser {
     fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> StatementResult {
         self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
-        let mut var = self.expect_ident(lexer)?;
+        let mut var = self.expect_value(lexer)?;
 
         self.validate_var_name(var.as_str())?;
 
@@ -422,7 +439,7 @@ impl TytleParser {
         Ok(())
     }
 
-    fn expect_ident(&self, lexer: &mut impl Lexer) -> Result<String, ParseError> {
+    fn expect_value(&self, lexer: &mut impl Lexer) -> Result<String, ParseError> {
         let (token, loc) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
@@ -475,7 +492,7 @@ impl TytleParser {
         lexer.pop_current_token()
     }
 
-    pub fn validate_var_name(&self, name: &str) -> Result<(), ParseError> {
+    fn validate_var_name(&self, name: &str) -> Result<(), ParseError> {
         let upper = name
             .chars()
             .all(|c| c.is_ascii_uppercase() || c.is_digit(10) || c == '_');
@@ -499,5 +516,12 @@ impl TytleParser {
         }
 
         Ok(())
+    }
+
+    fn validate_data_type(&self, data_type: &str) -> Result<(), ParseError> {
+        match data_type {
+            "STR" | "INT" | "BOOL" => Ok(()),
+            _ => Err(ParseError::InvalidDataType(data_type.to_owned())),
+        }
     }
 }
