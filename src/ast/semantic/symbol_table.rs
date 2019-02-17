@@ -8,7 +8,6 @@ pub struct SymbolTable {
     scopes: HashMap<ScopeId, Scope>,
     depth_scopes_stack: HashMap<u64, Vec<ScopeId>>,
     next_scope_id: ScopeId,
-    current_scope_id: ScopeId,
     next_scope_depth: u64,
 }
 
@@ -19,15 +18,14 @@ impl SymbolTable {
             depth_scopes_stack: Default::default(),
             next_scope_id: 0,
             next_scope_depth: 0,
-            current_scope_id: 0,
         };
 
-        // we always starts a new `SymbolTable`  with a default scope
-        // the root scope has:
+        // we always start a new `SymbolTable` with a default scope (a.k.a the "root scope")
+        // this scope has:
         // * `id` = 0
         // * `parent_id = None`
         //
-        // each root scope child-scope holds: `parent_id = Some(1)`
+        // each root scope child scope holds: `parent_id = Some(0)`
 
         table.start_scope();
 
@@ -44,7 +42,6 @@ impl SymbolTable {
 
         self.next_scope_depth += 1;
         self.next_scope_id += 1;
-        self.current_scope_id = scope_id;
 
         let entry = self
             .depth_scopes_stack
