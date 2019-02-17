@@ -2,6 +2,8 @@
 pub enum AstWalkError {
     DuplicateGlobalVar(String),
     DuplicateProc(String),
+    DuplicateProcLocalVar(String),
+    DuplicateProcParam(String, String),
     MissingVarDeclaration(String),
     ProcNotAllowedToDeclareGlobals(String),
     Custom { message: String },

@@ -39,15 +39,22 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_make_assign_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        Ok(())
-    }
-
-    fn on_proc_start(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+        self.get_var_symbol(&make_stmt.var)?;
         Ok(())
     }
 
     fn on_proc_param(&mut self, proc_stmt: &ProcedureStmt, param: &ProcParam) -> AstWalkResult {
-        Ok(())
+        let symbol = self.try_get_symbol(&param.param_name, SymbolKind::Var);
+
+        if symbol.is_none() {
+            self.create_var_symbol(&param.param_name, false, self.proc_locals_ref)
+        } else {
+            let err = AstWalkError::DuplicateProcParam(
+                proc_stmt.name.to_string(),
+                param.param_name.to_string(),
+            );
+            Err(err)
+        }
     }
 
     fn on_block_stmt_start(&mut self, _block_stmt: &BlockStatement) -> AstWalkResult {
@@ -94,9 +101,7 @@ impl SymbolTableGenerator {
                             make_stmt.var
                         );
                     }
-                    MakeStmtKind::Assign => {
-                        self.get_var_symbol(&make_stmt.var)?;
-                    }
+                    _ => continue,
                 },
                 Statement::Procedure(proc_stmt) => {
                     self.create_proc_symbol(proc_stmt)?;
@@ -116,7 +121,7 @@ impl SymbolTableGenerator {
     }
 
     fn get_var_symbol(&self, var_name: &str) -> Result<&Variable, AstWalkError> {
-        let symbol = self.try_get_symbol(var_name, SymbolKind::Var);
+        let symbol = self.try_get_symbol_recur(var_name, SymbolKind::Var);
 
         if symbol.is_some() {
             if let Symbol::Var(ref var) = symbol.unwrap() {
@@ -131,7 +136,7 @@ impl SymbolTableGenerator {
     }
 
     fn create_proc_symbol(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
-        let symbol = self.try_get_symbol(&proc_stmt.name, SymbolKind::Proc);
+        let symbol = self.try_get_symbol_recur(&proc_stmt.name, SymbolKind::Proc);
 
         if symbol.is_none() {
             let proc = Procedure {
@@ -154,10 +159,10 @@ impl SymbolTableGenerator {
     }
 
     fn create_global_var_symbol(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        let symbol = self.try_get_symbol(&make_stmt.var, SymbolKind::Var);
+        let symbol = self.try_get_symbol_recur(&make_stmt.var, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(make_stmt, true, self.global_ref)
+            self.create_var_symbol(&make_stmt.var, true, self.global_ref)
         } else {
             let err = AstWalkError::DuplicateGlobalVar(make_stmt.var.to_owned());
             Err(err)
@@ -165,18 +170,25 @@ impl SymbolTableGenerator {
     }
 
     fn create_local_var_symbol(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        self.create_var_symbol(make_stmt, false, self.proc_locals_ref)
+        let symbol = self.try_get_symbol(&make_stmt.var, SymbolKind::Var);
+
+        if symbol.is_none() {
+            self.create_var_symbol(&make_stmt.var, false, self.proc_locals_ref)
+        } else {
+            let err = AstWalkError::DuplicateProcLocalVar(make_stmt.var.to_owned());
+            Err(err)
+        }
     }
 
     fn create_var_symbol(
         &mut self,
-        make_stmt: &MakeStmt,
+        var_name: &str,
         is_global: bool,
         reference: u64,
     ) -> AstWalkResult {
         let var = Variable {
             global: is_global,
-            name: make_stmt.var.to_owned(),
+            name: var_name.to_owned(),
             reference: Some(reference),
             resolved_type: None,
         };
@@ -192,11 +204,17 @@ impl SymbolTableGenerator {
         Ok(())
     }
 
-    fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
+    fn try_get_symbol_recur(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
         let current_scope_id = self.sym_table.get_current_scope_id();
 
         self.sym_table
             .recursive_lookup_sym(current_scope_id, name, &kind)
+    }
+
+    fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
+        let current_scope_id = self.sym_table.get_current_scope_id();
+
+        self.sym_table.lookup_symbol(current_scope_id, name, &kind)
     }
 
     fn start_scope(&mut self) {

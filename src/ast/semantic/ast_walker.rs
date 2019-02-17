@@ -32,7 +32,12 @@ pub trait AstWalker<'a> {
         self.on_proc_start(proc_stmt)?;
 
         self.walk_proc_params(proc_stmt)?;
-        self.walk_block_stmt(&proc_stmt.block)?;
+
+        // we don't call `walk_proc_stmt` in order to avoid starting a new scope.
+        // we want the procedure params and the procedure root-scope to share the same scope
+        for stmt in &proc_stmt.block.stmts {
+            self.walk_stmt(stmt)?;
+        }
 
         self.on_proc_end(proc_stmt)?;
 
