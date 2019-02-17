@@ -96,10 +96,9 @@ impl SymbolTableGenerator {
                         self.create_global_var_symbol(make_stmt)?;
                     }
                     MakeStmtKind::Local => {
-                        return walk_err!(
-                            "not allowed to delcare local variables under root scope (`{}`)",
-                            make_stmt.var
-                        );
+                        let err =
+                            AstWalkError::LocalsNotAllowedUnderRootScope(make_stmt.var.clone());
+                        return Err(err);
                     }
                     _ => continue,
                 },

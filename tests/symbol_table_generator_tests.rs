@@ -146,3 +146,19 @@ fn sym_generate_error_proc_param_is_considered_a_local_variable() {
 
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn sym_generate_error_locals_not_allowed_under_root_scope() {
+    let code = r#"
+            MAKELOCAL A = 10
+        "#;
+
+    let expected = AstWalkError::LocalsNotAllowedUnderRootScope("A".to_string());
+
+    let ast = TytleParser.parse(code).unwrap();
+
+    let mut generator = SymbolTableGenerator::new();
+
+    let actual = generator.generate(&ast).err().unwrap();
+    assert_eq!(expected, actual);
+}
