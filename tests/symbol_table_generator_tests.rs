@@ -1,6 +1,6 @@
 extern crate tytle;
 
-use tytle::ast::semantic::{AstWalkError, SymbolTableGenerator};
+use tytle::ast::semantic::*;
 use tytle::parser::{Parser, TytleParser};
 
 #[cfg(test)]
@@ -61,7 +61,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn sym_generate_proc_param_is_considered_a_local_variable() {
         let code = r#"
             TO MYPROC(A: STR, B: INT, C: BOOL)
@@ -70,11 +69,27 @@ mod tests {
 
         let ast = TytleParser.parse(code).unwrap();
 
-        let mut generator = SymbolTableGenerator::new();
-        let sym_table = generator.generate(&ast).unwrap();
+        use std::sync::{Arc, Mutex};
 
-        // let scope = sym_table.get_proc_scope("MYPROC");
-        // let var_a = scope.lookup_symbol("A", SymbolKind::Var).unwrap();
+        let called = Arc::new(Mutex::new(false));
+        let called_clone = Arc::clone(&called);
+
+        let mut generator = SymbolTableGenerator::new();
+
+        generator.register_on_new_scope(move |ctx, scope| {
+            if ctx == "MYPROC" {
+                let mut data = called_clone.lock().unwrap();
+                *data = true;
+
+                let var_a = scope.lookup_symbol("A", &SymbolKind::Var).unwrap().as_var();
+                assert_eq!(var_a.global, false);
+                assert_eq!(var_a.resolved_type, Some(PrimitiveType::Str));
+            }
+        });
+
+        generator.generate(&ast).unwrap();
+
+        assert_eq!(*called.lock().unwrap(), true);
     }
 
     #[test]

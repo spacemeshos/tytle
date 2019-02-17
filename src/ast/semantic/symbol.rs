@@ -7,7 +7,7 @@ pub enum Symbol {
 }
 
 impl Symbol {
-    fn as_var(&self) -> &Variable {
+    pub fn as_var(&self) -> &Variable {
         if let &Symbol::Var(ref var) = self {
             var
         } else {
@@ -15,7 +15,7 @@ impl Symbol {
         }
     }
 
-    fn as_proc(&self) -> &Procedure {
+    pub fn as_proc(&self) -> &Procedure {
         if let &Symbol::Proc(ref proc) = self {
             proc
         } else {
