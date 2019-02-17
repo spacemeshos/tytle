@@ -110,7 +110,7 @@ pub trait AstWalker<'a> {
     }
 
     fn walk_make_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        self.walk_expr(&make_stmt.expr);
+        self.walk_expr(&make_stmt.expr)?;
 
         match make_stmt.kind {
             MakeStmtKind::Global => self.on_make_global_stmt(make_stmt)?,

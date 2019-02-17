@@ -26,10 +26,12 @@ macro_rules! walk_err {
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
     fn on_make_global_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
-        // if within root scope do nothing since prewalk already added global var symbol
-        // else, we're within a procedure -> should return an error
-
-        Ok(())
+        if self.sym_table.is_inner_scope() {
+            let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var.to_string());
+            Err(err)
+        } else {
+            Ok(())
+        }
     }
 
     fn on_make_local_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
@@ -73,7 +75,7 @@ impl SymbolTableGenerator {
     pub fn generate(&mut self, ast: &Ast) -> SymbolTableResult {
         self.start_scope();
         self.prewalk_ast(ast)?;
-        self.walk_ast(ast);
+        self.walk_ast(ast)?;
         self.end_scope();
 
         Ok(&self.sym_table)

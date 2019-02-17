@@ -47,8 +47,7 @@ impl SymbolTable {
 
         if let Some(pscope_id) = scope.parent_id {
             self.current_scope_id = pscope_id;
-        }
-        else {
+        } else {
             self.current_scope_id = 0;
         }
 
@@ -128,6 +127,14 @@ impl SymbolTable {
 
     pub fn get_current_scope(&self) -> Option<&Scope> {
         self.scopes.get(&self.current_scope_id)
+    }
+
+    pub fn is_root_scope(&self) -> bool {
+        self.get_current_scope().is_none()
+    }
+
+    pub fn is_inner_scope(&self) -> bool {
+        !(self.is_root_scope())
     }
 
     fn store_symbol_under_current_scope(&mut self, symbol: Symbol, kind: &SymbolKind) {

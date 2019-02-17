@@ -7,6 +7,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn sym_stable_starts_at_root_scope() {
+        let mut table = SymbolTable::new();
+        assert_eq!(table.is_root_scope(),  true);
+        assert_eq!(table.is_inner_scope(), false);
+
+        table.start_scope();
+        assert_eq!(table.is_root_scope(),  false);
+        assert_eq!(table.is_inner_scope(), true);
+
+        table.end_scope();
+        assert_eq!(table.is_root_scope(),  true);
+        assert_eq!(table.is_inner_scope(), false);
+    }
+
+    #[test]
     fn sym_table_one_scope_var_does_not_exist() {
         let mut table = SymbolTable::new();
         let scope = table.start_scope();
