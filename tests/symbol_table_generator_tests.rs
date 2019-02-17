@@ -60,36 +60,39 @@ mod tests {
         assert_eq!(expected, actual);
     }
 
-    // #[test]
-    // #[ignore]
-    // fn sym_generate_proc_param_is_considered_a_local_variable() {
-    //     let code = r#"
-    //         TO MYPROC(A: STR, B: INT, C: BOOL)
-    //         END
-    //     "#;
-    //
-    //     let ast = TytleParser.parse(code).unwrap();
-    //
-    //     let mut generator = SymbolTableGenerator::new();
-    //     let actual = generator.generate(&ast).unwrap();
-    // }
-    //
-    // #[test]
-    // #[ignore]
-    // fn sym_generate_error_proc_cannot_declare_global_variables() {
-    //     let code = r#"
-    //         TO MYPROC()
-    //             MAKEGLOBAL A = 10
-    //         END
-    //     "#;
-    //
-    //     let expected = AstWalkError::ProcNotAllowedToDeclareGlobals("A".to_string());
-    //
-    //     let ast = TytleParser.parse(code).unwrap();
-    //
-    //     let mut generator = SymbolTableGenerator::new();
-    //     // let actual = generator.generate(&ast).err().unwrap();
-    //
-    //     // assert_eq!(expected, actual);
-    // }
+    #[test]
+    #[ignore]
+    fn sym_generate_proc_param_is_considered_a_local_variable() {
+        let code = r#"
+            TO MYPROC(A: STR, B: INT, C: BOOL)
+            END
+        "#;
+
+        let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        let sym_table = generator.generate(&ast).unwrap();
+
+        // let scope = sym_table.get_proc_scope("MYPROC");
+        // let var_a = scope.lookup_symbol("A", SymbolKind::Var).unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn sym_generate_error_proc_cannot_declare_global_variables() {
+        let code = r#"
+            TO MYPROC()
+                MAKEGLOBAL A = 10
+            END
+        "#;
+
+        let expected = AstWalkError::ProcNotAllowedToDeclareGlobals("A".to_string());
+
+        let ast = TytleParser.parse(code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        // let actual = generator.generate(&ast).err().unwrap();
+
+        // assert_eq!(expected, actual);
+    }
 }

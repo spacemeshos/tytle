@@ -250,4 +250,43 @@ mod tests {
                 .unwrap()
         );
     }
+
+    #[test]
+    fn sym_table_get_current_scope() {
+        //
+        // Scope X
+        // |
+        // |---- Scope Y
+        //     |
+        //     |---- Scope Z
+
+        let mut table = SymbolTable::new();
+
+        // root scope
+        let root_scope = table.get_current_scope();
+        assert_eq!(None, root_scope);
+
+        // scope X
+        let scope_x = table.start_scope();
+        let scope_x_id = scope_x.id;
+
+        let scope = table.get_current_scope().unwrap();
+        assert_eq!(scope_x_id, scope.id);
+
+        // scope Y
+        let scope_y = table.start_scope();
+        let scope_y_id = scope_y.id;
+
+        let scope = table.get_current_scope().unwrap();
+        assert_eq!(scope_y_id, scope.id);
+        table.end_scope(); // closing `scope Y`, back to `scope X`
+
+        // we're again under `scope X`
+        let scope = table.get_current_scope().unwrap();
+        assert_eq!(scope_x_id, scope.id);
+
+        table.end_scope(); // closing `scope X`, back to `root scope`
+        let root_scope = table.get_current_scope();
+        assert_eq!(None, root_scope);
+    }
 }

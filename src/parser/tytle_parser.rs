@@ -114,8 +114,8 @@ impl TytleParser {
                 self.validate_data_type(param_type.as_str())?;
 
                 let param = ProcParam {
-                    param_name: param_name.to_string(),
-                    param_type: param_type.to_string(),
+                    param_name,
+                    param_type,
                 };
 
                 params.push(param);

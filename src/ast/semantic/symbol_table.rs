@@ -7,6 +7,7 @@ type ScopeId = u64;
 pub struct SymbolTable {
     scopes: HashMap<ScopeId, Scope>,
     next_scope_id: u64,
+    current_scope_id: u64,
     scope_depth: u64,
 }
 
@@ -16,6 +17,7 @@ impl SymbolTable {
             scopes: Default::default(),
             next_scope_id: 1,
             scope_depth: 0,
+            current_scope_id: 0,
         }
     }
 
@@ -31,6 +33,7 @@ impl SymbolTable {
 
         self.scope_depth += 1;
         self.next_scope_id += 1;
+        self.current_scope_id = scope.id;
 
         self.scopes.insert(scope_id, scope);
 
@@ -39,6 +42,15 @@ impl SymbolTable {
 
     pub fn end_scope(&mut self) {
         assert!(self.scope_depth > 0);
+
+        let scope = self.get_current_scope().unwrap();
+
+        if let Some(pscope_id) = scope.parent_id {
+            self.current_scope_id = pscope_id;
+        }
+        else {
+            self.current_scope_id = 0;
+        }
 
         self.scope_depth -= 1;
     }
@@ -112,6 +124,10 @@ impl SymbolTable {
 
     pub fn get_current_scope_id(&self) -> u64 {
         self.next_scope_id - 1
+    }
+
+    pub fn get_current_scope(&self) -> Option<&Scope> {
+        self.scopes.get(&self.current_scope_id)
     }
 
     fn store_symbol_under_current_scope(&mut self, symbol: Symbol, kind: &SymbolKind) {
