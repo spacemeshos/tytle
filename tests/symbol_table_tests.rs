@@ -120,9 +120,6 @@ mod tests {
         let inner_scope_id = inner_scope.id;
         table.create_var_symbol(var_inner.clone());
 
-        assert_eq!(outer_scope_id, 1);
-        assert_eq!(inner_scope_id, 2);
-
         assert_eq!(
             Symbol::Var(var_inner),
             *table
@@ -172,19 +169,19 @@ mod tests {
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+                .lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
+                .lookup_symbol_recur(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
+                .lookup_symbol_recur(scope_x_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
     }
@@ -206,25 +203,25 @@ mod tests {
 
         assert_eq!(
             None,
-            table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+            table.lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
         );
     }
 
     #[test]
     fn sym_table_multiple_not_nested_scopes_var_exist_under_exactly_one_scope() {
-        //
-        // Scope X
+        // root scope (id = 0)
+        // | Scope X (id = 1, parent_id = 0)
+        // | |
+        // | |------
         // |
-        // |------
-        //
-        //  Scope Y
+        // |  Scope Y (id = 2, parent_id = 0)
+        // | |
+        // | | variable A (reference=100)
+        // | |----
         // |
-        // | variable A (reference=100)
-        // |----
-        //
-        // Scope Z
-        // |
-        // |------
+        // | Scope Z (id = 3, parent_id = 0)
+        // | |
+        // | |------
 
         let mut table = SymbolTable::new();
 
@@ -235,6 +232,8 @@ mod tests {
 
         // scope Y
         let scope_y = table.start_scope(); // scope Y
+        assert_eq!(scope_y.parent_id, Some(0));
+
         let scope_y_id = scope_y.id;
         let mut var = Variable::build_local("A");
         var.set_reference(100);
@@ -246,22 +245,20 @@ mod tests {
         let scope_z_id = scope_z.id;
         table.end_scope();
 
-        assert_eq!(scope_x_id, 1);
-        assert_eq!(scope_y_id, 2);
-        assert_eq!(scope_z_id, 3);
+        // dbg!(table.clone());
 
         assert_eq!(
             None,
-            table.recursive_lookup_sym(scope_x_id, "A", &SymbolKind::Var)
+            table.lookup_symbol_recur(scope_x_id, "A", &SymbolKind::Var)
         );
         assert_eq!(
             None,
-            table.recursive_lookup_sym(scope_z_id, "A", &SymbolKind::Var)
+            table.lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
         );
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .recursive_lookup_sym(scope_y_id, "A", &SymbolKind::Var)
+                .lookup_symbol_recur(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
     }
@@ -273,35 +270,35 @@ mod tests {
         // |
         // |---- Scope Y
         //     |
-        //     |---- Scope Z
+        //     |
 
         let mut table = SymbolTable::new();
 
-        // root scope
+        // root scope (id = 0)
         let root_scope = table.get_current_scope();
-        assert_eq!(None, root_scope);
+        let root_scope_id = root_scope.id;
 
-        // scope X
+        // scope X (id = 1)
         let scope_x = table.start_scope();
         let scope_x_id = scope_x.id;
 
-        let scope = table.get_current_scope().unwrap();
+        let scope = table.get_current_scope();
         assert_eq!(scope_x_id, scope.id);
 
-        // scope Y
+        // scope Y (id = 2)
         let scope_y = table.start_scope();
         let scope_y_id = scope_y.id;
 
-        let scope = table.get_current_scope().unwrap();
+        let scope = table.get_current_scope();
         assert_eq!(scope_y_id, scope.id);
         table.end_scope(); // closing `scope Y`, back to `scope X`
 
         // we're again under `scope X`
-        let scope = table.get_current_scope().unwrap();
+        let scope = table.get_current_scope();
         assert_eq!(scope_x_id, scope.id);
 
         table.end_scope(); // closing `scope X`, back to `root scope`
         let root_scope = table.get_current_scope();
-        assert_eq!(None, root_scope);
+        assert_eq!(root_scope_id, root_scope.id);
     }
 }

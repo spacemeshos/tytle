@@ -57,6 +57,16 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         }
     }
 
+    fn on_proc_start(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+        self.start_scope();
+        Ok(())
+    }
+
+    fn on_proc_end(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+        self.end_scope();
+        Ok(())
+    }
+
     fn on_block_stmt_start(&mut self, _block_stmt: &BlockStatement) -> AstWalkResult {
         self.start_scope();
         Ok(())
@@ -80,10 +90,8 @@ impl SymbolTableGenerator {
     }
 
     pub fn generate(&mut self, ast: &Ast) -> SymbolTableResult {
-        self.start_scope();
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
-        self.end_scope();
 
         Ok(&self.sym_table)
     }
@@ -207,7 +215,7 @@ impl SymbolTableGenerator {
         let current_scope_id = self.sym_table.get_current_scope_id();
 
         self.sym_table
-            .recursive_lookup_sym(current_scope_id, name, &kind)
+            .lookup_symbol_recur(current_scope_id, name, &kind)
     }
 
     fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {

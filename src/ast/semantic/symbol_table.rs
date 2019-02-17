@@ -3,37 +3,55 @@ use std::collections::{HashMap, HashSet};
 
 type ScopeId = u64;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SymbolTable {
     scopes: HashMap<ScopeId, Scope>,
-    next_scope_id: u64,
-    current_scope_id: u64,
-    scope_depth: u64,
+    depth_scopes_stack: HashMap<u64, Vec<ScopeId>>,
+    next_scope_id: ScopeId,
+    current_scope_id: ScopeId,
+    next_scope_depth: u64,
 }
 
 impl SymbolTable {
     pub fn new() -> Self {
-        Self {
+        let mut table = Self {
             scopes: Default::default(),
-            next_scope_id: 1,
-            scope_depth: 0,
+            depth_scopes_stack: Default::default(),
+            next_scope_id: 0,
+            next_scope_depth: 0,
             current_scope_id: 0,
-        }
+        };
+
+        // we always starts a new `SymbolTable`  with a default scope
+        // the root scope has:
+        // * `id` = 0
+        // * `parent_id = None`
+        //
+        // each root scope child-scope holds: `parent_id = Some(1)`
+
+        table.start_scope();
+
+        table
     }
 
     pub fn start_scope(&mut self) -> &mut Scope {
-        let parent_scope_id = match self.scope_depth {
-            0 => None,
-            _ => Some(self.next_scope_id - 1),
-        };
+        let parent_scope_id = self.get_next_scope_parent_id();
 
         let scope_id = self.next_scope_id;
+        let scope_depth = self.next_scope_depth;
 
         let scope = Scope::new(scope_id, parent_scope_id);
 
-        self.scope_depth += 1;
+        self.next_scope_depth += 1;
         self.next_scope_id += 1;
-        self.current_scope_id = scope.id;
+        self.current_scope_id = scope_id;
+
+        let entry = self
+            .depth_scopes_stack
+            .entry(scope_depth)
+            .or_insert(Vec::new());
+
+        entry.push(scope_id);
 
         self.scopes.insert(scope_id, scope);
 
@@ -41,17 +59,17 @@ impl SymbolTable {
     }
 
     pub fn end_scope(&mut self) {
-        assert!(self.scope_depth > 0);
+        assert!(self.next_scope_depth > 0);
 
-        let scope = self.get_current_scope().unwrap();
+        let scope_depth = self.next_scope_depth - 1;
+        let stack = self.depth_scopes_stack.get_mut(&scope_depth).unwrap();
+        stack.pop();
 
-        if let Some(pscope_id) = scope.parent_id {
-            self.current_scope_id = pscope_id;
-        } else {
-            self.current_scope_id = 0;
+        if stack.len() == 0 {
+            self.depth_scopes_stack.remove(&scope_depth);
         }
 
-        self.scope_depth -= 1;
+        self.next_scope_depth -= 1;
     }
 
     pub fn get_scope(&self, scope_id: ScopeId) -> &Scope {
@@ -77,7 +95,7 @@ impl SymbolTable {
         scope.unwrap().lookup_symbol(sym_name, &sym_kind)
     }
 
-    pub fn recursive_lookup_sym(
+    pub fn lookup_symbol_recur(
         &self,
         root_scope_id: ScopeId,
         sym_name: &str,
@@ -112,7 +130,7 @@ impl SymbolTable {
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
-        let mut proc_sym = self.lookup_symbol(self.scope_depth, &proc.name, &SymbolKind::Proc);
+        let mut proc_sym = self.lookup_symbol(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
 
         if proc_sym.is_some() {
             panic!("procedure {} already exists under the scope", proc.name);
@@ -125,12 +143,30 @@ impl SymbolTable {
         self.next_scope_id - 1
     }
 
-    pub fn get_current_scope(&self) -> Option<&Scope> {
-        self.scopes.get(&self.current_scope_id)
+    pub fn get_next_scope_parent_id(&self) -> Option<u64> {
+        match self.next_scope_depth {
+            0 => None, // root scope
+            _ => {
+                let parent_scope_depth = self.next_scope_depth - 1;
+                let stack = self.depth_scopes_stack.get(&parent_scope_depth).unwrap();
+                let pscope_id: u64 = *stack.last().unwrap();
+
+                Some(pscope_id)
+            }
+        }
+    }
+
+    pub fn get_current_scope(&self) -> &Scope {
+        let scope_depth = self.next_scope_depth - 1;
+
+        let stack = self.depth_scopes_stack.get(&scope_depth).unwrap();
+        let scope_id: u64 = *stack.last().unwrap();
+
+        self.scopes.get(&scope_id).unwrap()
     }
 
     pub fn is_root_scope(&self) -> bool {
-        self.get_current_scope().is_none()
+        self.get_current_scope().parent_id.is_none()
     }
 
     pub fn is_inner_scope(&self) -> bool {

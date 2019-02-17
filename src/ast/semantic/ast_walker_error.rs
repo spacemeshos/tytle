@@ -1,3 +1,5 @@
+use crate::ast::semantic::PrimitiveType;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstWalkError {
     DuplicateGlobalVar(String),
@@ -7,6 +9,7 @@ pub enum AstWalkError {
     MissingVarDeclaration(String),
     ProcNotAllowedToDeclareGlobals(String),
     LocalsNotAllowedUnderRootScope(String),
+    TypeMismatch(PrimitiveType, PrimitiveType),
     Custom { message: String },
 }
 

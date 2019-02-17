@@ -106,6 +106,7 @@ fn sym_generate_error_proc_cannot_declare_global_variables() {
     let ast = TytleParser.parse(code).unwrap();
 
     let mut generator = SymbolTableGenerator::new();
+
     let actual = generator.generate(&ast).err().unwrap();
 
     assert_eq!(expected, actual);
@@ -154,7 +155,6 @@ fn sym_generate_error_locals_not_allowed_under_root_scope() {
         "#;
 
     let expected = AstWalkError::LocalsNotAllowedUnderRootScope("A".to_string());
-
     let ast = TytleParser.parse(code).unwrap();
 
     let mut generator = SymbolTableGenerator::new();
@@ -162,3 +162,42 @@ fn sym_generate_error_locals_not_allowed_under_root_scope() {
     let actual = generator.generate(&ast).err().unwrap();
     assert_eq!(expected, actual);
 }
+
+#[test]
+#[ignore]
+fn sym_generate_error_assigning_global_int_var_a_boolean_value() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+            // MAKE A = true
+        "#;
+
+    let expected = AstWalkError::TypeMismatch(PrimitiveType::Int, PrimitiveType::Bool);
+
+    let ast = TytleParser.parse(code).unwrap();
+
+    let mut generator = SymbolTableGenerator::new();
+
+    // let actual = generator.generate(&ast).err().unwrap();
+    //
+    // assert_eq!(expected, actual);
+}
+
+#[test]
+#[ignore]
+fn sym_generate_error_assigning_local_int_var_a_string_value() {}
+
+#[test]
+#[ignore]
+fn sym_generate_error_adding_int_and_string_expressions() {}
+
+#[test]
+#[ignore]
+fn sym_generate_error_adding_int_and_proc_call_having_no_return_type() {}
+
+#[test]
+#[ignore]
+fn sym_generate_error_adding_int_and_proc_call_having_str_return_type() {}
+
+#[test]
+#[ignore]
+fn sym_generate_error_proc_call_type_mismatch() {}

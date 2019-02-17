@@ -84,7 +84,7 @@ pub trait AstWalker<'a> {
                 let lexpr_type = self.walk_expr(lexpr)?;
                 let rexpr_type = self.walk_expr(rexpr)?;
 
-                Ok(None)
+                self.on_binary_expr(binary_op, lexpr_type, rexpr_type)
             }
         }
     }
@@ -157,6 +157,15 @@ pub trait AstWalker<'a> {
     fn on_literal_expr(
         &mut self,
         expr: &LiteralExpr,
+    ) -> Result<Option<ExpressionType>, AstWalkError> {
+        Ok(None)
+    }
+
+    fn on_binary_expr(
+        &mut self,
+        binary_op: &BinaryOp,
+        lexpr_type: Option<ExpressionType>,
+        rexpr_type: Option<ExpressionType>,
     ) -> Result<Option<ExpressionType>, AstWalkError> {
         Ok(None)
     }
