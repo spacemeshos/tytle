@@ -4,6 +4,13 @@ extern crate tytle;
 use tytle::ast::{expression::*, statement::*};
 use tytle::parser::{ParseError, Parser, TytleParser};
 
+macro_rules! assert_parse_err {
+    ($expected:expr, $code:expr) => {{
+        let actual = TytleParser.parse($code).err().unwrap();
+        assert_eq!($expected, actual);
+    }};
+}
+
 #[test]
 fn parse_nop_stmt() {
     let actual = TytleParser.parse("").unwrap();
@@ -79,8 +86,8 @@ fn parse_direction_sety() {
 #[test]
 fn parse_direction_forward_and_then_backward_no_empty_lines() {
     let code = r#"
-    FORWARD 10
-    RIGHT 20
+        FORWARD 10
+        RIGHT 20
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -97,9 +104,9 @@ fn parse_direction_forward_and_then_backward_no_empty_lines() {
 fn parse_direction_forward_and_then_backward_with_empty_lines() {
     let code = r#"
 
-    FORWARD 10
+        FORWARD 10
 
-    RIGHT 20
+        RIGHT 20
 
     "#;
 
@@ -305,10 +312,10 @@ fn parse_make_local_variable_assign_an_integer() {
 #[test]
 fn parse_if_stmt_without_else() {
     let code = r#"
-    IF 1 + 2 [
-        MAKE A = 3
-        MAKE B = 4
-    ]
+        IF 1 + 2 [
+            MAKE A = 3
+            MAKE B = 4
+        ]
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -331,7 +338,7 @@ fn parse_if_stmt_without_else() {
 #[test]
 fn parse_if_stmt_with_else() {
     let code = r#"
-    IF 1 + 2 [MAKE A = 1] [MAKE B = 2]
+        IF 1 + 2 [MAKE A = 1] [MAKE B = 2]
     "#;
     let actual = TytleParser.parse(code).unwrap();
 
@@ -351,10 +358,10 @@ fn parse_if_stmt_with_else() {
 #[test]
 fn parse_repeat_stmt() {
     let code = r#"
-    REPEAT 1 + 2 [
-        MAKE A = 3
-        MAKE B = 4
-    ]
+        REPEAT 1 + 2 [
+            MAKE A = 3
+            MAKE B = 4
+        ]
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -376,8 +383,8 @@ fn parse_repeat_stmt() {
 #[test]
 fn parse_proc_with_empty_block() {
     let code = r#"
-    TO MYPROC()
-    END
+        TO MYPROC()
+        END
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -397,10 +404,10 @@ fn parse_proc_with_empty_block() {
 #[test]
 fn parse_proc_stmt_without_params_with_implicit_return_type() {
     let code = r#"
-    TO MYPROC()
-        MAKELOCAL A = 3
-        MAKELOCAL B = 4
-    END
+        TO MYPROC()
+            MAKELOCAL A = 3
+            MAKELOCAL B = 4
+        END
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -425,10 +432,10 @@ fn parse_proc_stmt_without_params_with_implicit_return_type() {
 #[test]
 fn parse_proc_stmt_without_params_with_explicit_return_type() {
     let code = r#"
-    TO MYPROC() : BOOL
-        MAKELOCAL A = 3
-        MAKELOCAL B = 4
-    END
+        TO MYPROC() : BOOL
+            MAKELOCAL A = 3
+            MAKELOCAL B = 4
+        END
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -453,9 +460,9 @@ fn parse_proc_stmt_without_params_with_explicit_return_type() {
 #[test]
 fn parse_proc_stmt_with_params_and_explicit_return_value() {
     let code = r#"
-    TO MYPROC(A: INT, B: STR) : INT
-        MAKELOCAL C = 10
-    END
+        TO MYPROC(A: INT, B: STR) : INT
+            MAKELOCAL C = 10
+        END
     "#;
 
     let actual = TytleParser.parse(code).unwrap();
@@ -583,122 +590,109 @@ fn parse_command_stop() {
 #[test]
 fn parse_error_proc_param_missing_colon() {
     let code = r#"
-    TO MYPROC(X: INT,  Y INT) : BOOL
-    END
+        TO MYPROC(X: INT,  Y INT) : BOOL
+        END
     "#;
 
-    let expected = Err(ParseError::MissingColon);
-    let actual = TytleParser.parse(code);
+    let expected = ParseError::MissingColon;
 
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_variable_must_not_contain_lowercase_letters() {
+    let code = "MAKE myvar=1";
+
     let expected = ParseError::InvalidIdentifierDeclaration(
         "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
     );
 
-    let actual = TytleParser.parse("MAKE myvar=1").err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_variable_must_not_begin_with_a_digit() {
+    let code = "MAKE 2MYVAR=1";
+
     let expected = ParseError::InvalidIdentifierDeclaration(
         "Variable name isn't allowed to begin with a digit (got `2MYVAR`)".to_string(),
     );
 
-    let actual = TytleParser.parse("MAKE 2MYVAR=1").err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_param_must_not_begin_with_a_digit() {
     let code = r#"
-    TO MYPROC(2MYVAR: INT)
-    END
+        TO MYPROC(2MYVAR: INT)
+        END
     "#;
 
     let expected = ParseError::InvalidIdentifierDeclaration(
         "Variable name isn't allowed to begin with a digit (got `2MYVAR`)".to_string(),
     );
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_param_must_not_contain_lowercase_letters() {
     let code = r#"
-    TO MYPROC(myvar: INT)
-    END
+        TO MYPROC(myvar: INT)
+        END
     "#;
 
     let expected = ParseError::InvalidIdentifierDeclaration(
         "All characters must be capital, digit or `_` (got `myvar`)".to_string(),
     );
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_missing_colon_before_return_type() {
     let code = r#"
-    TO MYPROC(MYVAR: INT) INT
-    END
+        TO MYPROC(MYVAR: INT) INT
+        END
     "#;
 
     let expected = ParseError::MissingColon;
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_missing_return_type() {
     let code = r#"
-    TO MYPROC(MYVAR: INT) :
-    END
+        TO MYPROC(MYVAR: INT) :
+        END
     "#;
 
     let expected = ParseError::MissingProcReturnType;
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_invalid_param_type() {
     let code = r#"
-    TO MYPROC(MYVAR: INTEGER)
-    END
+        TO MYPROC(MYVAR: INTEGER)
+        END
     "#;
 
     let expected = ParseError::InvalidDataType("INTEGER".to_string());
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }
 
 #[test]
 fn parse_error_proc_invalid_return_type() {
     let code = r#"
-    TO MYPROC(MYVAR: INT) : STRING
-    END
+        TO MYPROC(MYVAR: INT) : STRING
+        END
     "#;
 
     let expected = ParseError::InvalidDataType("STRING".to_string());
 
-    let actual = TytleParser.parse(code).err().unwrap();
-
-    assert_eq!(expected, actual);
+    assert_parse_err!(expected, code);
 }

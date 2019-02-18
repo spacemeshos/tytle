@@ -2,14 +2,14 @@ use crate::ast::semantic::{ScopeId, Symbol, SymbolKind, SymbolTable};
 
 pub struct SymbolTableVisitor<'a> {
     sym_table: &'a SymbolTable,
-    scope_id: ScopeId,
+    scope_id: ScopeId, // current visited scope
 }
 
 impl<'a> SymbolTableVisitor<'a> {
     pub fn new(sym_table: &'a SymbolTable) -> Self {
         Self {
             sym_table,
-            scope_id: 0,
+            scope_id: 0, // we start visiting from the root scope
         }
     }
 

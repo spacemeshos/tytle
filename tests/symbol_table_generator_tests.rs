@@ -15,7 +15,7 @@ macro_rules! assert_symbol_err {
 }
 
 macro_rules! gen_symbols {
-    ($code:expr) => {{
+    ($code:expr, $sym_table_var: ident) => {
         let ast = TytleParser.parse($code).unwrap();
 
         let mut generator = SymbolTableGenerator::new();
@@ -23,18 +23,85 @@ macro_rules! gen_symbols {
 
         assert!(res.is_ok());
 
-        res.unwrap().clone()
-    }};
+        let $sym_table_var = res.unwrap().clone();
+    };
 }
 
 #[test]
-#[ignore]
 fn sym_generate_global_var() {
     let code = r#"
             MAKEGLOBAL A=20
         "#;
 
-    let symbols = gen_symbols!(code);
+    gen_symbols!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&sym_table);
+
+    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, true);
+    assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_proc_param() {
+    let code = r#"
+            TO MYPROC(A: INT)
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    visitor.next_scope(); // entering the `MYPROC` scope
+
+    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, false);
+    assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_proc_local_var() {
+    let code = r#"
+            TO MYPROC()
+                MAKELOCAL A = 10
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    visitor.next_scope(); // entering the `MYPROC` scope
+
+    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, false);
+    assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_proc_if_stmt_local_var() {
+    let code = r#"
+            TO MYPROC()
+                IF 1 + 2 [MAKELOCAL A = 1]
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    visitor.next_scope(); // entering the `MYPROC` scope
+    visitor.next_scope(); // entering the `if statement` scope
+
+    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, false);
+    assert_eq!(var.name, "A".to_string());
 }
 
 #[test]
