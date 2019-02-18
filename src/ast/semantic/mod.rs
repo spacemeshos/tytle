@@ -1,3 +1,4 @@
+mod ast_typecheck;
 mod ast_walker;
 mod ast_walker_error;
 mod primitive_type;

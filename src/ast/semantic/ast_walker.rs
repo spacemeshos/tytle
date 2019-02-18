@@ -74,17 +74,17 @@ pub trait AstWalker<'a> {
         self.on_block_stmt_end(&block_stmt)
     }
 
-    fn walk_expr(&mut self, expr: &Expression) -> Result<Option<ExpressionType>, AstWalkError> {
+    fn walk_expr(&mut self, expr: &Expression) -> AstWalkResult {
         match expr {
             Expression::Literal(ref lexpr) => self.on_literal_expr(lexpr),
             Expression::ProcCall(ref proc_name, ref proc_params) => {
                 self.walk_proc_call_expr(proc_name, proc_params)
             }
             Expression::Binary(binary_op, lexpr, rexpr) => {
-                let lexpr_type = self.walk_expr(lexpr)?;
-                let rexpr_type = self.walk_expr(rexpr)?;
+                self.walk_expr(lexpr)?;
+                self.walk_expr(rexpr)?;
 
-                self.on_binary_expr(binary_op, lexpr_type, rexpr_type)
+                self.on_binary_expr(binary_op, lexpr, rexpr)
             }
         }
     }
@@ -93,7 +93,7 @@ pub trait AstWalker<'a> {
         &mut self,
         proc_name: &str,
         params_exprs: &Vec<Expression>,
-    ) -> Result<Option<ExpressionType>, AstWalkError> {
+    ) -> AstWalkResult {
         self.on_proc_call_expr_start(proc_name)?;
 
         for param_expr in params_exprs {
@@ -102,7 +102,7 @@ pub trait AstWalker<'a> {
             self.on_proc_param_expr_end(param_expr)?;
         }
 
-        Ok(None)
+        Ok(())
     }
 
     fn walk_command_stmt(&mut self, cmd: &CommandStmt) -> AstWalkResult {
@@ -154,20 +154,17 @@ pub trait AstWalker<'a> {
     }
 
     // expression
-    fn on_literal_expr(
-        &mut self,
-        expr: &LiteralExpr,
-    ) -> Result<Option<ExpressionType>, AstWalkError> {
-        Ok(None)
+    fn on_literal_expr(&mut self, expr: &LiteralExpr) -> AstWalkResult {
+        Ok(())
     }
 
     fn on_binary_expr(
         &mut self,
         binary_op: &BinaryOp,
-        lexpr_type: Option<ExpressionType>,
-        rexpr_type: Option<ExpressionType>,
-    ) -> Result<Option<ExpressionType>, AstWalkError> {
-        Ok(None)
+        lexpr: &Expression,
+        rexpr: &Expression,
+    ) -> AstWalkResult {
+        Ok(())
     }
 
     // procedure call

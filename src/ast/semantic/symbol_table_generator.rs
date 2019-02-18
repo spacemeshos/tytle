@@ -9,20 +9,9 @@ pub struct SymbolTableGenerator {
     global_ref: u64,
     proc_ref: u64,
     proc_locals_ref: u64,
-    new_scope_listeners: Vec<Box<Fn(&str, &Scope)>>,
 }
 
 type SymbolTableResult<'a> = Result<&'a SymbolTable, AstWalkError>;
-
-macro_rules! walk_err {
-    ($($arg:tt)*) => {
-        {
-            let msg = format!($($arg)*);
-            let err = AstWalkError::new(&msg);
-            Err(err)
-        }
-    }
-}
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
     fn on_make_global_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
@@ -85,7 +74,6 @@ impl SymbolTableGenerator {
             global_ref: 0,
             proc_ref: 0,
             proc_locals_ref: 0,
-            new_scope_listeners: Vec::new(),
         }
     }
 
@@ -118,13 +106,6 @@ impl SymbolTableGenerator {
         }
 
         Ok(())
-    }
-
-    pub fn register_on_new_scope<F>(&mut self, f: F)
-    where
-        F: Fn(&str, &Scope) + 'static,
-    {
-        self.new_scope_listeners.push(Box::new(f));
     }
 
     fn get_var_symbol(&self, var_name: &str) -> Result<&Variable, AstWalkError> {
