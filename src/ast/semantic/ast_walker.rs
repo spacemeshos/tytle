@@ -34,7 +34,7 @@ pub trait AstWalker<'a> {
         self.walk_proc_params(proc_stmt)?;
 
         // we don't call `walk_proc_stmt` in order to avoid starting a new scope.
-        // we want the procedure params and the procedure root-scope to share the same scope
+        // we want the procedure params and the procedure root-block to share the same scope
         for stmt in &proc_stmt.block.stmts {
             self.walk_stmt(stmt)?;
         }
@@ -76,15 +76,17 @@ pub trait AstWalker<'a> {
 
     fn walk_expr(&mut self, expr: &Expression) -> AstWalkResult {
         match &expr.expr_ast {
-            ExpressionAst::Literal(lexpr) => self.on_literal_expr(lexpr),
+            ExpressionAst::Literal(_) => self.on_literal_expr(&expr),
             ExpressionAst::ProcCall(proc_name, proc_params) => {
-                self.walk_proc_call_expr(proc_name, proc_params)
+                self.walk_proc_call_expr(proc_name, proc_params)?;
+
+                self.on_proc_call_expr(&expr)
             }
             ExpressionAst::Binary(binary_op, lexpr, rexpr) => {
                 self.walk_expr(lexpr)?;
                 self.walk_expr(rexpr)?;
 
-                self.on_binary_expr(binary_op, lexpr, rexpr)
+                self.on_binary_expr(&expr)
             }
         }
     }
@@ -154,16 +156,15 @@ pub trait AstWalker<'a> {
     }
 
     // expression
-    fn on_literal_expr(&mut self, expr: &LiteralExpr) -> AstWalkResult {
+    fn on_literal_expr(&mut self, expr: &Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_binary_expr(
-        &mut self,
-        binary_op: &BinaryOp,
-        lexpr: &Expression,
-        rexpr: &Expression,
-    ) -> AstWalkResult {
+    fn on_proc_call_expr(&mut self, expr: &Expression) -> AstWalkResult {
+        Ok(())
+    }
+
+    fn on_binary_expr(&mut self, bin_expr: &Expression) -> AstWalkResult {
         Ok(())
     }
 

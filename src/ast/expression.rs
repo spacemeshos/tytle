@@ -39,11 +39,11 @@ pub enum LiteralExpr {
 pub enum BinaryOp {
     Add,
     Mul,
-    GT,
-    LT,
-    GTE,
-    LTE,
-    EQEQ,
+    // GT,
+    // LT,
+    // GTE,
+    // LTE,
+    // EQEQ,
 }
 
 impl From<&str> for BinaryOp {

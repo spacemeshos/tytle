@@ -84,7 +84,8 @@ impl TytleParser {
             return_type,
         };
 
-        Ok(Statement::Procedure(proc_stmt))
+        let proc_stmt = Statement::Procedure(proc_stmt);
+        Ok(proc_stmt)
     }
 
     fn parse_proc_signature(
@@ -162,7 +163,8 @@ impl TytleParser {
         let block = self.parse_block_stmt(lexer, borders)?;
         let repeat_stmt = RepeatStmt { count_expr, block };
 
-        Ok(Statement::Repeat(repeat_stmt))
+        let repeat_stmt = Statement::Repeat(repeat_stmt);
+        Ok(repeat_stmt)
     }
 
     fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -191,7 +193,8 @@ impl TytleParser {
             false_block,
         };
 
-        Ok(Statement::If(if_stmt))
+        let if_stmt = Statement::If(if_stmt);
+        Ok(if_stmt)
     }
 
     fn parse_block_stmt(
@@ -241,8 +244,9 @@ impl TytleParser {
         self.skip_token(lexer); // skipping the `command` token
 
         let stmt = CommandStmt::from(val);
+        let cmd_stmt = Statement::Command(stmt);
 
-        Ok(Statement::Command(stmt))
+        Ok(cmd_stmt)
     }
 
     fn parse_make_global(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -268,8 +272,9 @@ impl TytleParser {
 
         let expr = self.parse_expr(lexer)?;
         let stmt = MakeStmt { var, expr, kind };
+        let make_stmt = Statement::Make(stmt);
 
-        Ok(Statement::Make(stmt))
+        Ok(make_stmt)
     }
 
     fn parse_direction(&self, direction: &str, lexer: &mut impl Lexer) -> StatementResult {
@@ -284,7 +289,8 @@ impl TytleParser {
             direction: Direction::from(direction),
         };
 
-        Ok(Statement::Direction(stmt))
+        let direct_stmt = Statement::Direction(stmt);
+        Ok(direct_stmt)
     }
 
     fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
@@ -342,17 +348,16 @@ impl TytleParser {
     fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (token, _location) = self.peek_next_token(lexer).unwrap();
 
-        if *token == Token::LPAREN {
+        let ast = if *token == Token::LPAREN {
             let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
-            let ast = ExpressionAst::ProcCall(proc_name, proc_params);
-            let expr = Expression::new(ast);
-            Ok(expr)
+            ExpressionAst::ProcCall(proc_name, proc_params)
         } else {
             let lit_expr = self.parse_literal_expr(lexer)?;
-            let ast = ExpressionAst::Literal(lit_expr);
-            let expr = Expression::new(ast);
-            Ok(expr)
-        }
+            ExpressionAst::Literal(lit_expr)
+        };
+
+        let expr = Expression::new(ast);
+        Ok(expr)
     }
 
     fn parse_proc_call_expr(
