@@ -20,6 +20,15 @@ pub enum ExpressionAst {
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
 }
 
+impl Expression {
+    pub fn as_lit_expr(&self) -> &LiteralExpr {
+        match self.expr_ast {
+            ExpressionAst::Literal(ref lit_expr) => lit_expr,
+            _ => panic!("expected a literal expression. got: `{:?}`", self.expr_ast),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionType {
     Int,

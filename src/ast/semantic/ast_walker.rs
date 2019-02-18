@@ -77,7 +77,7 @@ pub trait AstWalker<'a> {
     fn walk_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
         match expr.expr_ast {
             ExpressionAst::Literal(_) => self.on_literal_expr(expr),
-            ExpressionAst::ProcCall(ref mut proc_name, ref mut proc_params) => {
+            ExpressionAst::ProcCall(ref proc_name, ref mut proc_params) => {
                 self.walk_proc_call_expr(proc_name, proc_params)?;
 
                 self.on_proc_call_expr(expr)
