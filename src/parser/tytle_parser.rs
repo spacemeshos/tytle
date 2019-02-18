@@ -145,8 +145,7 @@ impl TytleParser {
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::NEWLINE {
-                None
-            // a Procedure with no return value
+                None // a Procedure with no return value
             } else {
                 return Err(ParseError::MissingColon);
             }
@@ -293,15 +292,17 @@ impl TytleParser {
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        let expr = if *tok == Token::ADD {
+        if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
             let right_expr = self.parse_expr(lexer)?;
-            Expression::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr))
-        } else {
-            left_expr
-        };
 
-        Ok(expr)
+            let ast =
+                ExpressionAst::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr));
+            let expr = Expression::new(ast);
+            Ok(expr)
+        } else {
+            Ok(left_expr)
+        }
     }
 
     fn parse_mul_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
@@ -309,16 +310,17 @@ impl TytleParser {
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        let mul_expr = if *tok == Token::MUL {
+        if *tok == Token::MUL {
             self.skip_token(lexer); // skip the `*`
 
             let rparen_expr = self.parse_parens_expr(lexer)?;
-            Expression::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr))
+            let ast =
+                ExpressionAst::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr));
+            let expr = Expression::new(ast);
+            Ok(expr)
         } else {
-            lparen_expr
-        };
-
-        Ok(mul_expr)
+            Ok(lparen_expr)
+        }
     }
 
     fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
@@ -340,15 +342,17 @@ impl TytleParser {
     fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (token, _location) = self.peek_next_token(lexer).unwrap();
 
-        let basic_expr = if *token == Token::LPAREN {
+        if *token == Token::LPAREN {
             let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
-            Expression::ProcCall(proc_name, proc_params)
+            let ast = ExpressionAst::ProcCall(proc_name, proc_params);
+            let expr = Expression::new(ast);
+            Ok(expr)
         } else {
-            let expr = self.parse_literal_expr(lexer)?;
-            Expression::Literal(expr)
-        };
-
-        Ok(basic_expr)
+            let lit_expr = self.parse_literal_expr(lexer)?;
+            let ast = ExpressionAst::Literal(lit_expr);
+            let expr = Expression::new(ast);
+            Ok(expr)
+        }
     }
 
     fn parse_proc_call_expr(

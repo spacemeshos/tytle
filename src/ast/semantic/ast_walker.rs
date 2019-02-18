@@ -75,12 +75,12 @@ pub trait AstWalker<'a> {
     }
 
     fn walk_expr(&mut self, expr: &Expression) -> AstWalkResult {
-        match expr {
-            Expression::Literal(ref lexpr) => self.on_literal_expr(lexpr),
-            Expression::ProcCall(ref proc_name, ref proc_params) => {
+        match &expr.expr_ast {
+            ExpressionAst::Literal(lexpr) => self.on_literal_expr(lexpr),
+            ExpressionAst::ProcCall(proc_name, proc_params) => {
                 self.walk_proc_call_expr(proc_name, proc_params)
             }
-            Expression::Binary(binary_op, lexpr, rexpr) => {
+            ExpressionAst::Binary(binary_op, lexpr, rexpr) => {
                 self.walk_expr(lexpr)?;
                 self.walk_expr(rexpr)?;
 

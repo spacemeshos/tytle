@@ -9,7 +9,9 @@ macro_rules! direction {
 macro_rules! int_lit_expr {
     ($num:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
-        Expression::Literal(LiteralExpr::Int($num))
+        let ast = ExpressionAst::Literal(LiteralExpr::Int($num));
+        let expr = Expression::new(ast);
+        expr
     }};
 }
 
@@ -24,7 +26,9 @@ macro_rules! boxed_int_lit_expr {
 macro_rules! str_lit_expr {
     ($s:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
-        Expression::Literal(LiteralExpr::Str($s.to_string()))
+        let ast = ExpressionAst::Literal(LiteralExpr::Str($s.to_string()));
+        let expr = Expression::new(ast);
+        expr
     }};
 }
 
@@ -32,7 +36,10 @@ macro_rules! str_lit_expr {
 macro_rules! var_lit_expr {
     ($s:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
-        Expression::Literal(LiteralExpr::Var($s.to_string()))
+
+        let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string()));
+        let expr = Expression::new(ast);
+        expr
     }};
 }
 
@@ -46,11 +53,14 @@ macro_rules! boxed_var_lit_expr {
 #[macro_export]
 macro_rules! direct_lit_expr {
     ($dir:ident, $count:expr) => {{
+        use $crate::ast::expression::{ExpressionAst, LiteralExpr};
+
+        let ast = ExpressionAst::Literal(LiteralExpr::Int($count));
+        let expr = Expression::new(ast);
+
         Statement::Direction($crate::ast::statement::DirectionStmt {
             direction: direction!($dir),
-            expr: $crate::ast::expression::Expression::Literal(
-                $crate::ast::expression::LiteralExpr::Int($count),
-            ),
+            expr: expr,
         })
     }};
 }
@@ -58,7 +68,9 @@ macro_rules! direct_lit_expr {
 #[macro_export]
 macro_rules! direct_stmt {
     ($dir:ident, $expr:expr) => {{
-        Statement::Direction($crate::ast::statement::DirectionStmt {
+        use $crate::ast::statement::DirectionStmt;
+
+        Statement::Direction(DirectionStmt {
             direction: direction!($dir),
             expr: $expr,
         })
@@ -68,8 +80,10 @@ macro_rules! direct_stmt {
 #[macro_export]
 macro_rules! command_stmt {
     ($cmd:ident) => {{
-        let cmd_enum = $crate::ast::statement::CommandStmt::from(stringify!($cmd));
-        $crate::ast::statement::Statement::Command(cmd_enum)
+        use $crate::ast::statement::{CommandStmt, Statement};
+
+        let cmd_enum = CommandStmt::from(stringify!($cmd));
+        Statement::Command(cmd_enum)
     }};
 }
 
@@ -116,7 +130,9 @@ macro_rules! binary_expr {
         use $crate::ast::expression::Expression;
 
         let op = BinaryOp::from($op_str);
-        Expression::Binary(op, $lexpr, $rexpr)
+        let ast = ExpressionAst::Binary(op, $lexpr, $rexpr);
+        let expr = Expression::new(ast);
+        expr
     }};
 }
 
@@ -237,7 +253,8 @@ macro_rules! proc_call_expr {
             let mut params = Vec::<Expression>::new();
             $( params.push($param); )*
 
-            Expression::ProcCall($proc_name.to_string(), params)
+            let ast = ExpressionAst::ProcCall($proc_name.to_string(), params);
+            Expression::new(ast)
         }
     };
 }

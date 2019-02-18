@@ -123,7 +123,7 @@ impl SymbolTable {
             panic!("variable {} already exists under the scope", var.name);
         }
 
-        self.store_symbol_under_current_scope(Symbol::Var(var), &SymbolKind::Var);
+        self.store_symbol(Symbol::Var(var), &SymbolKind::Var);
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
@@ -133,7 +133,7 @@ impl SymbolTable {
             panic!("procedure {} already exists under the scope", proc.name);
         }
 
-        self.store_symbol_under_current_scope(Symbol::Proc(proc), &SymbolKind::Proc);
+        self.store_symbol(Symbol::Proc(proc), &SymbolKind::Proc);
     }
 
     pub fn get_current_scope_id(&self) -> u64 {
@@ -170,7 +170,7 @@ impl SymbolTable {
         !(self.is_root_scope())
     }
 
-    fn store_symbol_under_current_scope(&mut self, symbol: Symbol, kind: &SymbolKind) {
+    fn store_symbol(&mut self, symbol: Symbol, kind: &SymbolKind) {
         let scope_id = self.get_current_scope_id();
 
         let scope = self.get_scope_mut(scope_id);
