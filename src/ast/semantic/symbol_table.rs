@@ -94,11 +94,11 @@ impl SymbolTable {
 
     pub fn lookup_symbol_recur(
         &self,
-        root_scope_id: ScopeId,
+        start_scope_id: ScopeId,
         sym_name: &str,
         sym_kind: &SymbolKind,
     ) -> Option<&Symbol> {
-        let mut scope = self.get_scope(root_scope_id);
+        let mut scope = self.get_scope(start_scope_id);
 
         loop {
             let var = self.lookup_symbol(scope.id, sym_name, sym_kind);

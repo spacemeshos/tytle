@@ -14,6 +14,29 @@ macro_rules! assert_symbol_err {
     }};
 }
 
+macro_rules! gen_symbols {
+    ($code:expr) => {{
+        let ast = TytleParser.parse($code).unwrap();
+
+        let mut generator = SymbolTableGenerator::new();
+        let res = generator.generate(&ast);
+
+        assert!(res.is_ok());
+
+        res.unwrap().clone()
+    }};
+}
+
+#[test]
+#[ignore]
+fn sym_generate_global_var() {
+    let code = r#"
+            MAKEGLOBAL A=20
+        "#;
+
+    let symbols = gen_symbols!(code);
+}
+
 #[test]
 fn sym_generate_error_global_use_before_declare() {
     let code = r#"

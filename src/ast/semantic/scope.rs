@@ -13,6 +13,7 @@ pub struct Scope {
 impl Scope {
     pub fn new(id: ScopeId, parent_id: Option<ScopeId>) -> Self {
         let mut symbols = HashMap::new();
+
         symbols.insert(SymbolKind::Var, HashMap::new());
         symbols.insert(SymbolKind::Proc, HashMap::new());
 

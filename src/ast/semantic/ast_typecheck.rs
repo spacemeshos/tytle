@@ -3,7 +3,7 @@ use crate::ast::Ast;
 use crate::ast::{expression::*, statement::*};
 
 pub struct AstTypeCheck<'a> {
-    sym_table: &'a SymbolTable
+    sym_table: &'a SymbolTable,
 }
 
 impl<'a> AstTypeCheck<'a> {
@@ -26,7 +26,6 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
         Ok(())
     }
 
-    // procedure call
     fn on_proc_call_expr_start(&mut self, proc_name: &str) -> AstWalkResult {
         Ok(())
     }
