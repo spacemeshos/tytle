@@ -5,10 +5,13 @@ use tytle::parser::{Parser, TytleParser};
 
 macro_rules! assert_symbol_err {
     ($expected:expr, $code:expr) => {{
-        let ast = TytleParser.parse($code).unwrap();
-
+        let mut ast = TytleParser.parse($code).unwrap();
         let mut generator = SymbolTableGenerator::new();
-        let actual = generator.generate(&ast).err().unwrap();
+
+        let res = generator.generate(&mut ast);
+        assert!(res.is_err());
+
+        let actual = res.err().unwrap();
 
         assert_eq!($expected, actual);
     }};
@@ -16,11 +19,10 @@ macro_rules! assert_symbol_err {
 
 macro_rules! gen_symbols {
     ($code:expr, $sym_table_var: ident) => {
-        let ast = TytleParser.parse($code).unwrap();
-
+        let mut ast = TytleParser.parse($code).unwrap();
         let mut generator = SymbolTableGenerator::new();
-        let res = generator.generate(&ast);
 
+        let res = generator.generate(&mut ast);
         assert!(res.is_ok());
 
         let $sym_table_var = res.unwrap().clone();

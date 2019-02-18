@@ -14,7 +14,7 @@ pub struct SymbolTableGenerator {
 type SymbolTableResult<'a> = Result<&'a SymbolTable, AstWalkError>;
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
-    fn on_make_global_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         if self.sym_table.is_inner_scope() {
             let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var.to_string());
             Err(err)
@@ -23,45 +23,43 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         }
     }
 
-    fn on_make_local_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
+    fn on_make_local_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.create_local_var_symbol(&make_stmt)
     }
 
-    fn on_make_assign_stmt(&mut self, make_stmt: &MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.get_var_symbol(&make_stmt.var)?;
         Ok(())
     }
 
-    fn on_proc_param(&mut self, proc_stmt: &ProcedureStmt, param: &ProcParam) -> AstWalkResult {
+    fn on_proc_param(&mut self, param: &mut ProcParam) -> AstWalkResult {
         let symbol = self.try_get_symbol(&param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
             self.create_var_symbol(&param.param_name, false, self.proc_locals_ref)
         } else {
-            let err = AstWalkError::DuplicateProcParam(
-                proc_stmt.name.to_string(),
-                param.param_name.to_string(),
-            );
+            let err =
+                AstWalkError::DuplicateProcParam("...".to_string(), param.param_name.to_string());
             Err(err)
         }
     }
 
-    fn on_proc_start(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+    fn on_proc_start(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.start_scope();
         Ok(())
     }
 
-    fn on_proc_end(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+    fn on_proc_end(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
 
-    fn on_block_stmt_start(&mut self, _block_stmt: &BlockStatement) -> AstWalkResult {
+    fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
         self.start_scope();
         Ok(())
     }
 
-    fn on_block_stmt_end(&mut self, _block_stmt: &BlockStatement) -> AstWalkResult {
+    fn on_block_stmt_end(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
@@ -77,14 +75,14 @@ impl SymbolTableGenerator {
         }
     }
 
-    pub fn generate(&mut self, ast: &Ast) -> SymbolTableResult {
+    pub fn generate(&mut self, ast: &mut Ast) -> SymbolTableResult {
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
 
         Ok(&self.sym_table)
     }
 
-    pub fn prewalk_ast(&mut self, ast: &Ast) -> AstWalkResult {
+    pub fn prewalk_ast(&mut self, ast: &mut Ast) -> AstWalkResult {
         for stmt in &ast.statements {
             match stmt {
                 Statement::Make(make_stmt) => match make_stmt.kind {
