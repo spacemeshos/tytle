@@ -12,6 +12,7 @@ mod variable;
 
 pub use ast_walker::*;
 pub use ast_walker_error::*;
+pub use ast_typecheck::*;
 pub use primitive_type::*;
 pub use procedure::*;
 pub use program::*;
