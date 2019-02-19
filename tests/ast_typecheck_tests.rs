@@ -44,6 +44,20 @@ fn ast_typecheck_error_assigning_global_int_var_a_string_value() {
 }
 
 #[test]
+fn ast_typecheck_error_assigning_global_int_var_and_than_proc_call_result_which_returns_a_string() {
+    let code = r#"
+            TO MYPROC(): BOOL
+            END
+
+            MAKEGLOBAL A = MYPROC()
+        "#;
+
+    let expected = AstWalkError::TypeMismatch(ExpressionType::Int, ExpressionType::Bool);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
 #[ignore]
 fn ast_typecheck_error_adding_int_and_string_expressions() {}
 

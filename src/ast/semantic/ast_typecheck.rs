@@ -42,6 +42,13 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     fn on_proc_call_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+        let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
+
+        // TODO: ask directly the root scope
+        let symbol = self.sym_visitor.lookup_recur(proc_name, &SymbolKind::Proc);
+        let proc: &Procedure = symbol.unwrap().as_proc();
+        dbg!(proc);
+
         Ok(())
     }
 
