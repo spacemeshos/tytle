@@ -64,7 +64,7 @@ fn sym_generate_proc_param() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
-    assert_eq!(var.resolved_type, Some(ExpressionType::Int))
+    assert_eq!(var.var_type, Some(ExpressionType::Int))
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn sym_generate_proc_local_var() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
-    assert_eq!(var.resolved_type, None);
+    assert_eq!(var.var_type, None);
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn sym_generate_proc_if_stmt_local_var() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
-    assert_eq!(var.resolved_type, None);
+    assert_eq!(var.var_type, None);
 }
 
 #[test]

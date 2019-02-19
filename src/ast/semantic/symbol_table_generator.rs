@@ -183,8 +183,7 @@ impl SymbolTableGenerator {
         let var = Variable {
             global: is_global,
             name: var_name.to_owned(),
-            reference: Some(reference),
-            resolved_type: var_type,
+            var_type,
         };
 
         self.sym_table.create_var_symbol(var);

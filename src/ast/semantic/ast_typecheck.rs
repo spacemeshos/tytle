@@ -28,7 +28,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
                 let symbol = self.sym_visitor.lookup_recur(v, &SymbolKind::Var);
                 let var: &Variable = symbol.unwrap().as_var();
 
-                if let Some(ref var_type) = var.resolved_type {
+                if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
                 } else {
                     panic!(format!("variable `{}`, type couldn't be inferred", v))
@@ -72,12 +72,12 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 
-        if var.resolved_type.is_none() {
+        if var.var_type.is_none() {
             panic!()
         }
 
         let expr_type: ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap().to_owned();
-        let var_type: ExpressionType = var.resolved_type.clone().unwrap();
+        let var_type: ExpressionType = var.var_type.clone().unwrap();
 
         if expr_type != var_type {
             let err = AstWalkError::TypeMismatch(var_type, expr_type);
@@ -108,7 +108,7 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 
         let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
-        var.resolved_type = Some(expr_type.to_owned());
+        var.var_type = Some(expr_type.to_owned());
 
         Ok(())
     }

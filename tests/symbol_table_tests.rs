@@ -90,11 +90,11 @@ mod tests {
         //
         // Scope outer
         // |
-        // | variable A=100 (outer)
+        // | variable A (outer)
         // |
         // |---- Scope inner
         //     |
-        //     | variable A=200 (inner)
+        //     | variable A (inner)
         //     |
 
         let mut table = SymbolTable::new();
@@ -103,11 +103,9 @@ mod tests {
         let outer_scope = table.start_scope();
         let outer_scope_id = outer_scope.id;
         let mut var_outer = Variable::build_local("A");
-        var_outer.set_reference(100);
         table.create_var_symbol(var_outer.clone());
 
         let mut var_inner = Variable::build_local("A");
-        var_inner.set_reference(200);
         let inner_scope = table.start_scope();
         let inner_scope_id = inner_scope.id;
         table.create_var_symbol(var_inner.clone());
@@ -143,7 +141,6 @@ mod tests {
 
         // var
         let mut var = Variable::build_local("A");
-        var.set_reference(100);
         table.create_var_symbol(var.clone());
 
         // scope Y
@@ -201,7 +198,7 @@ mod tests {
         // |
         // |  Scope Y (id = 2, parent_id = 0)
         // | |
-        // | | variable A (reference=100)
+        // | | variable A
         // | |----
         // |
         // | Scope Z (id = 3, parent_id = 0)
@@ -221,7 +218,6 @@ mod tests {
 
         let scope_y_id = scope_y.id;
         let mut var = Variable::build_local("A");
-        var.set_reference(100);
         table.create_var_symbol(var.clone());
         table.end_scope();
 

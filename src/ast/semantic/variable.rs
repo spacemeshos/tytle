@@ -4,8 +4,7 @@ use crate::ast::expression::ExpressionType;
 pub struct Variable {
     pub global: bool,
     pub name: String,
-    pub reference: Option<u64>,
-    pub resolved_type: Option<ExpressionType>,
+    pub var_type: Option<ExpressionType>,
 }
 
 impl Variable {
@@ -21,18 +20,13 @@ impl Variable {
         Self {
             global,
             name: name.to_string(),
-            reference: None,
-            resolved_type: None,
+            var_type: None,
         }
     }
 
-    pub fn set_reference(&mut self, reference: u64) {
-        self.reference = Some(reference);
-    }
-
     pub fn set_resolved_type(&mut self, rt: ExpressionType) {
-        match self.resolved_type {
-            None => self.resolved_type = Some(rt),
+        match self.var_type {
+            None => self.var_type = Some(rt),
             Some(ref current_rt) if *current_rt == rt => {}
             _ => panic!("Type mismatch for variable `{}`", self.name),
         }
@@ -50,7 +44,7 @@ mod tests {
         var.set_resolved_type(ExpressionType::Int);
         var.set_resolved_type(ExpressionType::Int);
 
-        assert_eq!(Some(ExpressionType::Int), var.resolved_type);
+        assert_eq!(Some(ExpressionType::Int), var.var_type);
     }
 
     #[test]
