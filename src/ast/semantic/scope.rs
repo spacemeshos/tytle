@@ -30,13 +30,13 @@ impl Scope {
         table.insert(symbol.name().clone(), symbol);
     }
 
-    pub fn lookup_symbol(&self, sym_name: &str, kind: &SymbolKind) -> Option<&Symbol> {
+    pub fn lookup(&self, sym_name: &str, kind: &SymbolKind) -> Option<&Symbol> {
         let table = self.get_kind_table(kind);
 
         table.get(sym_name)
     }
 
-    pub fn lookup_symbol_mut(&mut self, sym_name: &str, kind: &SymbolKind) -> Option<&mut Symbol> {
+    pub fn lookup_mut(&mut self, sym_name: &str, kind: &SymbolKind) -> Option<&mut Symbol> {
         let table = self.get_kind_table_mut(kind);
 
         table.get_mut(sym_name)

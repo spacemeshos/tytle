@@ -17,22 +17,21 @@ impl<'a> SymbolTableVisitor<'a> {
         self.scope_id += 1;
     }
 
-    pub fn lookup_symbol(&self, sym_name: &str, sym_kind: &SymbolKind) -> Option<&Symbol> {
-        self.sym_table
-            .lookup_symbol(self.scope_id, sym_name, sym_kind)
+    pub fn lookup(&self, sym_name: &str, sym_kind: &SymbolKind) -> Option<&Symbol> {
+        self.sym_table.lookup(self.scope_id, sym_name, sym_kind)
     }
 
-    pub fn lookup_symbol_recur(&self, sym_name: &str, sym_kind: &SymbolKind) -> Option<&Symbol> {
+    pub fn lookup_recur(&self, sym_name: &str, sym_kind: &SymbolKind) -> Option<&Symbol> {
         self.sym_table
-            .lookup_symbol_recur(self.scope_id, sym_name, sym_kind)
+            .lookup_recur(self.scope_id, sym_name, sym_kind)
     }
 
-    pub fn lookup_symbol_recur_mut(
+    pub fn lookup_recur_mut(
         &mut self,
         sym_name: &str,
         sym_kind: &SymbolKind,
     ) -> Option<&mut Symbol> {
         self.sym_table
-            .lookup_symbol_recur_mut(self.scope_id, sym_name, sym_kind)
+            .lookup_recur_mut(self.scope_id, sym_name, sym_kind)
     }
 }

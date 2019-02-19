@@ -27,7 +27,7 @@ mod tests {
         let scope = table.start_scope();
         let scope_id = scope.id;
 
-        assert_eq!(None, table.lookup_symbol(scope_id, "A", &SymbolKind::Var));
+        assert_eq!(None, table.lookup(scope_id, "A", &SymbolKind::Var));
     }
 
     #[test]
@@ -42,9 +42,7 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var),
-            *table
-                .lookup_symbol(scope_id, "A", &SymbolKind::Var)
-                .unwrap()
+            *table.lookup(scope_id, "A", &SymbolKind::Var).unwrap()
         );
     }
 
@@ -60,9 +58,7 @@ mod tests {
 
         assert_eq!(
             Symbol::Proc(proc),
-            *table
-                .lookup_symbol(scope_id, "MYPROC", &SymbolKind::Proc)
-                .unwrap()
+            *table.lookup(scope_id, "MYPROC", &SymbolKind::Proc).unwrap()
         );
     }
 
@@ -80,16 +76,12 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var),
-            *table
-                .lookup_symbol(scope_id, "A", &SymbolKind::Var)
-                .unwrap()
+            *table.lookup(scope_id, "A", &SymbolKind::Var).unwrap()
         );
 
         assert_eq!(
             Symbol::Proc(proc),
-            *table
-                .lookup_symbol(scope_id, "A", &SymbolKind::Proc)
-                .unwrap()
+            *table.lookup(scope_id, "A", &SymbolKind::Proc).unwrap()
         );
     }
 
@@ -122,16 +114,12 @@ mod tests {
 
         assert_eq!(
             Symbol::Var(var_inner),
-            *table
-                .lookup_symbol(inner_scope_id, "A", &SymbolKind::Var)
-                .unwrap()
+            *table.lookup(inner_scope_id, "A", &SymbolKind::Var).unwrap()
         );
 
         assert_eq!(
             Symbol::Var(var_outer),
-            *table
-                .lookup_symbol(outer_scope_id, "A", &SymbolKind::Var)
-                .unwrap()
+            *table.lookup(outer_scope_id, "A", &SymbolKind::Var).unwrap()
         );
     }
 
@@ -169,19 +157,19 @@ mod tests {
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
+                .lookup_recur(scope_z_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .lookup_symbol_recur(scope_y_id, "A", &SymbolKind::Var)
+                .lookup_recur(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .lookup_symbol_recur(scope_x_id, "A", &SymbolKind::Var)
+                .lookup_recur(scope_x_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
     }
@@ -201,10 +189,7 @@ mod tests {
         let scope_z = table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
 
-        assert_eq!(
-            None,
-            table.lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
-        );
+        assert_eq!(None, table.lookup_recur(scope_z_id, "A", &SymbolKind::Var));
     }
 
     #[test]
@@ -247,18 +232,12 @@ mod tests {
 
         // dbg!(table.clone());
 
-        assert_eq!(
-            None,
-            table.lookup_symbol_recur(scope_x_id, "A", &SymbolKind::Var)
-        );
-        assert_eq!(
-            None,
-            table.lookup_symbol_recur(scope_z_id, "A", &SymbolKind::Var)
-        );
+        assert_eq!(None, table.lookup_recur(scope_x_id, "A", &SymbolKind::Var));
+        assert_eq!(None, table.lookup_recur(scope_z_id, "A", &SymbolKind::Var));
         assert_eq!(
             Symbol::Var(var.clone()),
             *table
-                .lookup_symbol_recur(scope_y_id, "A", &SymbolKind::Var)
+                .lookup_recur(scope_y_id, "A", &SymbolKind::Var)
                 .unwrap()
         );
     }

@@ -20,23 +20,23 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_literal_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
         let lit_expr = expr.as_lit_expr();
 
-        // let expr_type = match lit_expr {
-        //     LiteralExpr::Bool(_) => ExpressionType::Bool,
-        //     LiteralExpr::Int(_) => ExpressionType::Int,
-        //     LiteralExpr::Str(_) => ExpressionType::Str,
-        //     LiteralExpr::Var(v) => {
-        //         let symbol = self.sym_visitor.lookup_symbol_recur(v, &SymbolKind::Var);
-        //         let var: &Variable = symbol.unwrap().as_var();
-        //
-        //         if let Some(ref var_type) = var.resolved_type {
-        //             var_type
-        //         } else {
-        //             panic!(format!("variable `{}`, type couldn't be inferred", v))
-        //         }
-        //     }
-        // };
+        let expr_type = match lit_expr {
+            LiteralExpr::Bool(_) => ExpressionType::Bool,
+            LiteralExpr::Int(_) => ExpressionType::Int,
+            LiteralExpr::Str(_) => ExpressionType::Str,
+            LiteralExpr::Var(v) => {
+                let symbol = self.sym_visitor.lookup_recur(v, &SymbolKind::Var);
+                let var: &Variable = symbol.unwrap().as_var();
 
-        // expr.expr_type = Some(expr_type);
+                if let Some(ref var_type) = var.resolved_type {
+                    var_type.to_owned()
+                } else {
+                    panic!(format!("variable `{}`, type couldn't be inferred", v))
+                }
+            }
+        };
+
+        expr.expr_type = Some(expr_type);
 
         Ok(())
     }
@@ -53,7 +53,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let symbol = self
             .sym_visitor
-            .lookup_symbol_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
+            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
 
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 
@@ -70,7 +70,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_make_assign_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let symbol = self
             .sym_visitor
-            .lookup_symbol_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
+            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
 
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 

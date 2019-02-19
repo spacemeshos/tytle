@@ -37,14 +37,14 @@ pub enum ExpressionType {
 }
 
 impl From<&str> for ExpressionType {
-    fn from(s: &str) -> ExpressionType {
-        match s {
+    fn from(type_str: &str) -> ExpressionType {
+        match type_str {
             "INT" => ExpressionType::Int,
             "STR" => ExpressionType::Str,
             "BOOL" => ExpressionType::Bool,
             _ => panic!(format!(
                 "can't convert string `{}` to an expression type",
-                s
+                type_str
             )),
         }
     }

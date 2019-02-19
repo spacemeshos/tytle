@@ -40,7 +40,7 @@ fn sym_generate_global_var() {
 
     let visitor = SymbolTableVisitor::new(&mut sym_table);
 
-    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
@@ -59,7 +59,7 @@ fn sym_generate_proc_param() {
     let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
 
-    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -80,7 +80,7 @@ fn sym_generate_proc_local_var() {
     let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
 
-    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -102,7 +102,7 @@ fn sym_generate_proc_if_stmt_local_var() {
     visitor.next_scope(); // entering the `MYPROC` scope
     visitor.next_scope(); // entering the `if statement` scope
 
-    let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -239,7 +239,7 @@ fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
     visitor.next_scope(); // entering the `MYPROC` scope
     visitor.next_scope(); // entering the `if statement` scope
 
-    let symbol = visitor.lookup_symbol_recur("A", &SymbolKind::Var);
+    let symbol = visitor.lookup_recur("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);

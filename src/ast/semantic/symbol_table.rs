@@ -77,7 +77,7 @@ impl SymbolTable {
         self.scopes.get_mut(&scope_id).unwrap()
     }
 
-    pub fn lookup_symbol(
+    pub fn lookup(
         &self,
         scope_id: ScopeId,
         sym_name: &str,
@@ -89,10 +89,10 @@ impl SymbolTable {
             return None;
         }
 
-        scope.unwrap().lookup_symbol(sym_name, &sym_kind)
+        scope.unwrap().lookup(sym_name, &sym_kind)
     }
 
-    pub fn lookup_symbol_mut(
+    pub fn lookup_mut(
         &mut self,
         scope_id: ScopeId,
         sym_name: &str,
@@ -104,10 +104,10 @@ impl SymbolTable {
             return None;
         }
 
-        scope.unwrap().lookup_symbol_mut(sym_name, &sym_kind)
+        scope.unwrap().lookup_mut(sym_name, &sym_kind)
     }
 
-    pub fn lookup_symbol_recur(
+    pub fn lookup_recur(
         &self,
         start_scope_id: ScopeId,
         sym_name: &str,
@@ -118,7 +118,7 @@ impl SymbolTable {
         loop {
             let mut scope = self.get_scope(scope_id);
 
-            let var = self.lookup_symbol(scope.id, sym_name, sym_kind);
+            let var = self.lookup(scope.id, sym_name, sym_kind);
             if var.is_some() {
                 return var;
             }
@@ -131,7 +131,7 @@ impl SymbolTable {
         }
     }
 
-    pub fn lookup_symbol_recur_mut(
+    pub fn lookup_recur_mut(
         &mut self,
         start_scope_id: ScopeId,
         sym_name: &str,
@@ -142,12 +142,12 @@ impl SymbolTable {
         loop {
             let mut scope = self.get_scope(scope_id);
 
-            let var = self.lookup_symbol(scope.id, sym_name, sym_kind);
+            let var = self.lookup(scope.id, sym_name, sym_kind);
             if var.is_some() {
                 // we've found the variable (variable `sym_name` resides under scope `scode.id`)
                 // since we borrowed it as immutable,
                 // we re-borrow it again, but this time in a mutable manner
-                return self.lookup_symbol_mut(scope_id, sym_name, sym_kind);
+                return self.lookup_mut(scope_id, sym_name, sym_kind);
             }
 
             if self.is_root_scope() {
@@ -159,8 +159,7 @@ impl SymbolTable {
     }
 
     pub fn create_var_symbol(&mut self, var: Variable) {
-        let mut var_sym =
-            self.lookup_symbol(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
+        let mut var_sym = self.lookup(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
 
         if var_sym.is_some() {
             panic!("variable {} already exists under the scope", var.name);
@@ -170,7 +169,7 @@ impl SymbolTable {
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
-        let mut proc_sym = self.lookup_symbol(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
+        let mut proc_sym = self.lookup(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
 
         if proc_sym.is_some() {
             panic!("procedure {} already exists under the scope", proc.name);

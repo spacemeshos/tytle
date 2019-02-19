@@ -201,14 +201,13 @@ impl SymbolTableGenerator {
     fn try_get_symbol_recur(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
         let current_scope_id = self.sym_table.get_current_scope_id();
 
-        self.sym_table
-            .lookup_symbol_recur(current_scope_id, name, &kind)
+        self.sym_table.lookup_recur(current_scope_id, name, &kind)
     }
 
     fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
         let current_scope_id = self.sym_table.get_current_scope_id();
 
-        self.sym_table.lookup_symbol(current_scope_id, name, &kind)
+        self.sym_table.lookup(current_scope_id, name, &kind)
     }
 
     fn start_scope(&mut self) {
