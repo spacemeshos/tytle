@@ -1,5 +1,6 @@
 extern crate tytle;
 
+use tytle::ast::expression::ExpressionType;
 use tytle::ast::semantic::*;
 use tytle::parser::{Parser, TytleParser};
 
@@ -25,7 +26,7 @@ macro_rules! gen_symbols {
         let res = generator.generate(&mut ast);
         assert!(res.is_ok());
 
-        let $sym_table_var = res.unwrap().clone();
+        let mut $sym_table_var = res.unwrap().clone();
     };
 }
 
@@ -37,7 +38,7 @@ fn sym_generate_global_var() {
 
     gen_symbols!(code, sym_table);
 
-    let visitor = SymbolTableVisitor::new(&sym_table);
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
 
     let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
@@ -55,7 +56,7 @@ fn sym_generate_proc_param() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
 
     let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
@@ -63,6 +64,7 @@ fn sym_generate_proc_param() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
+    assert_eq!(var.resolved_type, Some(ExpressionType::Int))
 }
 
 #[test]
@@ -75,7 +77,7 @@ fn sym_generate_proc_local_var() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
 
     let symbol = visitor.lookup_symbol("A", &SymbolKind::Var);
@@ -83,6 +85,7 @@ fn sym_generate_proc_local_var() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
+    assert_eq!(var.resolved_type, None);
 }
 
 #[test]
@@ -95,7 +98,7 @@ fn sym_generate_proc_if_stmt_local_var() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
     visitor.next_scope(); // entering the `if statement` scope
 
@@ -104,6 +107,7 @@ fn sym_generate_proc_if_stmt_local_var() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
+    assert_eq!(var.resolved_type, None);
 }
 
 #[test]
@@ -231,7 +235,7 @@ fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
     visitor.next_scope(); // entering the `MYPROC` scope
     visitor.next_scope(); // entering the `if statement` scope
 

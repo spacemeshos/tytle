@@ -36,6 +36,20 @@ pub enum ExpressionType {
     Bool,
 }
 
+impl From<&str> for ExpressionType {
+    fn from(s: &str) -> ExpressionType {
+        match s {
+            "INT" => ExpressionType::Int,
+            "STR" => ExpressionType::Str,
+            "BOOL" => ExpressionType::Bool,
+            _ => panic!(format!(
+                "can't convert string `{}` to an expression type",
+                s
+            )),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralExpr {
     Bool(bool),

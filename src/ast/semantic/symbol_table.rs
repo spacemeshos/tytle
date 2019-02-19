@@ -92,26 +92,69 @@ impl SymbolTable {
         scope.unwrap().lookup_symbol(sym_name, &sym_kind)
     }
 
+    pub fn lookup_symbol_mut(
+        &mut self,
+        scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&mut Symbol> {
+        let scope = self.scopes.get_mut(&scope_id);
+
+        if scope.is_none() {
+            return None;
+        }
+
+        scope.unwrap().lookup_symbol_mut(sym_name, &sym_kind)
+    }
+
     pub fn lookup_symbol_recur(
         &self,
         start_scope_id: ScopeId,
         sym_name: &str,
         sym_kind: &SymbolKind,
     ) -> Option<&Symbol> {
-        let mut scope = self.get_scope(start_scope_id);
+        let mut scope_id = start_scope_id;
 
         loop {
+            let mut scope = self.get_scope(scope_id);
+
             let var = self.lookup_symbol(scope.id, sym_name, sym_kind);
             if var.is_some() {
                 return var;
             }
 
-            if scope.parent_id.is_none() {
+            if self.is_root_scope() {
                 return None;
             }
 
-            let parent_id = scope.parent_id.unwrap();
-            scope = self.get_scope(parent_id);
+            scope_id = scope.parent_id.unwrap();
+        }
+    }
+
+    pub fn lookup_symbol_recur_mut(
+        &mut self,
+        start_scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&mut Symbol> {
+        let mut scope_id = start_scope_id;
+
+        loop {
+            let mut scope = self.get_scope(scope_id);
+
+            let var = self.lookup_symbol(scope.id, sym_name, sym_kind);
+            if var.is_some() {
+                // we've found the variable (variable `sym_name` resides under scope `scode.id`)
+                // since we borrowed it as immutable,
+                // we re-borrow it again, but this time in a mutable manner
+                return self.lookup_symbol_mut(scope_id, sym_name, sym_kind);
+            }
+
+            if self.is_root_scope() {
+                return None;
+            }
+
+            scope_id = scope.parent_id.unwrap();
         }
     }
 

@@ -11,7 +11,7 @@ pub struct SymbolTableGenerator {
     proc_locals_ref: u64,
 }
 
-type SymbolTableResult<'a> = Result<&'a SymbolTable, AstWalkError>;
+type SymbolTableResult<'a> = Result<&'a mut SymbolTable, AstWalkError>;
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
     fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
@@ -36,7 +36,14 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         let symbol = self.try_get_symbol(&param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(&param.param_name, false, self.proc_locals_ref)
+            let param_type = ExpressionType::from(param.param_type.as_str());
+
+            self.create_var_symbol(
+                &param.param_name,
+                Some(param_type),
+                false,
+                self.proc_locals_ref,
+            )
         } else {
             let err =
                 AstWalkError::DuplicateProcParam("...".to_string(), param.param_name.to_string());
@@ -79,7 +86,7 @@ impl SymbolTableGenerator {
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
 
-        Ok(&self.sym_table)
+        Ok(&mut self.sym_table)
     }
 
     pub fn prewalk_ast(&mut self, ast: &mut Ast) -> AstWalkResult {
@@ -148,7 +155,7 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(&make_stmt.var, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(&make_stmt.var, true, self.global_ref)
+            self.create_var_symbol(&make_stmt.var, None, true, self.global_ref)
         } else {
             let err = AstWalkError::DuplicateGlobalVar(make_stmt.var.to_owned());
             Err(err)
@@ -159,7 +166,7 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol(&make_stmt.var, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(&make_stmt.var, false, self.proc_locals_ref)
+            self.create_var_symbol(&make_stmt.var, None, false, self.proc_locals_ref)
         } else {
             let err = AstWalkError::DuplicateProcLocalVar(make_stmt.var.to_owned());
             Err(err)
@@ -169,6 +176,7 @@ impl SymbolTableGenerator {
     fn create_var_symbol(
         &mut self,
         var_name: &str,
+        var_type: Option<ExpressionType>,
         is_global: bool,
         reference: u64,
     ) -> AstWalkResult {
@@ -176,7 +184,7 @@ impl SymbolTableGenerator {
             global: is_global,
             name: var_name.to_owned(),
             reference: Some(reference),
-            resolved_type: None,
+            resolved_type: var_type,
         };
 
         self.sym_table.create_var_symbol(var);

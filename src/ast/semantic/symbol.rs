@@ -7,8 +7,16 @@ pub enum Symbol {
 }
 
 impl Symbol {
+    pub fn as_var_mut(&mut self) -> &mut Variable {
+        if let Symbol::Var(var) = self {
+            var
+        } else {
+            panic!("expected symbol `{}` to be a Variable", self.name());
+        }
+    }
+
     pub fn as_var(&self) -> &Variable {
-        if let &Symbol::Var(ref var) = self {
+        if let Symbol::Var(var) = self {
             var
         } else {
             panic!("expected symbol `{}` to be a Variable", self.name());
@@ -16,7 +24,15 @@ impl Symbol {
     }
 
     pub fn as_proc(&self) -> &Procedure {
-        if let &Symbol::Proc(ref proc) = self {
+        if let Symbol::Proc(proc) = self {
+            proc
+        } else {
+            panic!("expected symbol `{}` to be a Procedure", self.name());
+        }
+    }
+
+    pub fn as_proc_mut(&mut self) -> &mut Procedure {
+        if let Symbol::Proc(proc) = self {
             proc
         } else {
             panic!("expected symbol `{}` to be a Procedure", self.name());

@@ -124,10 +124,10 @@ impl TytleParser {
                 let param_name = self.expect_value(lexer)?;
 
                 self.validate_var_name(param_name.as_str())?;
-
                 self.expect_token(lexer, Token::COLON)?;
 
                 let param_type = self.expect_value(lexer)?;
+
                 self.validate_data_type(param_type.as_str())?;
 
                 let param = ProcParam {

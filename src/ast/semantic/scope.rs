@@ -36,6 +36,12 @@ impl Scope {
         table.get(sym_name)
     }
 
+    pub fn lookup_symbol_mut(&mut self, sym_name: &str, kind: &SymbolKind) -> Option<&mut Symbol> {
+        let table = self.get_kind_table_mut(kind);
+
+        table.get_mut(sym_name)
+    }
+
     fn get_kind_table(&self, kind: &SymbolKind) -> &HashMap<String, Symbol> {
         self.symbols.get(kind).unwrap()
     }

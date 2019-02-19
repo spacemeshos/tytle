@@ -1,4 +1,4 @@
-use crate::ast::semantic::PrimitiveType;
+use crate::ast::expression::ExpressionType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstWalkError {
@@ -9,7 +9,7 @@ pub enum AstWalkError {
     MissingVarDeclaration(String),
     ProcNotAllowedToDeclareGlobals(String),
     LocalsNotAllowedUnderRootScope(String),
-    TypeMismatch(PrimitiveType, PrimitiveType),
+    TypeMismatch(ExpressionType, ExpressionType),
     Custom { message: String },
 }
 

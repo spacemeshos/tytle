@@ -1,11 +1,11 @@
-use crate::ast::semantic::PrimitiveType;
+use crate::ast::expression::ExpressionType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub global: bool,
     pub name: String,
     pub reference: Option<u64>,
-    pub resolved_type: Option<PrimitiveType>,
+    pub resolved_type: Option<ExpressionType>,
 }
 
 impl Variable {
@@ -30,7 +30,7 @@ impl Variable {
         self.reference = Some(reference);
     }
 
-    pub fn set_resolved_type(&mut self, rt: PrimitiveType) {
+    pub fn set_resolved_type(&mut self, rt: ExpressionType) {
         match self.resolved_type {
             None => self.resolved_type = Some(rt),
             Some(ref current_rt) if *current_rt == rt => {}
@@ -47,10 +47,10 @@ mod tests {
     fn setting_to_a_variable_the_same_primitive_type_twice() {
         let mut var = Variable::build_global("A");
 
-        var.set_resolved_type(PrimitiveType::Int);
-        var.set_resolved_type(PrimitiveType::Int);
+        var.set_resolved_type(ExpressionType::Int);
+        var.set_resolved_type(ExpressionType::Int);
 
-        assert_eq!(Some(PrimitiveType::Int), var.resolved_type);
+        assert_eq!(Some(ExpressionType::Int), var.resolved_type);
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod tests {
     fn error_when_variable_type_mismatch() {
         let mut var = Variable::build_global("A");
 
-        var.set_resolved_type(PrimitiveType::Int);
-        var.set_resolved_type(PrimitiveType::Str);
+        var.set_resolved_type(ExpressionType::Int);
+        var.set_resolved_type(ExpressionType::Str);
     }
 }

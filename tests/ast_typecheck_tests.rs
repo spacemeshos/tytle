@@ -18,7 +18,6 @@ fn ast_typecheck_error_assigning_global_int_var_a_boolean_value() {
     let mut checker = AstTypeCheck::new(&mut sym_visitor);
 
     let actual = checker.check(&mut ast);
-    dbg!(actual);
 
     // assert_eq!(expected, actual);
 }
