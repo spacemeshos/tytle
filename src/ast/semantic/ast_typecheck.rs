@@ -11,8 +11,8 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         Self { sym_visitor }
     }
 
-    pub fn check(&mut self, ast: &mut Ast) {
-        self.walk_ast(ast);
+    pub fn check(&mut self, ast: &mut Ast) -> AstWalkResult {
+        self.walk_ast(ast)
     }
 }
 
@@ -51,20 +51,11 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
     // `MAKE` statements
     fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        let symbol = self
-            .sym_visitor
-            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
-
-        let var: &mut Variable = symbol.unwrap().as_var_mut();
-
-        let expr_type: Option<&ExpressionType> = make_stmt.expr.expr_type.as_ref();
-        // var.resolved_type = expr_type;
-
-        Ok(())
+        self.typecheck_var_declare(make_stmt)
     }
 
     fn on_make_local_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        Ok(())
+        self.typecheck_var_declare(make_stmt)
     }
 
     fn on_make_assign_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
@@ -78,11 +69,13 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             panic!()
         }
 
-        let expr_type: Option<&ExpressionType> = make_stmt.expr.expr_type.as_ref();
+        let expr_type: ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap().to_owned();
+        let var_type: ExpressionType = var.resolved_type.clone().unwrap();
 
-        // if expr_type != var.resolved_type {
-        //     panic!("type mismtach");
-        // }
+        if expr_type != var_type {
+            let err = AstWalkError::TypeMismatch(var_type, expr_type);
+            return Err(err);
+        }
 
         Ok(())
     }
@@ -95,6 +88,21 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
     fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
         // self.sym_visitor.next_scope();
+        Ok(())
+    }
+}
+
+impl<'a, 'b> AstTypeCheck<'a, 'b> {
+    fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+        let symbol = self
+            .sym_visitor
+            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
+
+        let var: &mut Variable = symbol.unwrap().as_var_mut();
+
+        let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
+        var.resolved_type = Some(expr_type.to_owned());
+
         Ok(())
     }
 }
