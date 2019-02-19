@@ -132,11 +132,21 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(&proc_stmt.name, SymbolKind::Proc);
 
         if symbol.is_none() {
+            // let return_type =
+                // if proc_stmt.return_type.is_some() {
+                //     let ret_type_str = proc_stmt.return_type.unwrap();
+                //     let expr_type = ExpressionType::from(ret_type_str.as_str());
+                //     Some(expr_type)
+                // }
+                // else {
+                //     None
+                // };
+
             let proc = Procedure {
                 name: proc_stmt.name.to_owned(),
                 reference: Some(self.proc_ref),
                 params_types: None,
-                return_type: None,
+                return_type: None
             };
 
             self.proc_ref += 1;

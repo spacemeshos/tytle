@@ -46,7 +46,9 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
         // TODO: ask directly the root scope
         let symbol = self.sym_visitor.lookup_recur(proc_name, &SymbolKind::Proc);
+
         let proc: &Procedure = symbol.unwrap().as_proc();
+
         dbg!(proc);
 
         Ok(())

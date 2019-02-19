@@ -68,6 +68,30 @@ fn sym_generate_proc_param() {
 }
 
 #[test]
+fn sym_generate_proc_return_type() {
+    let code = r#"
+            TO MYPROC_INT(): INT
+            END
+
+            TO MYPROC_BOOL(): BOOL
+            END
+
+            TO MYPROC_STR(): STR
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("MYPROC_INT", &SymbolKind::Proc);
+    let proc_int = symbol.unwrap().as_proc();
+
+    assert_eq!(proc_int.name, "MYPROC_INT");
+    assert_eq!(&proc_int.return_type, &Some(ExpressionType::Int));
+}
+
+#[test]
 fn sym_generate_proc_local_var() {
     let code = r#"
             TO MYPROC()
