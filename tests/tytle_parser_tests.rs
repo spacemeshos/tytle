@@ -310,6 +310,28 @@ fn parse_make_local_variable_assign_an_integer() {
 }
 
 #[test]
+fn parse_make_global_variable_assign_a_boolean_true() {
+    let actual = TytleParser.parse("MAKEGLOBAL MYVAR = TRUE").unwrap();
+
+    let expected = ast! {
+        make_global_stmt!("MYVAR", bool_lit_expr!(true))
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_make_global_variable_assign_a_boolean_false() {
+    let actual = TytleParser.parse("MAKEGLOBAL MYVAR = FALSE").unwrap();
+
+    let expected = ast! {
+        make_global_stmt!("MYVAR", bool_lit_expr!(false))
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_if_stmt_without_else() {
     let code = r#"
         IF 1 + 2 [
@@ -693,6 +715,69 @@ fn parse_error_proc_invalid_return_type() {
     "#;
 
     let expected = ParseError::InvalidDataType("STRING".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_true_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL TRUE = 1";
+
+    let expected = ParseError::ReservedKeyword("TRUE".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_false_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL FALSE = 1";
+
+    let expected = ParseError::ReservedKeyword("FALSE".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_if_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL IF = 1";
+
+    let expected = ParseError::ReservedKeyword("IF".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_repeat_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL REPEAT = 1";
+
+    let expected = ParseError::ReservedKeyword("REPEAT".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_makeglobal_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL MAKEGLOBAL = 1";
+
+    let expected = ParseError::ReservedKeyword("MAKEGLOBAL".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_makelocal_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL MAKELOCAL = 1";
+
+    let expected = ParseError::ReservedKeyword("MAKELOCAL".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_make_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL MAKE = 1";
+
+    let expected = ParseError::ReservedKeyword("MAKE".to_string());
 
     assert_parse_err!(expected, code);
 }

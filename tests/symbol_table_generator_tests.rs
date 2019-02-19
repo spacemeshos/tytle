@@ -219,3 +219,25 @@ fn sym_generate_error_locals_not_allowed_under_root_scope() {
 
     assert_symbol_err!(expected, code);
 }
+
+#[test]
+fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+            TO MYPROC()
+                IF 1 + 2 [MAKELOCAL B = 1]
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let mut visitor = SymbolTableVisitor::new(&sym_table);
+    visitor.next_scope(); // entering the `MYPROC` scope
+    visitor.next_scope(); // entering the `if statement` scope
+
+    let symbol = visitor.lookup_symbol_recur("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, true);
+    assert_eq!(var.name, "A".to_string());
+}

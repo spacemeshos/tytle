@@ -5,6 +5,22 @@ use crate::ast::Ast;
 use crate::lexer::{Lexer, Location, Token, TytleLexer};
 use crate::parser::{ParseError, Parser, ParserResult};
 
+use std::collections::HashSet;
+
+lazy_static! {
+    static ref KEYWORDS: HashSet<&'static str> = {
+        let mut kws = HashSet::new();
+        kws.insert("TRUE");
+        kws.insert("FALSE");
+        kws.insert("MAKEGLOBAL");
+        kws.insert("MAKELOCAL");
+        kws.insert("MAKE");
+        kws.insert("IF");
+        kws.insert("REPEAT");
+        kws
+    };
+}
+
 pub type StatementResult = Result<Statement, ParseError>;
 pub type ExpressionResult = Result<Expression, ParseError>;
 
@@ -322,6 +338,7 @@ impl TytleParser {
             let rparen_expr = self.parse_parens_expr(lexer)?;
             let ast =
                 ExpressionAst::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr));
+
             let expr = Expression::new(ast);
             Ok(expr)
         } else {
@@ -424,7 +441,13 @@ impl TytleParser {
                         let s = v[1..v.len() - 1].to_string();
                         Ok(LiteralExpr::Str(s))
                     } else {
-                        Ok(LiteralExpr::Var(v.to_string()))
+                        let lit_expr = match v.as_str() {
+                            "TRUE" => LiteralExpr::Bool(true),
+                            "FALSE" => LiteralExpr::Bool(false),
+                            _ => LiteralExpr::Var(v.to_string()),
+                        };
+
+                        Ok(lit_expr)
                     }
                 }
             }
@@ -521,6 +544,11 @@ impl TytleParser {
                 "Variable name isn't allowed to begin with a digit (got `{}`)",
                 name
             ));
+            return Err(err);
+        }
+
+        if KEYWORDS.contains(name) {
+            let err = ParseError::ReservedKeyword(name.to_string());
             return Err(err);
         }
 

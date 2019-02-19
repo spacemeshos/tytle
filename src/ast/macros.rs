@@ -9,6 +9,7 @@ macro_rules! direction {
 macro_rules! int_lit_expr {
     ($num:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
+
         let ast = ExpressionAst::Literal(LiteralExpr::Int($num));
         let expr = Expression::new(ast);
         expr
@@ -16,17 +17,22 @@ macro_rules! int_lit_expr {
 }
 
 #[macro_export]
-macro_rules! boxed_int_lit_expr {
-    ($num:expr) => {{
-        Box::new(int_lit_expr!($num))
+macro_rules! str_lit_expr {
+    ($s:expr) => {{
+        use $crate::ast::expression::{Expression, LiteralExpr};
+
+        let ast = ExpressionAst::Literal(LiteralExpr::Str($s.to_string()));
+        let expr = Expression::new(ast);
+        expr
     }};
 }
 
 #[macro_export]
-macro_rules! str_lit_expr {
-    ($s:expr) => {{
+macro_rules! bool_lit_expr {
+    ($bool:expr) => {{
         use $crate::ast::expression::{Expression, LiteralExpr};
-        let ast = ExpressionAst::Literal(LiteralExpr::Str($s.to_string()));
+
+        let ast = ExpressionAst::Literal(LiteralExpr::Bool($bool));
         let expr = Expression::new(ast);
         expr
     }};
@@ -40,6 +46,20 @@ macro_rules! var_lit_expr {
         let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string()));
         let expr = Expression::new(ast);
         expr
+    }};
+}
+
+#[macro_export]
+macro_rules! boxed_int_lit_expr {
+    ($num:expr) => {{
+        Box::new(int_lit_expr!($num))
+    }};
+}
+
+#[macro_export]
+macro_rules! boxed_bool_lit_expr {
+    ($bool:expr) => {{
+        Box::new(bool_lit_expr!($bool))
     }};
 }
 
