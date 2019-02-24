@@ -117,5 +117,32 @@ fn ast_typecheck_error_proc_call_args_type_mismatch() {
 }
 
 #[test]
-#[ignore]
-fn ast_typecheck_error_adding_int_and_proc_call_having_no_return_type() {}
+fn ast_typecheck_error_adding_int_and_proc_call_having_no_return_type() {
+    let code = r#"
+            TO MYPROC()
+            END
+
+            MAKEGLOBAL B = 10 + MYPROC()
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::Add, ExpressionType::Int, ExpressionType::Unit);
+
+    assert_type_err!(expected, code);
+}
+
+
+#[test]
+fn ast_typecheck_error_variable_declaration_type_must_not_be_unit() {
+    let code = r#"
+            TO MYPROC()
+            END
+
+            MAKEGLOBAL A = MYPROC()
+        "#;
+
+    let expected =
+        AstWalkError::VariableTypeMissing("A".to_string());
+
+    assert_type_err!(expected, code);
+}

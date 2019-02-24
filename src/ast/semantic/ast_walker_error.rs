@@ -13,6 +13,7 @@ pub enum AstWalkError {
     InvalidBinaryOp(BinaryOp, ExpressionType, ExpressionType),
     InvalidProcCallArgsCount(String, usize, usize),
     InvalidProcCallArgType(usize, ExpressionType, ExpressionType),
+    VariableTypeMissing(String),
     Custom { message: String },
 }
 

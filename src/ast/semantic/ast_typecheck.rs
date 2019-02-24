@@ -157,6 +157,12 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 
         let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
+
+        if *expr_type == ExpressionType::Unit {
+            let err = AstWalkError::VariableTypeMissing(var.name.to_string());
+            return Err(err);
+        }
+
         var.var_type = Some(expr_type.to_owned());
 
         Ok(())
