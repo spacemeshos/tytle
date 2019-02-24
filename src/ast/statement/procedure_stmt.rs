@@ -13,7 +13,7 @@ pub struct ProcParam {
 pub struct ProcedureStmt {
     pub name: String,
     pub params: Vec<ProcParam>,
-    pub return_type: Option<String>,
+    pub return_type: String,
     pub block: BlockStatement,
 }
 
@@ -22,7 +22,7 @@ impl ProcedureStmt {
         Self {
             name,
             params: Default::default(),
-            return_type: None,
+            return_type: "".to_string(),
             block: BlockStatement::new(),
         }
     }

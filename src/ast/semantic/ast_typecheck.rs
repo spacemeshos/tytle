@@ -62,11 +62,11 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             return Err(err);
         }
 
-        let mut i = 1;
+        let mut arg_pos = 1;
         let mut actual_iter = proc_args_exprs.iter();
         let mut expected_iter = expected_params_types.iter();
 
-        while i <= expected_args_count {
+        while arg_pos <= expected_args_count {
             let arg_expr: &Expression = actual_iter.next().unwrap();
 
             let actual_type: ExpressionType = arg_expr.expr_type.clone().unwrap();
@@ -74,17 +74,17 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
             if *expected_type != actual_type {
                 let err = AstWalkError::InvalidProcCallArgType(
-                    i,
+                    arg_pos,
                     expected_type.clone(),
                     actual_type.clone(),
                 );
                 return Err(err);
             }
 
-            i += 1;
+            arg_pos += 1;
         }
 
-        expr.expr_type = proc.return_type.clone();
+        expr.expr_type = Some(proc.return_type.clone());
 
         Ok(())
     }

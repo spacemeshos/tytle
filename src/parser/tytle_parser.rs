@@ -107,7 +107,7 @@ impl TytleParser {
     fn parse_proc_signature(
         &self,
         lexer: &mut impl Lexer,
-    ) -> Result<(Vec<ProcParam>, Option<String>), ParseError> {
+    ) -> Result<(Vec<ProcParam>, String), ParseError> {
         let mut params = Vec::new();
         let mut completed = false;
 
@@ -156,13 +156,13 @@ impl TytleParser {
                 let return_type = self.expect_value(lexer)?;
                 self.validate_data_type(return_type.as_str())?;
 
-                Some(return_type)
+                return_type
             }
         } else {
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::NEWLINE {
-                None // a Procedure with no return value
+                "".to_string() // a Procedure with no return value
             } else {
                 return Err(ParseError::MissingColon);
             }

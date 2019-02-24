@@ -128,7 +128,7 @@ fn sym_generate_proc_return_type() {
     let proc_int = symbol.unwrap().as_proc();
 
     assert_eq!(proc_int.name, "MYPROC_INT");
-    assert_eq!(&proc_int.return_type, &Some(ExpressionType::Int));
+    assert_eq!(proc_int.return_type, ExpressionType::Int);
 }
 
 #[test]

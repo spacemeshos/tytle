@@ -178,10 +178,7 @@ macro_rules! proc_stmt {
 
         let block_stmt = $block;
 
-        let return_type = match stringify!($ret_type) {
-            "UNIT" => None,
-            v => Some(v.to_string())
-        };
+        let return_type = stringify!($ret_type).to_string();
 
         let proc_stmt = Statement::Procedure(ProcedureStmt {
             params,
