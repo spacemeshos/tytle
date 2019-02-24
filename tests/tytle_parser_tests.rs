@@ -334,7 +334,7 @@ fn parse_make_global_variable_assign_a_boolean_false() {
 #[test]
 fn parse_if_stmt_without_else() {
     let code = r#"
-        IF 1 + 2 [
+        IF 1 > 2 [
             MAKE A = 3
             MAKE B = 4
         ]
@@ -342,7 +342,7 @@ fn parse_if_stmt_without_else() {
 
     let actual = TytleParser.parse(code).unwrap();
 
-    let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let cond_expr = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let if_stmt = if_stmt! {
         cond: cond_expr,
@@ -360,11 +360,11 @@ fn parse_if_stmt_without_else() {
 #[test]
 fn parse_if_stmt_with_else() {
     let code = r#"
-        IF 1 + 2 [MAKE A = 1] [MAKE B = 2]
+        IF 1 < 2 [MAKE A = 1] [MAKE B = 2]
     "#;
     let actual = TytleParser.parse(code).unwrap();
 
-    let cond_expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let cond_expr = binary_expr!("<", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
 
     let if_stmt = if_stmt! {
         cond: cond_expr,

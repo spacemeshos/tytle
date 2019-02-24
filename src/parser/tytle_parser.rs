@@ -312,16 +312,43 @@ impl TytleParser {
     }
 
     fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let left_expr = self.parse_non_bool_expr(lexer)?;
+
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+        match tok {
+            Token::GT | Token::LT => {
+                let tok_clone = tok.clone();
+
+                self.skip_token(lexer); // we skip the `> / >= / < / <= / == / !=` token
+
+                let right_expr = self.parse_non_bool_expr(lexer)?;
+
+                let binary_op = BinaryOp::from(&tok_clone);
+
+                let ast =
+                    ExpressionAst::Binary(binary_op, Box::new(left_expr), Box::new(right_expr));
+
+                let expr = Expression::new(ast);
+                Ok(expr)
+            }
+            _ => Ok(left_expr),
+        }
+    }
+
+    fn parse_non_bool_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_mul_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
         if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
-            let right_expr = self.parse_expr(lexer)?;
+
+            let right_expr = self.parse_non_bool_expr(lexer)?;
 
             let ast =
                 ExpressionAst::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr));
+
             let expr = Expression::new(ast);
             Ok(expr)
         } else {
@@ -354,7 +381,7 @@ impl TytleParser {
         if *tok == Token::LPAREN {
             self.skip_token(lexer); // skip the `(`
 
-            let inner_expr = self.parse_expr(lexer)?;
+            let inner_expr = self.parse_non_bool_expr(lexer)?;
 
             self.expect_token(lexer, Token::RPAREN)?;
 
