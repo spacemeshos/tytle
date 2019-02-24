@@ -175,6 +175,31 @@ fn sym_generate_proc_if_stmt_local_var() {
 }
 
 #[test]
+fn sym_generate_initializing_a_local_var_with_proc_call_expr() {
+    let code = r#"
+            TO MYPROC(X: BOOL): INT
+            END
+
+            TO MYPROC_2(Y: STR)
+                MAKELOCAL A = MYPROC()
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
+    visitor.next_scope(); // entering the `MYPROC`  scope
+    visitor.next_scope(); // entering the `MYPROC_2` scope
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, false);
+    assert_eq!(var.name, "A".to_string());
+    assert_eq!(var.var_type, None);
+}
+
+#[test]
 fn sym_generate_error_global_use_before_declare() {
     let code = r#"
             MAKE A = 20
@@ -278,17 +303,6 @@ fn sym_generate_error_proc_param_is_considered_a_local_variable() {
 }
 
 #[test]
-fn sym_generate_error_locals_not_allowed_under_root_scope() {
-    let code = r#"
-            MAKELOCAL A = 10
-        "#;
-
-    let expected = AstWalkError::LocalsNotAllowedUnderRootScope("A".to_string());
-
-    assert_symbol_err!(expected, code);
-}
-
-#[test]
 fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
     let code = r#"
             MAKEGLOBAL A = 10
@@ -308,4 +322,15 @@ fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
 
     assert_eq!(var.global, true);
     assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_error_locals_not_allowed_under_root_scope() {
+    let code = r#"
+            MAKELOCAL A = 10
+        "#;
+
+    let expected = AstWalkError::LocalsNotAllowedUnderRootScope("A".to_string());
+
+    assert_symbol_err!(expected, code);
 }

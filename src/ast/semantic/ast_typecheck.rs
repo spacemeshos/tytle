@@ -138,12 +138,12 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
     // visiting scopes
     fn on_proc_start(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
-        // self.sym_visitor.next_scope();
+        self.sym_visitor.next_scope();
         Ok(())
     }
 
     fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
-        // self.sym_visitor.next_scope();
+        self.sym_visitor.next_scope();
         Ok(())
     }
 }

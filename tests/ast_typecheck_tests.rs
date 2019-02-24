@@ -20,6 +20,40 @@ macro_rules! assert_type_err {
 }
 
 #[test]
+fn ast_typecheck_error_declaring_a_local_var_with_proc_call_returning_unit() {
+    let code = r#"
+            TO MYPROC()
+            END
+
+            TO MYPROC_2(Y: STR)
+                MAKELOCAL A = MYPROC()
+            END
+        "#;
+
+    let expected = AstWalkError::VariableTypeMissing("A".to_string());
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_if_stmt_block_with_assigning_var_expr_with_wrong_type() {
+    let code = r#"
+            TO MYPROC()
+                REPEAT 3 [
+                    IF 1 + 2 [
+                        MAKELOCAL A = TRUE
+                        IF 3 + 4 [MAKE A = 1]
+                    ]
+                ]
+            END
+        "#;
+
+    let expected = AstWalkError::TypeMismatch(ExpressionType::Bool, ExpressionType::Int);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
 fn ast_typecheck_error_assigning_global_int_var_a_boolean_value() {
     let code = r#"
             MAKEGLOBAL A = 10
@@ -131,7 +165,6 @@ fn ast_typecheck_error_adding_int_and_proc_call_having_no_return_type() {
     assert_type_err!(expected, code);
 }
 
-
 #[test]
 fn ast_typecheck_error_variable_declaration_type_must_not_be_unit() {
     let code = r#"
@@ -141,8 +174,7 @@ fn ast_typecheck_error_variable_declaration_type_must_not_be_unit() {
             MAKEGLOBAL A = MYPROC()
         "#;
 
-    let expected =
-        AstWalkError::VariableTypeMissing("A".to_string());
+    let expected = AstWalkError::VariableTypeMissing("A".to_string());
 
     assert_type_err!(expected, code);
 }

@@ -720,6 +720,18 @@ fn parse_error_proc_invalid_return_type() {
 }
 
 #[test]
+fn parse_error_proc_param_cannot_be_unit() {
+    let code = r#"
+            TO MYPROC(A: UNIT)
+            END
+        "#;
+
+    let expected = ParseError::InvalidDataType("UNIT".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
 fn parse_error_true_is_a_reserved_keyword() {
     let code = "MAKEGLOBAL TRUE = 1";
 
@@ -778,6 +790,24 @@ fn parse_error_make_is_a_reserved_keyword() {
     let code = "MAKEGLOBAL MAKE = 1";
 
     let expected = ParseError::ReservedKeyword("MAKE".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_to_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL TO = 1";
+
+    let expected = ParseError::ReservedKeyword("TO".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+fn parse_error_end_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL END = 1";
+
+    let expected = ParseError::ReservedKeyword("END".to_string());
 
     assert_parse_err!(expected, code);
 }

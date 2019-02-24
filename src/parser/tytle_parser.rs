@@ -17,6 +17,8 @@ lazy_static! {
         kws.insert("MAKE");
         kws.insert("IF");
         kws.insert("REPEAT");
+        kws.insert("TO");
+        kws.insert("END");
         kws
     };
 }
