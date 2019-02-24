@@ -1,4 +1,4 @@
-use crate::ast::expression::ExpressionType;
+use crate::ast::expression::{BinaryOp, ExpressionType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstWalkError {
@@ -10,6 +10,9 @@ pub enum AstWalkError {
     ProcNotAllowedToDeclareGlobals(String),
     LocalsNotAllowedUnderRootScope(String),
     TypeMismatch(ExpressionType, ExpressionType),
+    InvalidBinaryOp(BinaryOp, ExpressionType, ExpressionType),
+    InvalidProcCallArgsCount(String, usize, usize),
+    InvalidProcCallArgType(usize, ExpressionType, ExpressionType),
     Custom { message: String },
 }
 

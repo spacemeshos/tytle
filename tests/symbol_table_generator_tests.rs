@@ -31,9 +31,9 @@ macro_rules! gen_symbols {
 }
 
 #[test]
-fn sym_generate_global_var() {
+fn sym_generate_global_var_int() {
     let code = r#"
-            MAKEGLOBAL A=20
+            MAKEGLOBAL A = 20
         "#;
 
     gen_symbols!(code, sym_table);
@@ -48,9 +48,26 @@ fn sym_generate_global_var() {
 }
 
 #[test]
-fn sym_generate_proc_param() {
+fn sym_generate_global_var_bool() {
     let code = r#"
-            TO MYPROC(A: INT)
+            MAKEGLOBAL A = TRUE
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, true);
+    assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_proc_param_int() {
+    let code = r#"
+            TO MYPROC(A: INT): BOOL
             END
         "#;
 
@@ -64,7 +81,26 @@ fn sym_generate_proc_param() {
 
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
-    assert_eq!(var.var_type, Some(ExpressionType::Int))
+    assert_eq!(var.var_type, Some(ExpressionType::Int));
+}
+
+#[test]
+fn sym_generate_proc_params() {
+    let code = r#"
+            TO MYPROC(A: INT, B: STR, C: BOOL): BOOL
+            END
+        "#;
+
+    gen_symbols!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("MYPROC", &SymbolKind::Proc);
+    let proc = symbol.unwrap().as_proc();
+
+    let expected_params = Some(vec![ExpressionType::Int, ExpressionType::Str, ExpressionType::Bool]);
+
+    assert_eq!(expected_params, proc.params_types);
 }
 
 #[test]
@@ -92,7 +128,7 @@ fn sym_generate_proc_return_type() {
 }
 
 #[test]
-fn sym_generate_proc_local_var() {
+fn sym_generate_proc_local_var_int() {
     let code = r#"
             TO MYPROC()
                 MAKELOCAL A = 10
@@ -137,7 +173,7 @@ fn sym_generate_proc_if_stmt_local_var() {
 #[test]
 fn sym_generate_error_global_use_before_declare() {
     let code = r#"
-            MAKE A=20
+            MAKE A = 20
         "#;
 
     let expected = AstWalkError::MissingVarDeclaration("A".to_string());
@@ -149,7 +185,7 @@ fn sym_generate_error_global_use_before_declare() {
 fn sym_generate_error_local_use_before_declare() {
     let code = r#"
             TO MYPROC()
-                MAKE A=20
+                MAKE A = 20
             END
         "#;
 
@@ -161,8 +197,8 @@ fn sym_generate_error_local_use_before_declare() {
 #[test]
 fn sym_generate_error_duplicate_global_variable_declaration() {
     let code = r#"
-            MAKEGLOBAL A=10
-            MAKEGLOBAL A=20
+            MAKEGLOBAL A = 10
+            MAKEGLOBAL A = 20
         "#;
 
     let expected = AstWalkError::DuplicateGlobalVar("A".to_string());
@@ -174,8 +210,8 @@ fn sym_generate_error_duplicate_global_variable_declaration() {
 fn sym_generate_error_duplicate_local_variable_declaration() {
     let code = r#"
         TO MYPROC()
-            MAKELOCAL A=10
-            MAKELOCAL A=20
+            MAKELOCAL A = 10
+            MAKELOCAL A = 20
         END
         "#;
 

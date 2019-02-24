@@ -23,6 +23,13 @@ impl Expression {
         }
     }
 
+    pub fn as_binary_expr(&self) -> (&BinaryOp, &Expression, &Expression) {
+        match &self.expr_ast {
+            ExpressionAst::Binary(bin_op, lexpr, rexpr) => (bin_op, lexpr, rexpr),
+            _ => panic!("expected a binary expression. got: `{:?}`", self.expr_ast),
+        }
+    }
+
     pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>) {
         match &self.expr_ast {
             ExpressionAst::ProcCall(proc_name, proc_args_exprs) => (proc_name, proc_args_exprs),

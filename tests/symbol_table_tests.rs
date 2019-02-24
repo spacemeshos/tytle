@@ -102,10 +102,10 @@ mod tests {
         // outer scope
         let outer_scope = table.start_scope();
         let outer_scope_id = outer_scope.id;
-        let mut var_outer = Variable::build_local("A");
+        let var_outer = Variable::build_local("A");
         table.create_var_symbol(var_outer.clone());
 
-        let mut var_inner = Variable::build_local("A");
+        let var_inner = Variable::build_local("A");
         let inner_scope = table.start_scope();
         let inner_scope_id = inner_scope.id;
         table.create_var_symbol(var_inner.clone());
@@ -140,7 +140,7 @@ mod tests {
         let scope_x_id = scope_x.id;
 
         // var
-        let mut var = Variable::build_local("A");
+        let var = Variable::build_local("A");
         table.create_var_symbol(var.clone());
 
         // scope Y
@@ -217,7 +217,7 @@ mod tests {
         assert_eq!(scope_y.parent_id, Some(0));
 
         let scope_y_id = scope_y.id;
-        let mut var = Variable::build_local("A");
+        let var = Variable::build_local("A");
         table.create_var_symbol(var.clone());
         table.end_scope();
 
@@ -225,8 +225,6 @@ mod tests {
         let scope_z = table.start_scope(); // scope Z
         let scope_z_id = scope_z.id;
         table.end_scope();
-
-        // dbg!(table.clone());
 
         assert_eq!(None, table.lookup_recur(scope_x_id, "A", &SymbolKind::Var));
         assert_eq!(None, table.lookup_recur(scope_z_id, "A", &SymbolKind::Var));

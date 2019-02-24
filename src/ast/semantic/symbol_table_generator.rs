@@ -45,6 +45,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
                 self.proc_locals_ref,
             )
         } else {
+            // TODO: call `on_proc_param` with the original procedure name
             let err =
                 AstWalkError::DuplicateProcParam("...".to_string(), param.param_name.to_string());
             Err(err)
@@ -132,21 +133,25 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(&proc_stmt.name, SymbolKind::Proc);
 
         if symbol.is_none() {
-            // let return_type =
-                // if proc_stmt.return_type.is_some() {
-                //     let ret_type_str = proc_stmt.return_type.unwrap();
-                //     let expr_type = ExpressionType::from(ret_type_str.as_str());
-                //     Some(expr_type)
-                // }
-                // else {
-                //     None
-                // };
+            let return_type = if proc_stmt.return_type.is_some() {
+                let ret_type_str = proc_stmt.return_type.clone().unwrap();
+                let expr_type = ExpressionType::from(ret_type_str.as_str());
+
+                Some(expr_type)
+            } else {
+                None
+            };
+
+            let params_types = proc_stmt.params.iter().map(|param|
+                ExpressionType::from(param.param_type.as_str())
+            )
+            .collect::<Vec<ExpressionType>>();
 
             let proc = Procedure {
                 name: proc_stmt.name.to_owned(),
                 reference: Some(self.proc_ref),
-                params_types: None,
-                return_type: None
+                params_types: Some(params_types),
+                return_type,
             };
 
             self.proc_ref += 1;

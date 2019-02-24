@@ -42,6 +42,14 @@ impl Scope {
         table.get_mut(sym_name)
     }
 
+    pub fn is_root_scope(&self) -> bool {
+        self.parent_id.is_none()
+    }
+
+    pub fn is_inner_scope(&self) -> bool {
+        !(self.is_root_scope())
+    }
+
     fn get_kind_table(&self, kind: &SymbolKind) -> &HashMap<String, Symbol> {
         self.symbols.get(kind).unwrap()
     }

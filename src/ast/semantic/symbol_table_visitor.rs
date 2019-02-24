@@ -1,5 +1,6 @@
 use crate::ast::semantic::{ScopeId, Symbol, SymbolKind, SymbolTable};
 
+#[derive(Debug)]
 pub struct SymbolTableVisitor<'a> {
     sym_table: &'a mut SymbolTable,
     scope_id: ScopeId, // current visited scope

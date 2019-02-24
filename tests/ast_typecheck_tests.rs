@@ -1,6 +1,6 @@
 extern crate tytle;
 
-use tytle::ast::expression::ExpressionType;
+use tytle::ast::expression::*;
 use tytle::ast::semantic::*;
 use tytle::parser::{Parser, TytleParser};
 
@@ -49,7 +49,8 @@ fn ast_typecheck_error_assigning_global_int_var_and_than_proc_call_result_which_
             TO MYPROC(): BOOL
             END
 
-            MAKEGLOBAL A = MYPROC()
+            MAKEGLOBAL A = 10
+            MAKE A = MYPROC()
         "#;
 
     let expected = AstWalkError::TypeMismatch(ExpressionType::Int, ExpressionType::Bool);
@@ -58,17 +59,63 @@ fn ast_typecheck_error_assigning_global_int_var_and_than_proc_call_result_which_
 }
 
 #[test]
-#[ignore]
-fn ast_typecheck_error_adding_int_and_string_expressions() {}
+fn ast_typecheck_error_adding_int_and_string_expressions() {
+    let code = r#"
+            MAKEGLOBAL A = "Hello"
+            MAKEGLOBAL B = A + 10
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::Add, ExpressionType::Str, ExpressionType::Int);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_adding_int_and_proc_call_having_str_return_type() {
+    let code = r#"
+            TO MYPROC(): STR
+            END
+
+            MAKEGLOBAL B = 10 + MYPROC()
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::Add, ExpressionType::Int, ExpressionType::Str);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_proc_call_wrong_args_count() {
+    let code = r#"
+            TO MYPROC(A: INT): BOOL
+            END
+
+            MAKEGLOBAL B = MYPROC(1, 2)
+        "#;
+
+    let expected = AstWalkError::InvalidProcCallArgsCount("MYPROC".to_string(), 1, 2);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_proc_call_args_type_mismatch() {
+    let code = r#"
+            TO MYPROC(A: INT): BOOL
+            END
+
+            MAKEGLOBAL B = "Hello"
+            MAKEGLOBAL C = MYPROC(B)
+        "#;
+
+    let expected =
+        AstWalkError::InvalidProcCallArgType(1, ExpressionType::Int, ExpressionType::Str);
+
+    assert_type_err!(expected, code);
+}
 
 #[test]
 #[ignore]
 fn ast_typecheck_error_adding_int_and_proc_call_having_no_return_type() {}
-
-#[test]
-#[ignore]
-fn ast_typecheck_error_adding_int_and_proc_call_having_str_return_type() {}
-
-#[test]
-#[ignore]
-fn ast_typecheck_error_proc_call_type_mismatch() {}

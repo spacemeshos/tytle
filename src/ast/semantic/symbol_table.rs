@@ -32,6 +32,14 @@ impl SymbolTable {
         table
     }
 
+    pub fn is_root_scope(&self) -> bool {
+        self.get_current_scope().parent_id.is_none()
+    }
+
+    pub fn is_inner_scope(&self) -> bool {
+        !(self.is_root_scope())
+    }
+
     pub fn start_scope(&mut self) -> &mut Scope {
         let parent_scope_id = self.get_next_scope_parent_id();
 
@@ -123,7 +131,7 @@ impl SymbolTable {
                 return var;
             }
 
-            if self.is_root_scope() {
+            if scope.is_root_scope() {
                 return None;
             }
 
@@ -150,7 +158,7 @@ impl SymbolTable {
                 return self.lookup_mut(scope_id, sym_name, sym_kind);
             }
 
-            if self.is_root_scope() {
+            if scope.is_root_scope() {
                 return None;
             }
 
@@ -202,14 +210,6 @@ impl SymbolTable {
         let scope_id: u64 = *stack.last().unwrap();
 
         self.scopes.get(&scope_id).unwrap()
-    }
-
-    pub fn is_root_scope(&self) -> bool {
-        self.get_current_scope().parent_id.is_none()
-    }
-
-    pub fn is_inner_scope(&self) -> bool {
-        !(self.is_root_scope())
     }
 
     fn store_symbol(&mut self, symbol: Symbol, kind: &SymbolKind) {

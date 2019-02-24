@@ -49,12 +49,56 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
         let proc: &Procedure = symbol.unwrap().as_proc();
 
-        dbg!(proc);
+        let expected_params_types = proc.params_types.clone().unwrap();
+        let expected_args_count = expected_params_types.len();
+        let actual_args_count = proc_args_exprs.len();
+
+        if expected_args_count != actual_args_count {
+            let err = AstWalkError::InvalidProcCallArgsCount(
+                proc_name.clone(),
+                expected_args_count,
+                actual_args_count,
+            );
+            return Err(err);
+        }
+
+
+        let mut i = 1;
+        let mut actual_iter = proc_args_exprs.iter();
+        let mut expected_iter = expected_params_types.iter();
+
+        while i <= expected_args_count {
+            let arg_expr: &Expression = actual_iter.next().unwrap();
+
+            let actual_type: ExpressionType = arg_expr.expr_type.clone().unwrap();
+            let expected_type: &ExpressionType = expected_iter.next().unwrap();
+
+            if *expected_type != actual_type {
+                let err = AstWalkError::InvalidProcCallArgType(i, expected_type.clone(), actual_type.clone());
+                return Err(err);
+            }
+
+            i += 1;
+        }
+
+        expr.expr_type = proc.return_type.clone();
 
         Ok(())
     }
 
-    fn on_binary_expr(&mut self, bin_expr: &mut Expression) -> AstWalkResult {
+    fn on_binary_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+        let (bin_op, lexpr, rexpr) = expr.as_binary_expr();
+
+        if lexpr.expr_type != rexpr.expr_type {
+            let ltype = lexpr.expr_type.clone().unwrap();
+            let rtype = rexpr.expr_type.clone().unwrap();
+
+            let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), ltype, rtype);
+            return Err(err);
+        }
+
+        expr.expr_type = lexpr.expr_type.clone();
+
         Ok(())
     }
 
