@@ -4,7 +4,7 @@ use crate::ast::expression::ExpressionType;
 pub struct Procedure {
     pub name: String,
     pub reference: Option<u64>,
-    pub params_types: Option<Vec<ExpressionType>>,
+    pub params_types: Vec<ExpressionType>,
     pub return_type: Option<ExpressionType>,
 }
 
@@ -13,7 +13,7 @@ impl Procedure {
         Self {
             name: name.to_owned(),
             reference: None,
-            params_types: None,
+            params_types: Vec::new(),
             return_type: None,
         }
     }

@@ -49,7 +49,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
         let proc: &Procedure = symbol.unwrap().as_proc();
 
-        let expected_params_types = proc.params_types.clone().unwrap();
+        let expected_params_types = proc.params_types.clone();
         let expected_args_count = expected_params_types.len();
         let actual_args_count = proc_args_exprs.len();
 
@@ -62,7 +62,6 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             return Err(err);
         }
 
-
         let mut i = 1;
         let mut actual_iter = proc_args_exprs.iter();
         let mut expected_iter = expected_params_types.iter();
@@ -74,7 +73,11 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             let expected_type: &ExpressionType = expected_iter.next().unwrap();
 
             if *expected_type != actual_type {
-                let err = AstWalkError::InvalidProcCallArgType(i, expected_type.clone(), actual_type.clone());
+                let err = AstWalkError::InvalidProcCallArgType(
+                    i,
+                    expected_type.clone(),
+                    actual_type.clone(),
+                );
                 return Err(err);
             }
 

@@ -98,7 +98,11 @@ fn sym_generate_proc_params() {
     let symbol = visitor.lookup("MYPROC", &SymbolKind::Proc);
     let proc = symbol.unwrap().as_proc();
 
-    let expected_params = Some(vec![ExpressionType::Int, ExpressionType::Str, ExpressionType::Bool]);
+    let expected_params = vec![
+        ExpressionType::Int,
+        ExpressionType::Str,
+        ExpressionType::Bool,
+    ];
 
     assert_eq!(expected_params, proc.params_types);
 }

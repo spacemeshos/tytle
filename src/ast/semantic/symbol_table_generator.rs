@@ -142,15 +142,16 @@ impl SymbolTableGenerator {
                 None
             };
 
-            let params_types = proc_stmt.params.iter().map(|param|
-                ExpressionType::from(param.param_type.as_str())
-            )
-            .collect::<Vec<ExpressionType>>();
+            let params_types = proc_stmt
+                .params
+                .iter()
+                .map(|param| ExpressionType::from(param.param_type.as_str()))
+                .collect::<Vec<ExpressionType>>();
 
             let proc = Procedure {
                 name: proc_stmt.name.to_owned(),
                 reference: Some(self.proc_ref),
-                params_types: Some(params_types),
+                params_types,
                 return_type,
             };
 
