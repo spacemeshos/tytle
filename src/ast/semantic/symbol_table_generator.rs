@@ -144,7 +144,6 @@ impl SymbolTableGenerator {
 
             let proc = Procedure {
                 name: proc_stmt.name.to_owned(),
-                reference: Some(self.proc_ref),
                 params_types,
                 return_type,
             };
