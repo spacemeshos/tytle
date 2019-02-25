@@ -142,10 +142,11 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     fn on_direct_stmt(&mut self, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
-        let expr = &direct_stmt.expr.expr_type;
+        let expr_type = &direct_stmt.expr.expr_type;
 
-        if *expr != Some(ExpressionType::Int) {
-            let err = AstWalkError::NotIntExpr("...".to_string());
+        if *expr_type != Some(ExpressionType::Int) {
+            let expr_str = PrettyPrintExpr::pprint_expr(&direct_stmt.expr);
+            let err = AstWalkError::NotIntExpr(expr_str);
             return Err(err);
         }
 
@@ -156,7 +157,8 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         let cond_expr = &if_stmt.cond_expr;
 
         if cond_expr.expr_type != Some(ExpressionType::Bool) {
-            let err = AstWalkError::NotBooleanExpr("...".to_string());
+            let expr_str = PrettyPrintExpr::pprint_expr(cond_expr);
+            let err = AstWalkError::NotBooleanExpr(expr_str);
             return Err(err);
         }
 
@@ -167,7 +169,8 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         let count_expr = &repeat_stmt.count_expr;
 
         if count_expr.expr_type != Some(ExpressionType::Int) {
-            let err = AstWalkError::NotIntExpr("...".to_string());
+            let expr_str = PrettyPrintExpr::pprint_expr(count_expr);
+            let err = AstWalkError::NotIntExpr(expr_str);
             return Err(err);
         }
 
