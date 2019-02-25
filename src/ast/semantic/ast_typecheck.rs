@@ -100,7 +100,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             return Err(err);
         }
 
-        expr.expr_type = lexpr.expr_type.clone();
+        expr.expr_type = Some(ExpressionType::from(bin_op));
 
         Ok(())
     }
@@ -144,6 +144,28 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
 
     fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
         self.sym_visitor.next_scope();
+        Ok(())
+    }
+
+    fn on_if_stmt(&mut self, if_stmt: &mut IfStmt) -> AstWalkResult {
+        let cond_expr = &if_stmt.cond_expr;
+
+        if cond_expr.expr_type != Some(ExpressionType::Bool) {
+            let err = AstWalkError::NotBooleanExpr("...".to_string());
+            return Err(err);
+        }
+
+        Ok(())
+    }
+
+    fn on_repeat_stmt(&mut self, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+        let count_expr = &repeat_stmt.count_expr;
+
+        if count_expr.expr_type != Some(ExpressionType::Int) {
+            let err = AstWalkError::NotIntExpr("...".to_string());
+            return Err(err);
+        }
+
         Ok(())
     }
 }

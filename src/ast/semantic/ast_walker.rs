@@ -61,7 +61,7 @@ pub trait AstWalker<'a> {
             self.walk_block_stmt(if_stmt.false_block.as_mut().unwrap())?;
         }
 
-        Ok(())
+        self.on_if_stmt(if_stmt)
     }
 
     fn walk_block_stmt(&mut self, block_stmt: &mut BlockStatement) -> AstWalkResult {
@@ -130,7 +130,10 @@ pub trait AstWalker<'a> {
 
     fn walk_repeat_stmt(&mut self, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
         self.walk_expr(&mut repeat_stmt.count_expr)?;
-        self.walk_block_stmt(&mut repeat_stmt.block)
+
+        self.walk_block_stmt(&mut repeat_stmt.block)?;
+
+        self.on_repeat_stmt(repeat_stmt)
     }
 
     // hooks
@@ -199,6 +202,14 @@ pub trait AstWalker<'a> {
     }
 
     // misc
+    fn on_if_stmt(&mut self, if_stmt: &mut IfStmt) -> AstWalkResult {
+        Ok(())
+    }
+
+    fn on_repeat_stmt(&mut self, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+        Ok(())
+    }
+
     fn on_command_stmt(&mut self, cmd: &mut CommandStmt) -> AstWalkResult {
         Ok(())
     }

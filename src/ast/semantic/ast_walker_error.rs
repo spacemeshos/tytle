@@ -14,6 +14,8 @@ pub enum AstWalkError {
     InvalidProcCallArgsCount(String, usize, usize),
     InvalidProcCallArgType(usize, ExpressionType, ExpressionType),
     VariableTypeMissing(String),
+    NotBooleanExpr(String),
+    NotIntExpr(String),
     Custom { message: String },
 }
 

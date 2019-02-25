@@ -36,13 +36,40 @@ fn ast_typecheck_error_declaring_a_local_var_with_proc_call_returning_unit() {
 }
 
 #[test]
+fn ast_typecheck_error_if_stmt_expr_must_be_bool() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+            IF 1 + 2 [MAKE A = 20]
+        "#;
+
+    let expected = AstWalkError::NotBooleanExpr("1 + 2".to_string());
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_repeat_count_expr_must_be_int() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+
+            REPEAT 1 < 2 [
+                MAKE A = 20
+            ]
+        "#;
+
+    let expected = AstWalkError::NotIntExpr("1 < 2".to_string());
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
 fn ast_typecheck_error_if_stmt_block_with_assigning_var_expr_with_wrong_type() {
     let code = r#"
             TO MYPROC()
                 REPEAT 3 [
-                    IF 1 + 2 [
+                    IF 1 < 2 [
                         MAKELOCAL A = TRUE
-                        IF 3 + 4 [MAKE A = 1]
+                        IF 3 < 4 [MAKE A = 1]
                     ]
                 ]
             END

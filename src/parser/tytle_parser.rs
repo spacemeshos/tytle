@@ -164,7 +164,7 @@ impl TytleParser {
             let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::NEWLINE {
-                "".to_string() // a Procedure with no return value
+                "UNIT".to_string() // a Procedure with no return value
             } else {
                 return Err(ParseError::MissingColon);
             }
