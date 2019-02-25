@@ -141,6 +141,17 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
+    fn on_direct_stmt(&mut self, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
+        let expr = &direct_stmt.expr.expr_type;
+
+        if *expr != Some(ExpressionType::Int) {
+            let err = AstWalkError::NotIntExpr("...".to_string());
+            return Err(err);
+        }
+
+        Ok(())
+    }
+
     fn on_if_stmt(&mut self, if_stmt: &mut IfStmt) -> AstWalkResult {
         let cond_expr = &if_stmt.cond_expr;
 
@@ -184,7 +195,12 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn do_binary_expr_typecheck(&self, bin_op: &BinaryOp, lexpr: &Expression, rexpr: &Expression) -> AstWalkResult {
+    fn do_binary_expr_typecheck(
+        &self,
+        bin_op: &BinaryOp,
+        lexpr: &Expression,
+        rexpr: &Expression,
+    ) -> AstWalkResult {
         let ltype = lexpr.expr_type.clone().unwrap();
         let rtype = rexpr.expr_type.clone().unwrap();
 
@@ -201,25 +217,30 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         match bin_op {
             BinaryOp::Add | BinaryOp::Mul => {
                 if expr_type != ExpressionType::Int {
-                    let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), expr_type.clone(), expr_type.clone());
+                    let err = AstWalkError::InvalidBinaryOp(
+                        bin_op.clone(),
+                        expr_type.clone(),
+                        expr_type.clone(),
+                    );
 
                     Err(err)
-                }
-                else {
+                } else {
                     Ok(())
                 }
-            },
+            }
             BinaryOp::GT | BinaryOp::LT => {
                 if expr_type != ExpressionType::Int {
-                    let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), expr_type.clone(), expr_type.clone());
+                    let err = AstWalkError::InvalidBinaryOp(
+                        bin_op.clone(),
+                        expr_type.clone(),
+                        expr_type.clone(),
+                    );
                     Err(err)
-                }
-                else {
+                } else {
                     Ok(())
                 }
-
-            },
-            _ => Ok(())
+            }
+            _ => Ok(()),
         }
     }
 }

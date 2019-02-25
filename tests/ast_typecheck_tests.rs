@@ -350,3 +350,14 @@ fn ast_typecheck_error_variable_declaration_type_must_not_be_unit() {
 
     assert_type_err!(expected, code);
 }
+
+#[test]
+fn ast_typecheck_error_direct_stmt_expr_must_be_an_integer() {
+    let code = r#"
+            FORWARD 1 < 2
+        "#;
+
+    let expected = AstWalkError::NotIntExpr("1 < 2".to_string());
+
+    assert_type_err!(expected, code);
+}
