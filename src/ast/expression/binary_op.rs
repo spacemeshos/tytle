@@ -2,8 +2,13 @@ use crate::lexer::Token;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOp {
+    And,
+    Or,
+    Not,
+
     Add,
     Mul,
+
     GT,
     LT,
     // GTE,
@@ -14,6 +19,9 @@ pub enum BinaryOp {
 impl From<&str> for BinaryOp {
     fn from(tok: &str) -> BinaryOp {
         match tok {
+            "AND" => BinaryOp::And,
+            "OR" => BinaryOp::Or,
+            "NOT" => BinaryOp::Not,
             "+" => BinaryOp::Add,
             "*" => BinaryOp::Mul,
             ">" => BinaryOp::GT,
@@ -26,6 +34,9 @@ impl From<&str> for BinaryOp {
 impl From<&Token> for BinaryOp {
     fn from(tok: &Token) -> BinaryOp {
         match *tok {
+            Token::AND => BinaryOp::And,
+            Token::OR => BinaryOp::Or,
+            Token::NOT => BinaryOp::Not,
             Token::ADD => BinaryOp::Add,
             Token::MUL => BinaryOp::Mul,
             Token::GT => BinaryOp::GT,
@@ -61,5 +72,23 @@ mod tests {
     fn binary_op_lt() {
         assert_eq!(BinaryOp::from("<"), BinaryOp::LT);
         assert_eq!(BinaryOp::from(&Token::LT), BinaryOp::LT);
+    }
+
+    #[test]
+    fn binary_op_and() {
+        assert_eq!(BinaryOp::from("AND"), BinaryOp::And);
+        assert_eq!(BinaryOp::from(&Token::AND), BinaryOp::And);
+    }
+
+    #[test]
+    fn binary_op_or() {
+        assert_eq!(BinaryOp::from("OR"), BinaryOp::Or);
+        assert_eq!(BinaryOp::from(&Token::OR), BinaryOp::Or);
+    }
+
+    #[test]
+    fn binary_op_not() {
+        assert_eq!(BinaryOp::from("NOT"), BinaryOp::Not);
+        assert_eq!(BinaryOp::from(&Token::NOT), BinaryOp::Not);
     }
 }

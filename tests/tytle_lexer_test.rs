@@ -460,3 +460,33 @@ fn lexer_colon() {
     assert_eq!(loc5, Location(1, 6));
     assert_eq!(tok5, Token::VALUE("C".to_string()));
 }
+
+#[test]
+fn lexer_and() {
+    let mut lexer = TytleLexer::new("AND");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::AND);
+}
+
+#[test]
+fn lexer_or() {
+    let mut lexer = TytleLexer::new("OR");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::OR);
+}
+
+#[test]
+fn lexer_not() {
+    let mut lexer = TytleLexer::new("NOT");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::NOT);
+}

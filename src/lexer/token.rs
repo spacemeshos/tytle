@@ -20,5 +20,9 @@ pub enum Token {
 
     COLON, // :
 
+    AND, // `AND`
+    OR,  // `OR`
+    NOT, // `NOT`
+
     VALUE(String),
 }

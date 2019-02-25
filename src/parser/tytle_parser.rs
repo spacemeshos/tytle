@@ -19,6 +19,9 @@ lazy_static! {
         kws.insert("REPEAT");
         kws.insert("TO");
         kws.insert("END");
+        kws.insert("AND");
+        kws.insert("OR");
+        kws.insert("NOT");
         kws
     };
 }
@@ -312,7 +315,49 @@ impl TytleParser {
     }
 
     fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
-        let left_expr = self.parse_non_bool_expr(lexer)?;
+        let left_expr = self.parse_and_expr(lexer)?;
+
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+        match tok {
+            Token::OR => {
+                self.skip_token(lexer); // we skip the `OR` token
+
+                let right_expr = self.parse_and_expr(lexer)?;
+
+                let ast =
+                    ExpressionAst::Binary(BinaryOp::Or, Box::new(left_expr), Box::new(right_expr));
+
+                let expr = Expression::new(ast);
+                Ok(expr)
+            }
+            _ => Ok(left_expr),
+        }
+    }
+
+    fn parse_and_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let left_expr = self.parse_ord_expr(lexer)?;
+
+        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+
+        match tok {
+            Token::AND => {
+                self.skip_token(lexer); // we skip the `AND` token
+
+                let right_expr = self.parse_ord_expr(lexer)?;
+
+                let ast =
+                    ExpressionAst::Binary(BinaryOp::And, Box::new(left_expr), Box::new(right_expr));
+
+                let expr = Expression::new(ast);
+                Ok(expr)
+            }
+            _ => Ok(left_expr),
+        }
+    }
+
+    fn parse_ord_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let left_expr = self.parse_int_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
@@ -322,7 +367,7 @@ impl TytleParser {
 
                 self.skip_token(lexer); // we skip the `> / >= / < / <= / == / !=` token
 
-                let right_expr = self.parse_non_bool_expr(lexer)?;
+                let right_expr = self.parse_int_expr(lexer)?;
 
                 let binary_op = BinaryOp::from(&tok_clone);
 
@@ -336,7 +381,7 @@ impl TytleParser {
         }
     }
 
-    fn parse_non_bool_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+    fn parse_int_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_mul_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
@@ -344,7 +389,7 @@ impl TytleParser {
         if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
 
-            let right_expr = self.parse_non_bool_expr(lexer)?;
+            let right_expr = self.parse_int_expr(lexer)?;
 
             let ast =
                 ExpressionAst::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr));
@@ -381,7 +426,7 @@ impl TytleParser {
         if *tok == Token::LPAREN {
             self.skip_token(lexer); // skip the `(`
 
-            let inner_expr = self.parse_non_bool_expr(lexer)?;
+            let inner_expr = self.parse_int_expr(lexer)?;
 
             self.expect_token(lexer, Token::RPAREN)?;
 

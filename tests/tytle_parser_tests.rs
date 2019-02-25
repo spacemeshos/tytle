@@ -358,6 +358,58 @@ fn parse_if_stmt_without_else() {
 }
 
 #[test]
+fn parse_if_stmt_and_clauses() {
+    let code = r#"
+        IF 1 > 2 AND 3 < 4 [
+            MAKE A = 10
+        ]
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let lexpr = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let rexpr = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4));
+    let cond_expr = binary_expr!("AND", boxed_expr!(lexpr), boxed_expr!(rexpr));
+
+    let if_stmt = if_stmt! {
+        cond: cond_expr,
+        when_true: block_stmt! {
+            make_stmt!("A", int_lit_expr!(10))
+        }
+    };
+
+    let expected = ast! { if_stmt };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_if_stmt_or_clauses() {
+    let code = r#"
+        IF 1 > 2 OR 3 < 4 [
+            MAKE A = 10
+        ]
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let lexpr = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let rexpr = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4));
+    let cond_expr = binary_expr!("OR", boxed_expr!(lexpr), boxed_expr!(rexpr));
+
+    let if_stmt = if_stmt! {
+        cond: cond_expr,
+        when_true: block_stmt! {
+            make_stmt!("A", int_lit_expr!(10))
+        }
+    };
+
+    let expected = ast! { if_stmt };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_if_stmt_with_else() {
     let code = r#"
         IF 1 < 2 [MAKE A = 1] [MAKE B = 2]
@@ -808,6 +860,36 @@ fn parse_error_end_is_a_reserved_keyword() {
     let code = "MAKEGLOBAL END = 1";
 
     let expected = ParseError::ReservedKeyword("END".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+#[ignore]
+fn parse_error_and_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL AND = 1";
+
+    let expected = ParseError::ReservedKeyword("AND".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+#[ignore]
+fn parse_error_or_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL OR = 1";
+
+    let expected = ParseError::ReservedKeyword("OR".to_string());
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
+#[ignore]
+fn parse_error_not_is_a_reserved_keyword() {
+    let code = "MAKEGLOBAL NOT = 1";
+
+    let expected = ParseError::ReservedKeyword("NOT".to_string());
 
     assert_parse_err!(expected, code);
 }

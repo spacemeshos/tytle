@@ -71,6 +71,13 @@ macro_rules! boxed_var_lit_expr {
 }
 
 #[macro_export]
+macro_rules! boxed_expr {
+    ($expr:expr) => {{
+        Box::new($expr)
+    }};
+}
+
+#[macro_export]
 macro_rules! direct_lit_expr {
     ($dir:ident, $count:expr) => {{
         use $crate::ast::expression::{ExpressionAst, LiteralExpr};

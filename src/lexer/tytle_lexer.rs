@@ -148,14 +148,21 @@ impl<'a> TytleLexer<'a> {
 
     fn push_token(&mut self, token_chars: &mut Vec<char>) {
         if token_chars.len() > 0 {
-            let value = token_chars.iter().collect();
+            let value = token_chars.iter().collect::<String>();
 
             let loc = Location(
                 self.location.line(),
                 self.location.column() - token_chars.len(),
             );
 
-            let entry = (Token::VALUE(value), loc);
+            let token = match value.as_str() {
+                "AND" => Token::AND,
+                "OR" => Token::OR,
+                "NOT" => Token::NOT,
+                _ => Token::VALUE(value),
+            };
+
+            let entry = (token, loc);
 
             self.tokens_buffer.push_back(entry);
         }
