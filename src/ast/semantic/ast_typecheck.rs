@@ -92,13 +92,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_binary_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
         let (bin_op, lexpr, rexpr) = expr.as_binary_expr();
 
-        if lexpr.expr_type != rexpr.expr_type {
-            let ltype = lexpr.expr_type.clone().unwrap();
-            let rtype = rexpr.expr_type.clone().unwrap();
-
-            let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), ltype, rtype);
-            return Err(err);
-        }
+        self.do_binary_expr_typecheck(bin_op, lexpr, rexpr)?;
 
         expr.expr_type = Some(ExpressionType::from(bin_op));
 
@@ -188,5 +182,44 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
         var.var_type = Some(expr_type.to_owned());
 
         Ok(())
+    }
+
+    fn do_binary_expr_typecheck(&self, bin_op: &BinaryOp, lexpr: &Expression, rexpr: &Expression) -> AstWalkResult {
+        let ltype = lexpr.expr_type.clone().unwrap();
+        let rtype = rexpr.expr_type.clone().unwrap();
+
+        if ltype != rtype {
+            let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), ltype, rtype);
+            return Err(err);
+        }
+
+        assert!(ltype == rtype);
+
+        // if we're here we know that `left expression type == right expression type`
+        let expr_type: ExpressionType = ltype;
+
+        match bin_op {
+            BinaryOp::Add | BinaryOp::Mul => {
+                if expr_type != ExpressionType::Int {
+                    let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), expr_type.clone(), expr_type.clone());
+
+                    Err(err)
+                }
+                else {
+                    Ok(())
+                }
+            },
+            BinaryOp::GT | BinaryOp::LT => {
+                if expr_type != ExpressionType::Int {
+                    let err = AstWalkError::InvalidBinaryOp(bin_op.clone(), expr_type.clone(), expr_type.clone());
+                    Err(err)
+                }
+                else {
+                    Ok(())
+                }
+
+            },
+            _ => Ok(())
+        }
     }
 }

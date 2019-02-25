@@ -19,6 +19,151 @@ macro_rules! assert_type_err {
     }};
 }
 
+macro_rules! do_typecheck {
+    ($code:expr, $sym_table_var: ident) => {
+        let mut ast = TytleParser.parse($code).unwrap();
+
+        let mut sym_generator = SymbolTableGenerator::new();
+        let mut $sym_table_var = sym_generator.generate(&mut ast).unwrap();
+        let mut sym_visitor = SymbolTableVisitor::new(&mut $sym_table_var);
+        let mut type_checker = AstTypeCheck::new(&mut sym_visitor);
+
+        let actual = type_checker.check(&mut ast);
+
+        assert_eq!(Ok(()), actual);
+    };
+}
+
+#[test]
+fn ast_typecheck_var_assign_bool_literal() {
+    let code = r#"
+            MAKEGLOBAL A = TRUE
+            MAKEGLOBAL B = FALSE
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    // variable A
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
+
+    // variable B
+    let symbol = visitor.lookup("B", &SymbolKind::Var);
+    let var_b = symbol.unwrap().as_var();
+    assert_eq!(var_b.var_type, Some(ExpressionType::Bool));
+}
+
+#[test]
+fn ast_typecheck_var_assign_bool_expr() {
+    let code = r#"
+            MAKEGLOBAL A = 1 < 2
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
+}
+
+#[test]
+fn ast_typecheck_var_assign_int_literal() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Int));
+}
+
+#[test]
+fn ast_typecheck_var_assign_int_expr() {
+    let code = r#"
+            MAKEGLOBAL A = (1 + 2) * (3 + 4)
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Int));
+}
+
+#[test]
+fn ast_typecheck_var_assign_str_literal() {
+    let code = r#"
+            MAKEGLOBAL A = "Hello"
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Str));
+}
+
+#[test]
+fn ast_typecheck_error_cannot_add_strings() {
+    let code = r#"
+            MAKEGLOBAL A = "Hello" + "World"
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::Add, ExpressionType::Str, ExpressionType::Str);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_add_bools() {
+    let code = r#"
+            MAKEGLOBAL A = TRUE + FALSE
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::Add, ExpressionType::Bool, ExpressionType::Bool);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_order_bools() {
+    let code = r#"
+            MAKEGLOBAL A = TRUE > FALSE
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::GT, ExpressionType::Bool, ExpressionType::Bool);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_order_strings() {
+    let code = r#"
+            MAKEGLOBAL A = "Hello" < "World"
+        "#;
+
+    let expected =
+        AstWalkError::InvalidBinaryOp(BinaryOp::LT, ExpressionType::Str, ExpressionType::Str);
+
+    assert_type_err!(expected, code);
+}
+
 #[test]
 fn ast_typecheck_error_declaring_a_local_var_with_proc_call_returning_unit() {
     let code = r#"
