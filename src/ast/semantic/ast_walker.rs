@@ -46,7 +46,7 @@ pub trait AstWalker<'a> {
 
     fn walk_proc_params(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         for param in &mut proc_stmt.params {
-            self.on_proc_param(param)?;
+            self.on_proc_param(&proc_stmt.name, param)?;
         }
 
         Ok(())
@@ -145,7 +145,7 @@ pub trait AstWalker<'a> {
         Ok(())
     }
 
-    fn on_proc_param(&mut self, param: &mut ProcParam) -> AstWalkResult {
+    fn on_proc_param(&mut self, proc_name: &str, proc_param: &mut ProcParam) -> AstWalkResult {
         Ok(())
     }
 

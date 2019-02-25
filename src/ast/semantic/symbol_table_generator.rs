@@ -32,22 +32,23 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         Ok(())
     }
 
-    fn on_proc_param(&mut self, param: &mut ProcParam) -> AstWalkResult {
-        let symbol = self.try_get_symbol(&param.param_name, SymbolKind::Var);
+    fn on_proc_param(&mut self, proc_name: &str, proc_param: &mut ProcParam) -> AstWalkResult {
+        let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let param_type = ExpressionType::from(param.param_type.as_str());
+            let param_type = ExpressionType::from(proc_param.param_type.as_str());
 
             self.create_var_symbol(
-                &param.param_name,
+                &proc_param.param_name,
                 Some(param_type),
                 false,
                 self.proc_locals_ref,
             )
         } else {
-            // TODO: call `on_proc_param` with the original procedure name
-            let err =
-                AstWalkError::DuplicateProcParam("...".to_string(), param.param_name.to_string());
+            let err = AstWalkError::DuplicateProcParam(
+                proc_name.to_string(),
+                proc_param.param_name.to_string(),
+            );
             Err(err)
         }
     }
