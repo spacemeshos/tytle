@@ -384,6 +384,42 @@ fn parse_if_stmt_and_clauses() {
 }
 
 #[test]
+fn parse_if_stmt_and_or_parens_clauses() {
+    let code = r#"
+        IF ((((1 > 2) OR ((3 < 4))) AND (5 < 6)) OR (7 < 8)) [
+            MAKE A = 10
+        ]
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expr12 = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let expr34 = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4));
+    let expr56 = binary_expr!("<", boxed_int_lit_expr!(5), boxed_int_lit_expr!(6));
+    let expr78 = binary_expr!("<", boxed_int_lit_expr!(7), boxed_int_lit_expr!(8));
+
+    // (1 > 2) OR (3 < 4)
+    let or_clause = binary_expr!("OR", boxed_expr!(expr12), boxed_expr!(expr34));
+
+    // (((1 > 2) OR ((3 < 4))) AND (5 < 6))
+    let and_clause = binary_expr!("AND", boxed_expr!(or_clause), boxed_expr!(expr56));
+
+    // ((((1 > 2) OR ((3 < 4))) AND (5 < 6)) OR (7 < 8))
+    let cond_expr = binary_expr!("OR", boxed_expr!(and_clause), boxed_expr!(expr78));
+
+    let if_stmt = if_stmt! {
+        cond: cond_expr,
+        when_true: block_stmt! {
+            make_stmt!("A", int_lit_expr!(10))
+        }
+    };
+
+    let expected = ast! { if_stmt };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_if_stmt_or_clauses() {
     let code = r#"
         IF 1 > 2 OR 3 < 4 [

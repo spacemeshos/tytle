@@ -426,7 +426,7 @@ impl TytleParser {
         if *tok == Token::LPAREN {
             self.skip_token(lexer); // skip the `(`
 
-            let inner_expr = self.parse_int_expr(lexer)?;
+            let inner_expr = self.parse_expr(lexer)?;
 
             self.expect_token(lexer, Token::RPAREN)?;
 
