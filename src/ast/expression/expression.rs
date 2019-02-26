@@ -23,6 +23,13 @@ impl Expression {
         }
     }
 
+    pub fn as_not_expr(&self) -> &Expression {
+        match &self.expr_ast {
+            ExpressionAst::Not(inner_expr) => inner_expr,
+            _ => panic!("expected a not expression. got: `{:?}`", self.expr_ast),
+        }
+    }
+
     pub fn as_binary_expr(&self) -> (&BinaryOp, &Expression, &Expression) {
         match &self.expr_ast {
             ExpressionAst::Binary(bin_op, lexpr, rexpr) => (bin_op, lexpr, rexpr),

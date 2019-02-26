@@ -41,6 +41,20 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
+    fn on_not_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+        let inner_expr = expr.as_not_expr();
+
+        if inner_expr.expr_type != Some(ExpressionType::Bool) {
+            let expr_str = PrettyPrintExpr::pprint_expr(inner_expr);
+            let err = AstWalkError::NotBooleanExpr(expr_str);
+            return Err(err);
+        }
+
+        expr.expr_type = Some(ExpressionType::Bool);
+
+        Ok(())
+    }
+
     fn on_proc_call_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
         let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
 

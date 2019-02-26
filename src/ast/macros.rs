@@ -8,7 +8,7 @@ macro_rules! direction {
 #[macro_export]
 macro_rules! int_lit_expr {
     ($num:expr) => {{
-        use $crate::ast::expression::{Expression, LiteralExpr};
+        use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Int($num));
         let expr = Expression::new(ast);
@@ -19,7 +19,7 @@ macro_rules! int_lit_expr {
 #[macro_export]
 macro_rules! str_lit_expr {
     ($s:expr) => {{
-        use $crate::ast::expression::{Expression, LiteralExpr};
+        use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Str($s.to_string()));
         let expr = Expression::new(ast);
@@ -30,7 +30,7 @@ macro_rules! str_lit_expr {
 #[macro_export]
 macro_rules! bool_lit_expr {
     ($bool:expr) => {{
-        use $crate::ast::expression::{Expression, LiteralExpr};
+        use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Bool($bool));
         let expr = Expression::new(ast);
@@ -41,7 +41,7 @@ macro_rules! bool_lit_expr {
 #[macro_export]
 macro_rules! var_lit_expr {
     ($s:expr) => {{
-        use $crate::ast::expression::{Expression, LiteralExpr};
+        use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string()));
         let expr = Expression::new(ast);
@@ -80,7 +80,7 @@ macro_rules! boxed_expr {
 #[macro_export]
 macro_rules! direct_lit_expr {
     ($dir:ident, $count:expr) => {{
-        use $crate::ast::expression::{ExpressionAst, LiteralExpr};
+        use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Int($count));
         let expr = Expression::new(ast);
@@ -152,9 +152,20 @@ macro_rules! make_stmt {
 }
 
 #[macro_export]
+macro_rules! not_expr {
+    ($expr:expr) => {{
+        use $crate::ast::expression::{Expression, ExpressionAst};
+
+        let ast = ExpressionAst::Not(Box::new($expr));
+        let expr = Expression::new(ast);
+        expr
+    }};
+}
+
+#[macro_export]
 macro_rules! binary_expr {
     ($op_str:expr, $lexpr:expr, $rexpr:expr) => {{
-        use $crate::ast::expression::Expression;
+        use $crate::ast::expression::{Expression, ExpressionAst};
 
         let op = BinaryOp::from($op_str);
         let ast = ExpressionAst::Binary(op, $lexpr, $rexpr);
@@ -272,7 +283,7 @@ macro_rules! empty_block {
 macro_rules! proc_call_expr {
     (name: $proc_name:expr, params: [$( $param:expr ),*]) => {
         {
-            use $crate::ast::expression::Expression;
+            use $crate::ast::expression::{Expression, ExpressionAst};
 
             let mut params = Vec::<Expression>::new();
             $( params.push($param); )*

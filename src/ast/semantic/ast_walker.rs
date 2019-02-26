@@ -88,6 +88,11 @@ pub trait AstWalker<'a> {
 
                 self.on_binary_expr(expr)
             }
+            ExpressionAst::Not(ref mut inner_expr) => {
+                self.walk_expr(inner_expr)?;
+
+                self.on_not_expr(expr)
+            }
         }
     }
 
@@ -168,6 +173,10 @@ pub trait AstWalker<'a> {
     }
 
     fn on_binary_expr(&mut self, bin_expr: &mut Expression) -> AstWalkResult {
+        Ok(())
+    }
+
+    fn on_not_expr(&mut self, inner_expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 

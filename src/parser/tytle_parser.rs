@@ -336,7 +336,7 @@ impl TytleParser {
     }
 
     fn parse_and_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
-        let left_expr = self.parse_ord_expr(lexer)?;
+        let left_expr = self.parse_cmp_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
@@ -344,7 +344,7 @@ impl TytleParser {
             Token::AND => {
                 self.skip_token(lexer); // we skip the `AND` token
 
-                let right_expr = self.parse_ord_expr(lexer)?;
+                let right_expr = self.parse_cmp_expr(lexer)?;
 
                 let ast =
                     ExpressionAst::Binary(BinaryOp::And, Box::new(left_expr), Box::new(right_expr));
@@ -356,8 +356,8 @@ impl TytleParser {
         }
     }
 
-    fn parse_ord_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
-        let left_expr = self.parse_int_expr(lexer)?;
+    fn parse_cmp_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        let left_expr = self.parse_clause_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
@@ -367,7 +367,7 @@ impl TytleParser {
 
                 self.skip_token(lexer); // we skip the `> / >= / < / <= / == / !=` token
 
-                let right_expr = self.parse_int_expr(lexer)?;
+                let right_expr = self.parse_clause_expr(lexer)?;
 
                 let binary_op = BinaryOp::from(&tok_clone);
 
@@ -381,7 +381,7 @@ impl TytleParser {
         }
     }
 
-    fn parse_int_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+    fn parse_clause_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_mul_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
@@ -389,7 +389,7 @@ impl TytleParser {
         if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
 
-            let right_expr = self.parse_int_expr(lexer)?;
+            let right_expr = self.parse_clause_expr(lexer)?;
 
             let ast =
                 ExpressionAst::Binary(BinaryOp::Add, Box::new(left_expr), Box::new(right_expr));
@@ -423,28 +423,40 @@ impl TytleParser {
     fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        if *tok == Token::LPAREN {
-            self.skip_token(lexer); // skip the `(`
-
-            let inner_expr = self.parse_expr(lexer)?;
-
-            self.expect_token(lexer, Token::RPAREN)?;
-
-            Ok(inner_expr)
-        } else {
-            self.parse_basic_expr(lexer)
+        match tok {
+            Token::LPAREN => {
+                self.skip_token(lexer); // skip the `(`
+                let inner_expr = self.parse_expr(lexer)?;
+                self.expect_token(lexer, Token::RPAREN)?;
+                Ok(inner_expr)
+            },
+            Token::NOT => self.parse_not_expr(lexer),
+            _ => self.parse_basic_expr(lexer),
         }
+    }
+
+    fn parse_not_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+        self.skip_token(lexer); // skip the `NOT`
+
+        let inner_expr = self.parse_expr(lexer)?;
+
+        let ast = ExpressionAst::Not(Box::new(inner_expr));
+        let expr = Expression::new(ast);
+        Ok(expr)
     }
 
     fn parse_basic_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let (token, _location) = self.peek_next_token(lexer).unwrap();
 
-        let ast = if *token == Token::LPAREN {
-            let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
-            ExpressionAst::ProcCall(proc_name, proc_params)
-        } else {
-            let lit_expr = self.parse_literal_expr(lexer)?;
-            ExpressionAst::Literal(lit_expr)
+        let ast = match *token {
+            Token::LPAREN => {
+                let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
+                ExpressionAst::ProcCall(proc_name, proc_params)
+            }
+            _ => {
+                let lit_expr = self.parse_literal_expr(lexer)?;
+                ExpressionAst::Literal(lit_expr)
+            }
         };
 
         let expr = Expression::new(ast);

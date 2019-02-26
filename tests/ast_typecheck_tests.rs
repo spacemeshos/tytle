@@ -57,9 +57,24 @@ fn ast_typecheck_var_assign_bool_literal() {
 }
 
 #[test]
-fn ast_typecheck_var_assign_bool_expr() {
+fn ast_typecheck_var_assign_cmp_expr() {
     let code = r#"
             MAKEGLOBAL A = 1 < 2
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
+}
+
+#[test]
+fn ast_typecheck_var_assign_not_expr() {
+    let code = r#"
+            MAKEGLOBAL A = NOT FALSE
         "#;
 
     do_typecheck!(code, sym_table);
@@ -160,6 +175,30 @@ fn ast_typecheck_error_cannot_order_strings() {
 
     let expected =
         AstWalkError::InvalidBinaryOp(BinaryOp::LT, ExpressionType::Str, ExpressionType::Str);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_negate_int() {
+    let code = r#"
+            MAKEGLOBAL A = NOT(1 + 2)
+        "#;
+
+    let expected =
+        AstWalkError::NotBooleanExpr("1 + 2".to_string());
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_negate_string() {
+    let code = r#"
+            MAKEGLOBAL A = NOT "Hello"
+        "#;
+
+    let expected =
+        AstWalkError::NotBooleanExpr("\"Hello\"".to_string());
 
     assert_type_err!(expected, code);
 }

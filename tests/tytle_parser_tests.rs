@@ -332,6 +332,23 @@ fn parse_make_global_variable_assign_a_boolean_false() {
 }
 
 #[test]
+fn parse_make_global_variable_assign_a_boolean_not_true() {
+    let code = r#"
+        MAKEGLOBAL A = NOT TRUE
+        MAKEGLOBAL B = NOT(FALSE)
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expected = ast! {
+        make_global_stmt!("A", not_expr!(bool_lit_expr!(true))),
+        make_global_stmt!("B", not_expr!(bool_lit_expr!(false)))
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_if_stmt_without_else() {
     let code = r#"
         IF 1 > 2 [
