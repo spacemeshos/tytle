@@ -94,6 +94,9 @@ impl TytleParser {
         self.skip_token(lexer); // skipping the `TO` token
 
         let name = self.expect_value(lexer)?;
+
+        self.validate_name(name.as_str())?;
+
         let borders = (None, Token::VALUE("END".to_string()));
         let (params, return_type) = self.parse_proc_signature(lexer)?;
         let block = self.parse_block_stmt(lexer, borders)?;
@@ -128,7 +131,7 @@ impl TytleParser {
             } else {
                 let param_name = self.expect_value(lexer)?;
 
-                self.validate_var_name(param_name.as_str())?;
+                self.validate_name(param_name.as_str())?;
                 self.expect_token(lexer, Token::COLON)?;
 
                 let param_type = self.expect_value(lexer)?;
@@ -296,7 +299,7 @@ impl TytleParser {
 
         let mut var = self.expect_value(lexer)?;
 
-        self.validate_var_name(var.as_str())?;
+        self.validate_name(var.as_str())?;
 
         self.expect_token(lexer, Token::ASSIGN)?;
 
@@ -623,7 +626,7 @@ impl TytleParser {
         lexer.pop_current_token()
     }
 
-    fn validate_var_name(&self, name: &str) -> Result<(), ParseError> {
+    fn validate_name(&self, name: &str) -> Result<(), ParseError> {
         let upper = name
             .chars()
             .all(|c| c.is_ascii_uppercase() || c.is_digit(10) || c == '_');
