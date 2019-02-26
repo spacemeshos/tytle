@@ -5,6 +5,7 @@ pub enum ExpressionAst {
     Literal(LiteralExpr),
     ProcCall(String, Vec<Expression>),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
+    Parentheses(Box<Expression>),
     Not(Box<Expression>),
 }
 

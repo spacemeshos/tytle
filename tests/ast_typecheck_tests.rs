@@ -185,8 +185,7 @@ fn ast_typecheck_error_cannot_negate_int() {
             MAKEGLOBAL A = NOT(1 + 2)
         "#;
 
-    let expected =
-        AstWalkError::NotBooleanExpr("1 + 2".to_string());
+    let expected = AstWalkError::NotBooleanExpr("(1 + 2)".to_string());
 
     assert_type_err!(expected, code);
 }
@@ -197,8 +196,7 @@ fn ast_typecheck_error_cannot_negate_string() {
             MAKEGLOBAL A = NOT "Hello"
         "#;
 
-    let expected =
-        AstWalkError::NotBooleanExpr("\"Hello\"".to_string());
+    let expected = AstWalkError::NotBooleanExpr("\"Hello\"".to_string());
 
     assert_type_err!(expected, code);
 }

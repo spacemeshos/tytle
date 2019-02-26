@@ -41,11 +41,20 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
+    fn on_parentheses_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+        let inner_expr = expr.as_parentheses_expr();
+
+        // we copy the inner expresison to the outer parentheses expression
+        expr.expr_type = inner_expr.expr_type.clone();
+
+        Ok(())
+    }
+
     fn on_not_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
         let inner_expr = expr.as_not_expr();
 
         if inner_expr.expr_type != Some(ExpressionType::Bool) {
-            let expr_str = PrettyPrintExpr::pprint_expr(inner_expr);
+            let expr_str = PrettyPrintAst::pprint_expr(inner_expr);
             let err = AstWalkError::NotBooleanExpr(expr_str);
             return Err(err);
         }
@@ -159,7 +168,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         let expr_type = &direct_stmt.expr.expr_type;
 
         if *expr_type != Some(ExpressionType::Int) {
-            let expr_str = PrettyPrintExpr::pprint_expr(&direct_stmt.expr);
+            let expr_str = PrettyPrintAst::pprint_expr(&direct_stmt.expr);
             let err = AstWalkError::NotIntExpr(expr_str);
             return Err(err);
         }
@@ -171,7 +180,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         let cond_expr = &if_stmt.cond_expr;
 
         if cond_expr.expr_type != Some(ExpressionType::Bool) {
-            let expr_str = PrettyPrintExpr::pprint_expr(cond_expr);
+            let expr_str = PrettyPrintAst::pprint_expr(cond_expr);
             let err = AstWalkError::NotBooleanExpr(expr_str);
             return Err(err);
         }
@@ -183,7 +192,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         let count_expr = &repeat_stmt.count_expr;
 
         if count_expr.expr_type != Some(ExpressionType::Int) {
-            let expr_str = PrettyPrintExpr::pprint_expr(count_expr);
+            let expr_str = PrettyPrintAst::pprint_expr(count_expr);
             let err = AstWalkError::NotIntExpr(expr_str);
             return Err(err);
         }

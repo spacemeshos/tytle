@@ -6,7 +6,7 @@ use tytle::ast::expression::*;
 fn pp_lit_true() {
     let ast = ExpressionAst::Literal(LiteralExpr::Bool(true));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "TRUE".to_string());
 }
@@ -15,7 +15,7 @@ fn pp_lit_true() {
 fn pp_lit_false() {
     let ast = ExpressionAst::Literal(LiteralExpr::Bool(false));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "FALSE".to_string());
 }
@@ -24,7 +24,7 @@ fn pp_lit_false() {
 fn pp_lit_int() {
     let ast = ExpressionAst::Literal(LiteralExpr::Int(10));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "10".to_string());
 }
@@ -33,7 +33,7 @@ fn pp_lit_int() {
 fn pp_lit_str() {
     let ast = ExpressionAst::Literal(LiteralExpr::Str("Hello".to_string()));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "\"Hello\"".to_string());
 }
@@ -42,7 +42,7 @@ fn pp_lit_str() {
 fn pp_lit_var() {
     let ast = ExpressionAst::Literal(LiteralExpr::Var("MYVAR".to_string()));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "MYVAR".to_string());
 }
@@ -54,7 +54,7 @@ fn pp_binary_expr_not() {
 
     let ast = ExpressionAst::Not(Box::new(inner_expr));
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "NOT TRUE".to_string());
 }
@@ -71,7 +71,7 @@ fn pp_binary_expr_add() {
     );
 
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "1 + X".to_string());
 }
@@ -88,7 +88,7 @@ fn pp_binary_expr_and() {
     );
 
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "TRUE AND FALSE".to_string());
 }
@@ -102,7 +102,7 @@ fn pp_proc_call_expr() {
     let ast = ExpressionAst::ProcCall("MYPROC".to_string(), proc_args);
 
     let expr = Expression::new(ast);
-    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+    let buffer = PrettyPrintAst::pprint_expr(&expr);
 
     assert_eq!(buffer, "MYPROC(1, 2)".to_string());
 }

@@ -4,7 +4,6 @@ use crate::ast::expression::*;
 pub struct Expression {
     pub expr_type: Option<ExpressionType>,
     pub expr_ast: ExpressionAst,
-    pub surrounded_by_parens: bool,
 }
 
 impl Expression {
@@ -12,7 +11,20 @@ impl Expression {
         Self {
             expr_ast,
             expr_type: None,
-            surrounded_by_parens: false,
+        }
+    }
+
+    pub fn with_parentheses(expr_ast: ExpressionAst) -> Self {
+        let inner_expr = Self::new(expr_ast);
+
+        let ast = ExpressionAst::Parentheses(Box::new(inner_expr));
+        Self::new(ast)
+    }
+
+    pub fn adjust_parentheses(expr_ast: ExpressionAst, wrap: bool) -> Self {
+        match wrap {
+            true => Self::with_parentheses(expr_ast),
+            false => Self::new(expr_ast),
         }
     }
 }
@@ -29,6 +41,16 @@ impl Expression {
         match &self.expr_ast {
             ExpressionAst::Not(inner_expr) => inner_expr,
             _ => panic!("expected a not expression. got: `{:?}`", self.expr_ast),
+        }
+    }
+
+    pub fn as_parentheses_expr(&self) -> &Expression {
+        match &self.expr_ast {
+            ExpressionAst::Parentheses(inner_expr) => inner_expr,
+            _ => panic!(
+                "expected a expression surrounded by parentheses. got: `{:?}`",
+                self.expr_ast
+            ),
         }
     }
 

@@ -15,10 +15,7 @@ macro_rules! int_lit_expr {
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Int($num));
-        let mut expr = Expression::new(ast);
-
-        expr.surrounded_by_parens = $parens;
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
@@ -32,10 +29,7 @@ macro_rules! str_lit_expr {
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Str($s.to_string()));
-        let mut expr = Expression::new(ast);
-
-        expr.surrounded_by_parens = $parens;
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
@@ -49,11 +43,7 @@ macro_rules! bool_lit_expr {
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Bool($bool));
-
-        let mut expr = Expression::new(ast);
-        expr.surrounded_by_parens = $parens;
-
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
@@ -67,11 +57,7 @@ macro_rules! var_lit_expr {
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string()));
-
-        let mut expr = Expression::new(ast);
-        expr.surrounded_by_parens = $parens;
-
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
@@ -125,8 +111,7 @@ macro_rules! direct_lit_expr {
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
         let ast = ExpressionAst::Literal(LiteralExpr::Int($count));
-        let mut expr = Expression::new(ast);
-        expr.surrounded_by_parens = $parens;
+        let expr = Expression::adjust_parentheses(ast, $parens);
 
         Statement::Direction($crate::ast::statement::DirectionStmt {
             direction: direction!($dir),
@@ -204,11 +189,7 @@ macro_rules! not_expr {
         use $crate::ast::expression::{Expression, ExpressionAst};
 
         let ast = ExpressionAst::Not(Box::new($expr));
-
-        let mut expr = Expression::new(ast);
-        expr.surrounded_by_parens = $parens;
-
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
@@ -223,11 +204,7 @@ macro_rules! binary_expr {
 
         let op = BinaryOp::from($op_str);
         let ast = ExpressionAst::Binary(op, $lexpr, $rexpr);
-
-        let mut expr = Expression::new(ast);
-        expr.surrounded_by_parens = $parens;
-
-        expr
+        Expression::adjust_parentheses(ast, $parens)
     }};
 }
 
