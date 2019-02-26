@@ -180,6 +180,16 @@ macro_rules! make_stmt {
 }
 
 #[macro_export]
+macro_rules! with_parentheses {
+    ($expr:expr) => {{
+        use $crate::ast::expression::{Expression, ExpressionAst};
+
+        let ast = ExpressionAst::Parentheses(Box::new($expr));
+        Expression::new(ast)
+    }};
+}
+
+#[macro_export]
 macro_rules! not_expr {
     ($expr:expr) => {{
         not_expr!($expr, parens: false)

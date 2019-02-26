@@ -411,7 +411,7 @@ fn parse_if_stmt_and_or_parens_clauses() {
     let actual = TytleParser.parse(code).unwrap();
 
     let expr12 = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2), parens: true);
-    let expr34 = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4), parens: true);
+    let expr34 = with_parentheses!(binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4), parens: true));
     let expr56 = binary_expr!("<", boxed_int_lit_expr!(5), boxed_int_lit_expr!(6), parens: true);
     let expr78 = binary_expr!("<", boxed_int_lit_expr!(7), boxed_int_lit_expr!(8), parens: true);
 

@@ -1,9 +1,20 @@
 use crate::ast::expression::*;
 use crate::ast::statement::*;
+use crate::ast::Ast;
 
 pub struct PrettyPrintAst;
 
 impl PrettyPrintAst {
+    pub fn pprint_ast(ast: &Ast) -> String {
+        let mut buffer = Vec::<String>::new();
+
+        for stmt in &ast.statements {
+            Self::do_pprint_stmt(&mut buffer, stmt);
+        }
+
+        buffer.join("")
+    }
+
     pub fn pprint_stmt(stmt: &Statement) -> String {
         let mut buffer = Vec::<String>::new();
 
@@ -154,11 +165,11 @@ impl PrettyPrintAst {
     }
 
     fn pp_block_stmt(buffer: &mut Vec<String>, block_stmt: &BlockStatement) {
-        buffer.push("[".to_string());
+        buffer.push("[\n".to_string());
         for stmt in &block_stmt.stmts {
             let stmt_str: String = Self::pprint_stmt(stmt);
             buffer.push(format!("   {}", stmt_str));
         }
-        buffer.push("]".to_string());
+        buffer.push("\n]".to_string());
     }
 }
