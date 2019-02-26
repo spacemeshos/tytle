@@ -426,10 +426,16 @@ impl TytleParser {
         match tok {
             Token::LPAREN => {
                 self.skip_token(lexer); // skip the `(`
-                let inner_expr = self.parse_expr(lexer)?;
+                let mut inner_expr = self.parse_expr(lexer)?;
+
+                // we mark `surrounded_by_parens = true`
+                // so that pretty printing of the expression the orignal
+                // will print the parentheses
+                inner_expr.surrounded_by_parens = true;
+
                 self.expect_token(lexer, Token::RPAREN)?;
                 Ok(inner_expr)
-            },
+            }
             Token::NOT => self.parse_not_expr(lexer),
             _ => self.parse_basic_expr(lexer),
         }

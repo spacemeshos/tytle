@@ -123,7 +123,7 @@ fn parse_direction_forward_and_then_backward_with_empty_lines() {
 #[test]
 fn parse_expr_integer_surrounded_by_parentheses() {
     let actual = TytleParser.parse("FORWARD (10)").unwrap();
-    let expected = ast! { direct_lit_expr!(FORWARD, 10) };
+    let expected = ast! { direct_lit_expr!(FORWARD, 10, parens: true) };
 
     assert_eq!(expected, actual);
 }
@@ -195,8 +195,8 @@ fn parse_expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
     let ones_mul = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(1));
     let three_mul = binary_expr!("*", boxed_int_lit_expr!(3), boxed_int_lit_expr!(3));
 
-    let add_1_2 = binary_expr!("+", Box::new(ones_mul), boxed_int_lit_expr!(2));
-    let add_3_4 = binary_expr!("+", Box::new(three_mul), boxed_int_lit_expr!(4));
+    let add_1_2 = binary_expr!("+", Box::new(ones_mul), boxed_int_lit_expr!(2), parens: true);
+    let add_3_4 = binary_expr!("+", Box::new(three_mul), boxed_int_lit_expr!(4), parens: true);
 
     let expr = binary_expr!("*", Box::new(add_1_2), Box::new(add_3_4));
 
@@ -342,7 +342,7 @@ fn parse_make_global_variable_assign_a_boolean_not_true() {
 
     let expected = ast! {
         make_global_stmt!("A", not_expr!(bool_lit_expr!(true))),
-        make_global_stmt!("B", not_expr!(bool_lit_expr!(false)))
+        make_global_stmt!("B", not_expr!(bool_lit_expr!(false, parens: true)))
     };
 
     assert_eq!(expected, actual);
@@ -410,19 +410,19 @@ fn parse_if_stmt_and_or_parens_clauses() {
 
     let actual = TytleParser.parse(code).unwrap();
 
-    let expr12 = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
-    let expr34 = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4));
-    let expr56 = binary_expr!("<", boxed_int_lit_expr!(5), boxed_int_lit_expr!(6));
-    let expr78 = binary_expr!("<", boxed_int_lit_expr!(7), boxed_int_lit_expr!(8));
+    let expr12 = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2), parens: true);
+    let expr34 = binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4), parens: true);
+    let expr56 = binary_expr!("<", boxed_int_lit_expr!(5), boxed_int_lit_expr!(6), parens: true);
+    let expr78 = binary_expr!("<", boxed_int_lit_expr!(7), boxed_int_lit_expr!(8), parens: true);
 
     // (1 > 2) OR (3 < 4)
-    let or_clause = binary_expr!("OR", boxed_expr!(expr12), boxed_expr!(expr34));
+    let or_clause = binary_expr!("OR", boxed_expr!(expr12), boxed_expr!(expr34), parens: true);
 
     // (((1 > 2) OR ((3 < 4))) AND (5 < 6))
-    let and_clause = binary_expr!("AND", boxed_expr!(or_clause), boxed_expr!(expr56));
+    let and_clause = binary_expr!("AND", boxed_expr!(or_clause), boxed_expr!(expr56), parens: true);
 
     // ((((1 > 2) OR ((3 < 4))) AND (5 < 6)) OR (7 < 8))
-    let cond_expr = binary_expr!("OR", boxed_expr!(and_clause), boxed_expr!(expr78));
+    let cond_expr = binary_expr!("OR", boxed_expr!(and_clause), boxed_expr!(expr78), parens: true);
 
     let if_stmt = if_stmt! {
         cond: cond_expr,

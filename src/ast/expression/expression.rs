@@ -4,6 +4,7 @@ use crate::ast::expression::*;
 pub struct Expression {
     pub expr_type: Option<ExpressionType>,
     pub expr_ast: ExpressionAst,
+    pub surrounded_by_parens: bool,
 }
 
 impl Expression {
@@ -11,6 +12,7 @@ impl Expression {
         Self {
             expr_ast,
             expr_type: None,
+            surrounded_by_parens: false,
         }
     }
 }
