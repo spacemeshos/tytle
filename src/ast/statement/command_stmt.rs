@@ -15,23 +15,23 @@ pub enum CommandStmt {
     Stop,
 }
 
-impl From<&str> for CommandStmt {
-    fn from(s: &str) -> Self {
+impl CommandStmt {
+    pub fn parse(s: &str) -> Option<CommandStmt> {
         match s {
-            "XCOR" => CommandStmt::XCor,
-            "YCOR" => CommandStmt::YCor,
-            "PENUP" => CommandStmt::PenUp,
-            "PENDOWN" => CommandStmt::PenDown,
-            "SHOWTURTLE" => CommandStmt::ShowTurtle,
-            "HIDETURTLE" => CommandStmt::HideTurtle,
-            "PENERASE" => CommandStmt::PenErase,
-            "CLEAN" => CommandStmt::Clean,
-            "CLEARSCREEN" => CommandStmt::ClearScreen,
-            "SETPENCOLOR" => CommandStmt::SetPenColor,
-            "SETBACKGROUND" => CommandStmt::SetBackgroundColor,
-            "WAIT" => CommandStmt::Wait,
-            "STOP" => CommandStmt::Stop,
-            _ => panic!("Invalid command: {}", s),
+            "XCOR" => Some(CommandStmt::XCor),
+            "YCOR" => Some(CommandStmt::YCor),
+            "PENUP" => Some(CommandStmt::PenUp),
+            "PENDOWN" => Some(CommandStmt::PenDown),
+            "SHOWTURTLE" => Some(CommandStmt::ShowTurtle),
+            "HIDETURTLE" => Some(CommandStmt::HideTurtle),
+            "PENERASE" => Some(CommandStmt::PenErase),
+            "CLEAN" => Some(CommandStmt::Clean),
+            "CLEARSCREEN" => Some(CommandStmt::ClearScreen),
+            "SETPENCOLOR" => Some(CommandStmt::SetPenColor),
+            "SETBACKGROUND" => Some(CommandStmt::SetBackgroundColor),
+            "WAIT" => Some(CommandStmt::Wait),
+            "STOP" => Some(CommandStmt::Stop),
+            _ => None,
         }
     }
 }

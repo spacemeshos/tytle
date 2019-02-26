@@ -121,6 +121,15 @@ macro_rules! direct_lit_expr {
 }
 
 #[macro_export]
+macro_rules! expr_stmt {
+    ($expr:expr) => {{
+        use $crate::ast::statement::Statement;
+
+        Statement::Expression($expr)
+    }};
+}
+
+#[macro_export]
 macro_rules! direct_stmt {
     ($dir:ident, $expr:expr) => {{
         use $crate::ast::statement::DirectionStmt;
@@ -137,7 +146,7 @@ macro_rules! command_stmt {
     ($cmd:ident) => {{
         use $crate::ast::statement::{CommandStmt, Statement};
 
-        let cmd_enum = CommandStmt::from(stringify!($cmd));
+        let cmd_enum = CommandStmt::parse(stringify!($cmd)).unwrap();
         Statement::Command(cmd_enum)
     }};
 }

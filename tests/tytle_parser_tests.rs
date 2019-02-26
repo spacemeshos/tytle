@@ -206,7 +206,32 @@ fn parse_expr_mix_of_mul_add_ops_between_integers_and_parentheses() {
 }
 
 #[test]
-fn parse_expr_proc_call() {
+fn parse_expr_stmt_consisting_of_arithmetic_expr() {
+    let actual = TytleParser.parse("1 + 2").unwrap();
+
+    let expr = binary_expr!("+", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+
+    let expected = ast! { expr_stmt!(expr) };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_expr_stmt_consisting_of_proc_call() {
+    let actual = TytleParser.parse("FOO(1, 2)").unwrap();
+
+    let call_expr = proc_call_expr! {
+        name: "FOO",
+        params: [int_lit_expr!(1), int_lit_expr!(2)]
+    };
+
+    let expected = ast! { expr_stmt!(call_expr) };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_expr_proc_call_as_part_of_expr() {
     let actual = TytleParser
         .parse("FORWARD FOO(10, X + 1, BAR(2, 3))")
         .unwrap();
@@ -411,7 +436,9 @@ fn parse_if_stmt_and_or_parens_clauses() {
     let actual = TytleParser.parse(code).unwrap();
 
     let expr12 = binary_expr!(">", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2), parens: true);
-    let expr34 = with_parentheses!(binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4), parens: true));
+    let expr34 = with_parentheses!(
+        binary_expr!("<", boxed_int_lit_expr!(3), boxed_int_lit_expr!(4), parens: true)
+    );
     let expr56 = binary_expr!("<", boxed_int_lit_expr!(5), boxed_int_lit_expr!(6), parens: true);
     let expr78 = binary_expr!("<", boxed_int_lit_expr!(7), boxed_int_lit_expr!(8), parens: true);
 

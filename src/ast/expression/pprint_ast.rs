@@ -40,6 +40,7 @@ impl PrettyPrintAst {
             Statement::If(if_stmt) => Self::pp_if_stmt(buffer, if_stmt),
             Statement::Repeat(repeat_stmt) => Self::pp_repeat_stmt(buffer, repeat_stmt),
             Statement::Procedure(proc_stmt) => Self::pp_proc_stmt(buffer, proc_stmt),
+            Statement::Expression(expr) => Self::do_pprint_expr(buffer, expr),
             _ => unimplemented!(),
         };
     }
@@ -124,21 +125,20 @@ impl PrettyPrintAst {
 
     fn pp_command_stmt(buffer: &mut Vec<String>, cmd_stmt: &CommandStmt) {
         unimplemented!()
-       // TODO: command into string
+        // TODO: command into string
     }
 
     fn pp_direction_stmt(buffer: &mut Vec<String>, direct_stmt: &DirectionStmt) {
         unimplemented!()
-       // TODO: direction into string
+        // TODO: direction into string
     }
 
     fn pp_make_stmt(buffer: &mut Vec<String>, make_stmt: &MakeStmt) {
-        let kind_str =
-            match make_stmt.kind {
-                MakeStmtKind::Global => "MAKEGLOBAL ",
-                MakeStmtKind::Local => "MAKELOCAL ",
-                MakeStmtKind::Assign => "MAKE "
-            };
+        let kind_str = match make_stmt.kind {
+            MakeStmtKind::Global => "MAKEGLOBAL ",
+            MakeStmtKind::Local => "MAKELOCAL ",
+            MakeStmtKind::Assign => "MAKE ",
+        };
 
         buffer.push(format!("{} {} = ", kind_str, make_stmt.var));
         Self::do_pprint_expr(buffer, &make_stmt.expr)

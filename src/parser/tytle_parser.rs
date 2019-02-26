@@ -257,17 +257,26 @@ impl TytleParser {
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => {
                 self.parse_direction(val, lexer)
             }
-            _ => self.parse_command(val, lexer),
+            _ => self.parse_expr_stmt(val, lexer),
         }
     }
 
-    fn parse_command(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
-        self.skip_token(lexer); // skipping the `command` token
+    fn parse_expr_stmt(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
+        // first we check for built-in commands
+        // and we fallback to general expression statements
 
-        let stmt = CommandStmt::from(val);
-        let cmd_stmt = Statement::Command(stmt);
+        let stmt = CommandStmt::parse(val);
+        if stmt.is_some() {
+            self.skip_token(lexer); // skipping the `command` token
 
-        Ok(cmd_stmt)
+            let cmd_stmt = Statement::Command(stmt.unwrap());
+            Ok(cmd_stmt)
+        } else {
+            let expr = self.parse_expr(lexer)?;
+
+            let expr_stmt = Statement::Expression(expr);
+            Ok(expr_stmt)
+        }
     }
 
     fn parse_make_global(&self, lexer: &mut impl Lexer) -> StatementResult {

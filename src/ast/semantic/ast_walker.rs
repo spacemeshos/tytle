@@ -23,6 +23,7 @@ pub trait AstWalker<'a> {
             Statement::Make(ref mut make_stmt) => self.walk_make_stmt(make_stmt)?,
             Statement::Repeat(ref mut repeat_stmt) => self.walk_repeat_stmt(repeat_stmt)?,
             Statement::Procedure(ref mut proc_stmt) => self.walk_proc_stmt(proc_stmt)?,
+            Statement::Expression(ref mut expr) => self.walk_expr(expr)?,
         }
 
         Ok(())

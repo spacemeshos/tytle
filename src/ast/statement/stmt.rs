@@ -1,3 +1,5 @@
+use crate::ast::expression::Expression;
+
 use crate::ast::statement::{
     CommandStmt, DirectionStmt, IfStmt, MakeStmt, ProcedureStmt, RepeatStmt,
 };
@@ -6,6 +8,7 @@ use crate::ast::statement::{
 pub enum Statement {
     NOP,
     EOF,
+    Expression(Expression),
     Command(CommandStmt),
     Direction(DirectionStmt),
     Make(MakeStmt),
