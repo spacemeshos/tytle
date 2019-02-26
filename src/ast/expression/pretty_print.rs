@@ -16,6 +16,7 @@ impl PrettyPrintExpr {
             ExpressionAst::Literal(ref lit_expr) => Self::pp_lit_expr(buffer, &lit_expr),
             ExpressionAst::Binary(_, _, _) => Self::pp_binary_expr(buffer, expr),
             ExpressionAst::ProcCall(_, _) => Self::pp_proc_call_expr(buffer, expr),
+            ExpressionAst::Not(_) => Self::pp_not_expr(buffer, expr),
             _ => panic!("..."),
         };
     }
@@ -28,6 +29,14 @@ impl PrettyPrintExpr {
             LiteralExpr::Str(s) => buffer.push(format!("\"{}\"", s)),
             LiteralExpr::Var(v) => buffer.push(v.clone()),
         }
+    }
+
+    fn pp_not_expr(buffer: &mut Vec<String>, not_expr: &Expression) {
+        let inner_expr = not_expr.as_not_expr();
+
+        Self::pp_binary_op(buffer, &BinaryOp::Not);
+
+        Self::do_pprint_expr(buffer, inner_expr);
     }
 
     fn pp_binary_expr(buffer: &mut Vec<String>, bin_expr: &Expression) {
@@ -58,6 +67,7 @@ impl PrettyPrintExpr {
 
     fn pp_binary_op(buffer: &mut Vec<String>, binary_op: &BinaryOp) {
         let s = match binary_op {
+            BinaryOp::Not => "NOT ",
             BinaryOp::And => " AND ",
             BinaryOp::Or => " OR ",
             BinaryOp::Add => " + ",

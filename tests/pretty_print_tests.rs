@@ -48,6 +48,18 @@ fn pp_lit_var() {
 }
 
 #[test]
+fn pp_binary_expr_not() {
+    let inner_ast = ExpressionAst::Literal(LiteralExpr::Bool(true));
+    let inner_expr = Expression::new(inner_ast);
+
+    let ast = ExpressionAst::Not(Box::new(inner_expr));
+    let expr = Expression::new(ast);
+    let buffer = PrettyPrintExpr::pprint_expr(&expr);
+
+    assert_eq!(buffer, "NOT TRUE".to_string());
+}
+
+#[test]
 fn pp_binary_expr_add() {
     let ast1 = ExpressionAst::Literal(LiteralExpr::Int(1));
     let ast2 = ExpressionAst::Literal(LiteralExpr::Var("X".to_string()));
