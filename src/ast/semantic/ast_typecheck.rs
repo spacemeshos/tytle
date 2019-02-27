@@ -17,7 +17,7 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
 }
 
 impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
-    fn on_literal_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+    fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr = expr.as_lit_expr();
 
         let expr_type = match lit_expr {
@@ -41,7 +41,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_parentheses_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+    fn on_parentheses_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let inner_expr = expr.as_parentheses_expr();
 
         // we copy the inner expresison to the outer parentheses expression
@@ -50,7 +50,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_not_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+    fn on_not_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let inner_expr = expr.as_not_expr();
 
         if inner_expr.expr_type != Some(ExpressionType::Bool) {
@@ -64,7 +64,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_proc_call_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+    fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
 
         // TODO: ask directly the root scope
@@ -112,7 +112,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_binary_expr(&mut self, expr: &mut Expression) -> AstWalkResult {
+    fn on_binary_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (bin_op, lexpr, rexpr) = expr.as_binary_expr();
 
         self.do_binary_expr_typecheck(bin_op, lexpr, rexpr)?;
@@ -123,15 +123,15 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     // `MAKE` statements
-    fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.typecheck_var_declare(make_stmt)
     }
 
-    fn on_make_local_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_local_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.typecheck_var_declare(make_stmt)
     }
 
-    fn on_make_assign_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let symbol = self
             .sym_visitor
             .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
@@ -154,17 +154,21 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     // visiting scopes
-    fn on_proc_start(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.sym_visitor.next_scope();
         Ok(())
     }
 
-    fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
+    fn on_block_stmt_start(
+        &mut self,
+        ctx_proc: &str,
+        block_stmt: &mut BlockStatement,
+    ) -> AstWalkResult {
         self.sym_visitor.next_scope();
         Ok(())
     }
 
-    fn on_direct_stmt(&mut self, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
+    fn on_direct_stmt(&mut self, ctx_proc: &str, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
         let expr_type = &direct_stmt.expr.expr_type;
 
         if *expr_type != Some(ExpressionType::Int) {
@@ -176,7 +180,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_if_stmt(&mut self, if_stmt: &mut IfStmt) -> AstWalkResult {
+    fn on_if_stmt(&mut self, ctx_proc: &str, if_stmt: &mut IfStmt) -> AstWalkResult {
         let cond_expr = &if_stmt.cond_expr;
 
         if cond_expr.expr_type != Some(ExpressionType::Bool) {
@@ -188,7 +192,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
         Ok(())
     }
 
-    fn on_repeat_stmt(&mut self, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+    fn on_repeat_stmt(&mut self, ctx_proc: &str, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
         let count_expr = &repeat_stmt.count_expr;
 
         if count_expr.expr_type != Some(ExpressionType::Int) {
@@ -197,6 +201,10 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             return Err(err);
         }
 
+        Ok(())
+    }
+
+    fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
         Ok(())
     }
 }

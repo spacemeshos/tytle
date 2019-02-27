@@ -398,3 +398,30 @@ fn ast_typecheck_error_direct_stmt_expr_must_be_an_integer() {
 
     assert_type_err!(expected, code);
 }
+
+#[test]
+fn ast_typecheck_error_wrong_return_type() {
+    let code = r#"
+            TO MYPROC(): INT
+                RETURN TRUE
+            END
+        "#;
+
+    let expected = AstWalkError::NotIntExpr("TRUE".to_string());
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+#[ignore]
+fn ast_typecheck_error_cannot_use_return_for_proc_returning_unit() {
+    let code = r#"
+            TO MYPROC()
+                RETURN 10
+            END
+        "#;
+
+    let expected = AstWalkError::NotIntExpr("TRUE".to_string());
+
+    assert_type_err!(expected, code);
+}

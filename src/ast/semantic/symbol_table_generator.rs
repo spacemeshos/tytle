@@ -14,7 +14,7 @@ pub struct SymbolTableGenerator {
 type SymbolTableResult<'a> = Result<&'a mut SymbolTable, AstWalkError>;
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
-    fn on_make_global_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         if self.sym_table.is_inner_scope() {
             let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var.to_string());
             Err(err)
@@ -23,16 +23,16 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         }
     }
 
-    fn on_make_local_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_local_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.create_local_var_symbol(&make_stmt)
     }
 
-    fn on_make_assign_stmt(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.get_var_symbol(&make_stmt.var)?;
         Ok(())
     }
 
-    fn on_proc_param(&mut self, proc_name: &str, proc_param: &mut ProcParam) -> AstWalkResult {
+    fn on_proc_param(&mut self, ctx_proc: &str, proc_param: &mut ProcParam) -> AstWalkResult {
         let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
@@ -46,29 +46,37 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
             )
         } else {
             let err = AstWalkError::DuplicateProcParam(
-                proc_name.to_string(),
+                ctx_proc.to_string(),
                 proc_param.param_name.to_string(),
             );
             Err(err)
         }
     }
 
-    fn on_proc_start(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.start_scope();
         Ok(())
     }
 
-    fn on_proc_end(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_end(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
 
-    fn on_block_stmt_start(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
+    fn on_block_stmt_start(
+        &mut self,
+        ctx_proc: &str,
+        block_stmt: &mut BlockStatement,
+    ) -> AstWalkResult {
         self.start_scope();
         Ok(())
     }
 
-    fn on_block_stmt_end(&mut self, _block_stmt: &mut BlockStatement) -> AstWalkResult {
+    fn on_block_stmt_end(
+        &mut self,
+        ctx_proc: &str,
+        block_stmt: &mut BlockStatement,
+    ) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
