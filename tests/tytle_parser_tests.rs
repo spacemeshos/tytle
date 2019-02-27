@@ -11,7 +11,7 @@ macro_rules! assert_parse_err {
     }};
 }
 
-macro_rules! assert_reserved_keyword {
+macro_rules! assert_reserved_word {
     ($keyword:expr) => {
         let var_code = format!("MAKEGLOBAL {} = 1", $keyword);
         let proc_code = format!("TO {}() END", $keyword);
@@ -925,68 +925,68 @@ fn parse_error_proc_param_cannot_be_unit() {
 
 #[test]
 fn parse_error_true_is_a_reserved_keyword() {
-    assert_reserved_keyword!("TRUE");
+    assert_reserved_word!("TRUE");
 }
 
 #[test]
 fn parse_error_false_is_a_reserved_keyword() {
-    assert_reserved_keyword!("FALSE");
+    assert_reserved_word!("FALSE");
 }
 
 #[test]
 fn parse_error_if_is_a_reserved_keyword() {
-    assert_reserved_keyword!("IF");
+    assert_reserved_word!("IF");
 }
 
 #[test]
 fn parse_error_repeat_is_a_reserved_keyword() {
-    assert_reserved_keyword!("REPEAT");
+    assert_reserved_word!("REPEAT");
 }
 
 #[test]
 fn parse_error_makeglobal_is_a_reserved_keyword() {
-    assert_reserved_keyword!("MAKEGLOBAL");
+    assert_reserved_word!("MAKEGLOBAL");
 }
 
 #[test]
 fn parse_error_makelocal_is_a_reserved_keyword() {
-    assert_reserved_keyword!("MAKELOCAL");
+    assert_reserved_word!("MAKELOCAL");
 }
 
 #[test]
 fn parse_error_make_is_a_reserved_keyword() {
-    assert_reserved_keyword!("MAKE");
+    assert_reserved_word!("MAKE");
 }
 
 #[test]
 fn parse_error_to_is_a_reserved_keyword() {
-    assert_reserved_keyword!("TO");
+    assert_reserved_word!("TO");
 }
 
 #[test]
 fn parse_error_end_is_a_reserved_keyword() {
-    assert_reserved_keyword!("END");
+    assert_reserved_word!("END");
 }
 
 #[test]
 fn parse_error_return_is_a_reserved_keyword() {
-    assert_reserved_keyword!("RETURN");
+    assert_reserved_word!("RETURN");
 }
 
 #[test]
 #[ignore]
 fn parse_error_and_is_a_reserved_keyword() {
-    assert_reserved_keyword!("AND");
+    assert_reserved_word!("AND");
 }
 
 #[test]
 #[ignore]
 fn parse_error_or_is_a_reserved_keyword() {
-    assert_reserved_keyword!("OR");
+    assert_reserved_word!("OR");
 }
 
 #[test]
 #[ignore]
 fn parse_error_not_is_a_reserved_keyword() {
-    assert_reserved_keyword!("NOT");
+    assert_reserved_word!("NOT");
 }

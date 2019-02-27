@@ -455,7 +455,7 @@ fn ast_typecheck_error_cannot_halt_from_proc_not_returning_unit() {
 #[test]
 fn ast_typecheck_error_cannot_use_return_for_proc_returning_unit() {
     let code = r#"
-            TO MYPROC(): INT
+            TO MYPROC()
                 RETURN 10
             END
         "#;
