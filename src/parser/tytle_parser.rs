@@ -16,6 +16,7 @@ lazy_static! {
         kws.insert("MAKELOCAL");
         kws.insert("MAKE");
         kws.insert("IF");
+        kws.insert("RETURN");
         kws.insert("REPEAT");
         kws.insert("TO");
         kws.insert("END");
@@ -84,10 +85,22 @@ impl TytleParser {
                 "REPEAT" => self.parse_repeat_stmt(lexer),
                 "IF" => self.parse_if_stmt(lexer),
                 "TO" => self.parse_proc_stmt(lexer),
+                "RETURN" => self.parse_ret_stmt(lexer),
                 _ => self.parse_basic_stmt(val.clone().as_str(), lexer),
             },
             _ => unimplemented!(),
         }
+    }
+
+    fn parse_ret_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
+        self.skip_token(lexer); // skipping the `RETURN` token
+
+        let ret_expr = self.parse_expr(lexer)?;
+
+        let ret_stmt = ReturnStmt::new(Some(ret_expr));
+
+        let stmt = Statement::Return(ret_stmt);
+        Ok(stmt)
     }
 
     fn parse_proc_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -108,8 +121,8 @@ impl TytleParser {
             return_type,
         };
 
-        let proc_stmt = Statement::Procedure(proc_stmt);
-        Ok(proc_stmt)
+        let stmt = Statement::Procedure(proc_stmt);
+        Ok(stmt)
     }
 
     fn parse_proc_signature(
@@ -187,8 +200,8 @@ impl TytleParser {
         let block = self.parse_block_stmt(lexer, borders)?;
         let repeat_stmt = RepeatStmt { count_expr, block };
 
-        let repeat_stmt = Statement::Repeat(repeat_stmt);
-        Ok(repeat_stmt)
+        let stmt = Statement::Repeat(repeat_stmt);
+        Ok(stmt)
     }
 
     fn parse_if_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
@@ -217,8 +230,8 @@ impl TytleParser {
             false_block,
         };
 
-        let if_stmt = Statement::If(if_stmt);
-        Ok(if_stmt)
+        let stmt = Statement::If(if_stmt);
+        Ok(stmt)
     }
 
     fn parse_block_stmt(
@@ -254,11 +267,12 @@ impl TytleParser {
 
     fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
         match val {
-            "MAKE" => self.parse_make_assign(lexer),
-            "MAKEGLOBAL" => self.parse_make_global(lexer),
-            "MAKELOCAL" => self.parse_make_local(lexer),
+            "HALT" => self.parse_halt_stmt(lexer),
+            "MAKE" => self.parse_make_stmt(lexer),
+            "MAKEGLOBAL" => self.parse_make_global_stmt(lexer),
+            "MAKELOCAL" => self.parse_make_local_stmt(lexer),
             "FORWARD" | "BACKWARD" | "RIGHT" | "LEFT" | "SETX" | "SETY" => {
-                self.parse_direction(val, lexer)
+                self.parse_direct_stmt(val, lexer)
             }
             _ => self.parse_expr_stmt(val, lexer),
         }
@@ -268,29 +282,29 @@ impl TytleParser {
         // first we check for built-in commands
         // and we fallback to general expression statements
 
-        let stmt = CommandStmt::parse(val);
-        if stmt.is_some() {
+        let cmd_stmt = CommandStmt::parse(val);
+        if cmd_stmt.is_some() {
             self.skip_token(lexer); // skipping the `command` token
 
-            let cmd_stmt = Statement::Command(stmt.unwrap());
-            Ok(cmd_stmt)
+            let stmt = Statement::Command(cmd_stmt.unwrap());
+            Ok(stmt)
         } else {
             let expr = self.parse_expr(lexer)?;
 
-            let expr_stmt = Statement::Expression(expr);
-            Ok(expr_stmt)
+            let stmt = Statement::Expression(expr);
+            Ok(stmt)
         }
     }
 
-    fn parse_make_global(&self, lexer: &mut impl Lexer) -> StatementResult {
+    fn parse_make_global_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Global)
     }
 
-    fn parse_make_local(&self, lexer: &mut impl Lexer) -> StatementResult {
+    fn parse_make_local_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Local)
     }
 
-    fn parse_make_assign(&self, lexer: &mut impl Lexer) -> StatementResult {
+    fn parse_make_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
         self.build_make_stmt(lexer, MakeStmtKind::Assign)
     }
 
@@ -304,26 +318,37 @@ impl TytleParser {
         self.expect_token(lexer, Token::ASSIGN)?;
 
         let expr = self.parse_expr(lexer)?;
-        let stmt = MakeStmt { var, expr, kind };
-        let make_stmt = Statement::Make(stmt);
+        let make_stmt = MakeStmt { var, expr, kind };
+        let stmt = Statement::Make(make_stmt);
 
-        Ok(make_stmt)
+        Ok(stmt)
     }
 
-    fn parse_direction(&self, direction: &str, lexer: &mut impl Lexer) -> StatementResult {
+    fn parse_halt_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
+        self.skip_token(lexer); // skipping the `HALT` token
+
+        // we treat `HALT` as a `RETURN` statement with `expression`
+
+        let ret_stmt = ReturnStmt::new(None);
+
+        let stmt = Statement::Return(ret_stmt);
+        Ok(stmt)
+    }
+
+    fn parse_direct_stmt(&self, direction: &str, lexer: &mut impl Lexer) -> StatementResult {
         // skipping the direction token
         // we already have the value under `direction`
         self.skip_token(lexer);
 
         let expr = self.parse_expr(lexer)?;
 
-        let stmt = DirectionStmt {
+        let direct_stmt = DirectionStmt {
             expr,
             direction: Direction::from(direction),
         };
 
-        let direct_stmt = Statement::Direction(stmt);
-        Ok(direct_stmt)
+        let stmt = Statement::Direction(direct_stmt);
+        Ok(stmt)
     }
 
     fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {

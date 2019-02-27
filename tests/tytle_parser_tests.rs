@@ -638,6 +638,54 @@ fn parse_proc_stmt_with_params_and_explicit_return_value() {
 }
 
 #[test]
+fn parse_return_stmt_with_expr() {
+    let code = r#"
+        TO MYPROC() : INT
+            RETURN 10
+        END
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expected = ast! {
+        proc_stmt! {
+            name: "MYPROC",
+            params: [],
+            returns: INT,
+            body: block_stmt! {
+                ret_stmt! { int_lit_expr!(10) }
+            }
+        }
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_return_stmt_without_expr() {
+    let code = r#"
+        TO MYPROC()
+            HALT
+        END
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expected = ast! {
+        proc_stmt! {
+            name: "MYPROC",
+            params: [],
+            returns: UNIT,
+            body: block_stmt! {
+                halt_stmt!()
+            }
+        }
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_command_xcor() {
     let actual = TytleParser.parse("XCOR").unwrap();
     let expected = ast! { command_stmt!(XCOR) };
@@ -866,7 +914,7 @@ fn parse_error_proc_param_cannot_be_unit() {
 #[test]
 fn parse_error_true_is_a_reserved_keyword() {
     let var_code = "MAKEGLOBAL TRUE = 1";
-    let proc_code =  "TO TRUE() END";
+    let proc_code = "TO TRUE() END";
 
     let expected = ParseError::ReservedKeyword("TRUE".to_string());
 
@@ -957,6 +1005,17 @@ fn parse_error_end_is_a_reserved_keyword() {
     let proc_code = "TO END() END";
 
     let expected = ParseError::ReservedKeyword("END".to_string());
+
+    assert_parse_err!(expected, var_code);
+    assert_parse_err!(expected, proc_code);
+}
+
+#[test]
+fn parse_error_return_is_a_reserved_keyword() {
+    let var_code = "MAKEGLOBAL RETURN = 1";
+    let proc_code = "TO RETURN() END";
+
+    let expected = ParseError::ReservedKeyword("RETURN".to_string());
 
     assert_parse_err!(expected, var_code);
     assert_parse_err!(expected, proc_code);

@@ -263,6 +263,27 @@ macro_rules! proc_stmt {
 }
 
 #[macro_export]
+macro_rules! halt_stmt {
+    () => {{
+        let ret_stmt = ReturnStmt::new(None);
+
+        Statement::Return(ret_stmt)
+    }};
+}
+
+
+#[macro_export]
+macro_rules! ret_stmt {
+    ($expr:expr) => {{
+        use $crate::ast::statement::{ReturnStmt, Statement};
+
+        let ret_stmt = ReturnStmt::new(Some($expr));
+
+        Statement::Return(ret_stmt)
+    }};
+}
+
+#[macro_export]
 macro_rules! if_stmt {
     (cond: $cond_expr:expr, when_true: $true_block:expr) => {{
         use $crate::ast::statement::{IfStmt, Statement};

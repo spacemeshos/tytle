@@ -23,6 +23,7 @@ pub trait AstWalker<'a> {
             Statement::Make(ref mut make_stmt) => self.walk_make_stmt(make_stmt)?,
             Statement::Repeat(ref mut repeat_stmt) => self.walk_repeat_stmt(repeat_stmt)?,
             Statement::Procedure(ref mut proc_stmt) => self.walk_proc_stmt(proc_stmt)?,
+            Statement::Return(ref mut return_stmt) => self.walk_ret_stmt(return_stmt)?,
             Statement::Expression(ref mut expr) => self.walk_expr(expr)?,
         }
 
@@ -41,6 +42,12 @@ pub trait AstWalker<'a> {
         }
 
         self.on_proc_end(proc_stmt)?;
+
+        Ok(())
+    }
+
+    fn walk_ret_stmt(&mut self, return_stmt: &mut ReturnStmt) -> AstWalkResult {
+        self.on_ret_stmt(return_stmt)?;
 
         Ok(())
     }
@@ -226,6 +233,10 @@ pub trait AstWalker<'a> {
     }
 
     fn on_repeat_stmt(&mut self, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+        Ok(())
+    }
+
+    fn on_ret_stmt(&mut self, return_stmt: &mut ReturnStmt) -> AstWalkResult {
         Ok(())
     }
 
