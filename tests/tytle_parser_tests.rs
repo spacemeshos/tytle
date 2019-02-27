@@ -11,6 +11,18 @@ macro_rules! assert_parse_err {
     }};
 }
 
+macro_rules! assert_reserved_keyword {
+    ($keyword:expr) => {
+        let var_code = format!("MAKEGLOBAL {} = 1", $keyword);
+        let proc_code = format!("TO {}() END", $keyword);
+
+        let expected = ParseError::ReservedKeyword($keyword.to_string());
+
+        assert_parse_err!(expected, var_code.as_str());
+        assert_parse_err!(expected, proc_code.as_str());
+    };
+}
+
 #[test]
 fn parse_nop_stmt() {
     let actual = TytleParser.parse("").unwrap();
@@ -913,146 +925,68 @@ fn parse_error_proc_param_cannot_be_unit() {
 
 #[test]
 fn parse_error_true_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL TRUE = 1";
-    let proc_code = "TO TRUE() END";
-
-    let expected = ParseError::ReservedKeyword("TRUE".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("TRUE");
 }
 
 #[test]
 fn parse_error_false_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL FALSE = 1";
-    let proc_code = "TO FALSE() END";
-
-    let expected = ParseError::ReservedKeyword("FALSE".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("FALSE");
 }
 
 #[test]
 fn parse_error_if_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL IF = 1";
-    let proc_code = "TO IF() END";
-
-    let expected = ParseError::ReservedKeyword("IF".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("IF");
 }
 
 #[test]
 fn parse_error_repeat_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL REPEAT = 1";
-    let proc_code = "TO REPEAT() END";
-
-    let expected = ParseError::ReservedKeyword("REPEAT".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("REPEAT");
 }
 
 #[test]
 fn parse_error_makeglobal_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL MAKEGLOBAL = 1";
-    let proc_code = "TO MAKEGLOBAL() END";
-
-    let expected = ParseError::ReservedKeyword("MAKEGLOBAL".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("MAKEGLOBAL");
 }
 
 #[test]
 fn parse_error_makelocal_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL MAKELOCAL = 1";
-    let proc_code = "TO MAKELOCAL() END";
-
-    let expected = ParseError::ReservedKeyword("MAKELOCAL".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("MAKELOCAL");
 }
 
 #[test]
 fn parse_error_make_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL MAKE = 1";
-    let proc_code = "TO MAKE() END";
-
-    let expected = ParseError::ReservedKeyword("MAKE".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("MAKE");
 }
 
 #[test]
 fn parse_error_to_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL TO = 1";
-    let proc_code = "TO TO() END";
-
-    let expected = ParseError::ReservedKeyword("TO".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("TO");
 }
 
 #[test]
 fn parse_error_end_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL END = 1";
-    let proc_code = "TO END() END";
-
-    let expected = ParseError::ReservedKeyword("END".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("END");
 }
 
 #[test]
 fn parse_error_return_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL RETURN = 1";
-    let proc_code = "TO RETURN() END";
-
-    let expected = ParseError::ReservedKeyword("RETURN".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("RETURN");
 }
 
 #[test]
 #[ignore]
 fn parse_error_and_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL AND = 1";
-    let proc_code = "TO AND() END";
-
-    let expected = ParseError::ReservedKeyword("AND".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("AND");
 }
 
 #[test]
 #[ignore]
 fn parse_error_or_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL OR = 1";
-    let proc_code = "TO OR() END";
-
-    let expected = ParseError::ReservedKeyword("OR".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("OR");
 }
 
 #[test]
 #[ignore]
 fn parse_error_not_is_a_reserved_keyword() {
-    let var_code = "MAKEGLOBAL NOT = 1";
-    let proc_code = "TO NOT() END";
-
-    let expected = ParseError::ReservedKeyword("NOT".to_string());
-
-    assert_parse_err!(expected, var_code);
-    assert_parse_err!(expected, proc_code);
+    assert_reserved_keyword!("NOT");
 }
