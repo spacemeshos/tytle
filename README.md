@@ -2,5 +2,5 @@
 
 ## The Typed-Turtle Programming Language
 
-![](https://cdn2.iconfinder.com/data/icons/occean-and-sea-life-2/48/153-512.png)
+![](http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png)
 
