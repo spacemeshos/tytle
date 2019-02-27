@@ -2,4 +2,5 @@
 
 ## The Typed-Turtle Programming Language
 
-![](https://image.freepik.com/free-vector/cute-turtle-cartoon_33070-3103.jpg)
+![](https://cdn2.iconfinder.com/data/icons/occean-and-sea-life-2/48/153-512.png)
+
