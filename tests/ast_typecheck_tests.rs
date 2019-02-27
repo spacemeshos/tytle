@@ -35,6 +35,33 @@ macro_rules! do_typecheck {
 }
 
 #[test]
+fn ast_typecheck_halt_from_root_scope() {
+    let code = r#"
+            HALT
+        "#;
+
+    do_typecheck!(code, sym_table);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("__main__", &SymbolKind::Proc);
+    let proc = symbol.unwrap().as_proc();
+
+    assert_eq!(proc.return_type, ExpressionType::Unit);
+}
+
+#[test]
+fn ast_typecheck_halt_from_proc_returning_unit() {
+    let code = r#"
+            TO MYPROC()
+                HALT
+            END
+        "#;
+
+    do_typecheck!(code, sym_table);
+}
+
+#[test]
 fn ast_typecheck_var_assign_bool_literal() {
     let code = r#"
             MAKEGLOBAL A = TRUE
@@ -413,11 +440,35 @@ fn ast_typecheck_error_wrong_return_type() {
 }
 
 #[test]
+fn ast_typecheck_error_cannot_halt_from_proc_not_returning_unit() {
+    let code = r#"
+            TO MYPROC(): INT
+                HALT
+            END
+        "#;
+
+    let expected = AstWalkError::InvalidReturnType(ExpressionType::Int, ExpressionType::Unit);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
 fn ast_typecheck_error_cannot_use_return_for_proc_returning_unit() {
     let code = r#"
-            TO MYPROC()
+            TO MYPROC(): INT
                 RETURN 10
             END
+        "#;
+
+    let expected = AstWalkError::InvalidReturnType(ExpressionType::Unit, ExpressionType::Int);
+
+    assert_type_err!(expected, code);
+}
+
+#[test]
+fn ast_typecheck_error_cannot_return_from_root_scope() {
+    let code = r#"
+            RETURN 10
         "#;
 
     let expected = AstWalkError::InvalidReturnType(ExpressionType::Unit, ExpressionType::Int);

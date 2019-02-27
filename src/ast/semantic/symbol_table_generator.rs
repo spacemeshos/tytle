@@ -93,6 +93,7 @@ impl SymbolTableGenerator {
     }
 
     pub fn generate(&mut self, ast: &mut Ast) -> SymbolTableResult {
+        self.gen_main_proc_symbol();
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
 
@@ -233,5 +234,11 @@ impl SymbolTableGenerator {
 
     fn end_scope(&mut self) {
         self.sym_table.end_scope();
+    }
+
+    fn gen_main_proc_symbol(&mut self) {
+        let proc = Procedure::new("__main__");
+
+        self.sym_table.create_proc_symbol(proc);
     }
 }

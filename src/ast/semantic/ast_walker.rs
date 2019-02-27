@@ -8,7 +8,7 @@ pub type AstWalkResult = Result<(), AstWalkError>;
 pub trait AstWalker<'a> {
     fn walk_ast(&mut self, ast: &mut Ast) -> AstWalkResult {
         for stmt in &mut ast.statements {
-            self.walk_stmt("main", stmt)?;
+            self.walk_stmt("__main__", stmt)?;
         }
 
         Ok(())
