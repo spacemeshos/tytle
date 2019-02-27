@@ -407,13 +407,12 @@ fn ast_typecheck_error_wrong_return_type() {
             END
         "#;
 
-    let expected = AstWalkError::NotIntExpr("TRUE".to_string());
+    let expected = AstWalkError::InvalidReturnType(ExpressionType::Int, ExpressionType::Bool);
 
     assert_type_err!(expected, code);
 }
 
 #[test]
-#[ignore]
 fn ast_typecheck_error_cannot_use_return_for_proc_returning_unit() {
     let code = r#"
             TO MYPROC()
@@ -421,7 +420,7 @@ fn ast_typecheck_error_cannot_use_return_for_proc_returning_unit() {
             END
         "#;
 
-    let expected = AstWalkError::NotIntExpr("TRUE".to_string());
+    let expected = AstWalkError::InvalidReturnType(ExpressionType::Unit, ExpressionType::Int);
 
     assert_type_err!(expected, code);
 }

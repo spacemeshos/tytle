@@ -51,12 +51,12 @@ pub trait AstWalker<'a> {
     }
 
     fn walk_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
-        self.on_ret_stmt(ctx_proc, ret_stmt)?;
-
         if ret_stmt.expr.is_some() {
             let expr = ret_stmt.expr.as_mut().unwrap();
             self.walk_expr(ctx_proc, expr)?;
         }
+
+        self.on_ret_stmt(ctx_proc, ret_stmt)?;
 
         Ok(())
     }

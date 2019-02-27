@@ -8,6 +8,7 @@ pub enum AstWalkError {
     DuplicateProcParam(String, String),
     MissingVarDeclaration(String),
     ProcNotAllowedToDeclareGlobals(String),
+    InvalidReturnType(ExpressionType, ExpressionType),
     LocalsNotAllowedUnderRootScope(String),
     TypeMismatch(ExpressionType, ExpressionType),
     InvalidBinaryOp(BinaryOp, ExpressionType, ExpressionType),

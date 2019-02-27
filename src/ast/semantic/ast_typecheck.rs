@@ -205,6 +205,25 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
+        let symbol = self
+            .sym_visitor
+            .lookup_recur_mut(ctx_proc, &SymbolKind::Proc);
+
+        let proc = symbol.unwrap().as_proc();
+        let actual_ret_type = if ret_stmt.expr.is_some() {
+            let ret_expr = ret_stmt.expr.as_ref().unwrap();
+            let ret_expr_type = ret_expr.expr_type.as_ref().unwrap();
+
+            ret_expr_type.clone()
+        } else {
+            ExpressionType::Unit
+        };
+
+        if proc.return_type != actual_ret_type {
+            let err = AstWalkError::InvalidReturnType(proc.return_type.clone(), actual_ret_type);
+            return Err(err);
+        }
+
         Ok(())
     }
 }

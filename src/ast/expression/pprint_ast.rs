@@ -40,6 +40,7 @@ impl PrettyPrintAst {
             Statement::If(if_stmt) => Self::pp_if_stmt(buffer, if_stmt),
             Statement::Repeat(repeat_stmt) => Self::pp_repeat_stmt(buffer, repeat_stmt),
             Statement::Procedure(proc_stmt) => Self::pp_proc_stmt(buffer, proc_stmt),
+            Statement::Return(ret_stmt) => Self::pp_ret_stmt(buffer, ret_stmt),
             Statement::Expression(expr) => Self::do_pprint_expr(buffer, expr),
             _ => unimplemented!(),
         };
@@ -161,6 +162,10 @@ impl PrettyPrintAst {
     }
 
     fn pp_proc_stmt(buffer: &mut Vec<String>, proc_stmt: &ProcedureStmt) {
+        unimplemented!()
+    }
+
+    fn pp_ret_stmt(buffer: &mut Vec<String>, ret_stmt: &ReturnStmt) {
         unimplemented!()
     }
 
