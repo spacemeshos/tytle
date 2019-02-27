@@ -17,12 +17,30 @@ lazy_static! {
         kws.insert("MAKE");
         kws.insert("IF");
         kws.insert("RETURN");
+        kws.insert("HALT");
+        kws.insert("WAIT");
         kws.insert("REPEAT");
         kws.insert("TO");
         kws.insert("END");
         kws.insert("AND");
         kws.insert("OR");
         kws.insert("NOT");
+        kws.insert("XCOR");
+        kws.insert("YCOR");
+        kws.insert("SETX");
+        kws.insert("SETY");
+        kws.insert("SETPENCOLOR");
+        kws.insert("SETBACKGROUND");
+        kws.insert("CLEAN");
+        kws.insert("CLEARSCREEN");
+        kws.insert("HIDETURTLE");
+        kws.insert("SHOWTURTLE");
+        kws.insert("PENDOWN");
+        kws.insert("PENUP");
+        kws.insert("PENERASE");
+        kws.insert("XOR");
+        kws.insert("YOR");
+        kws.insert("PRINT");
         kws
     };
 }

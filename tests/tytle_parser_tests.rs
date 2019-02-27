@@ -23,6 +23,18 @@ macro_rules! assert_reserved_word {
     };
 }
 
+macro_rules! assert_invalid_identifier {
+    ($keyword:expr) => {{
+        let var_code = format!("MAKEGLOBAL {} = 1", $keyword);
+        let proc_code = format!("TO {}() END", $keyword);
+
+        let expected = ParseError::IdentifierExpected;
+
+        assert_parse_err!(expected, var_code.as_str());
+        assert_parse_err!(expected, proc_code.as_str());
+    }};
+}
+
 #[test]
 fn parse_nop_stmt() {
     let actual = TytleParser.parse("").unwrap();
@@ -974,19 +986,96 @@ fn parse_error_return_is_a_reserved_keyword() {
 }
 
 #[test]
-#[ignore]
+fn parse_error_halt_is_a_reserved_keyword() {
+    assert_reserved_word!("HALT");
+}
+
+#[test]
+fn parse_error_wait_is_a_reserved_keyword() {
+    assert_reserved_word!("WAIT");
+}
+
+#[test]
+fn parse_error_setx_is_a_reserved_keyword() {
+    assert_reserved_word!("SETX");
+}
+
+#[test]
+fn parse_error_sety_is_a_reserved_keyword() {
+    assert_reserved_word!("SETY");
+}
+
+#[test]
+fn parse_error_xcor_is_a_reserved_keyword() {
+    assert_reserved_word!("XCOR");
+}
+
+#[test]
+fn parse_error_ycor_is_a_reserved_keyword() {
+    assert_reserved_word!("YCOR");
+}
+
+#[test]
+fn parse_error_showturtle_is_a_reserved_keyword() {
+    assert_reserved_word!("SHOWTURTLE");
+}
+
+#[test]
+fn parse_error_hideturtle_is_a_reserved_keyword() {
+    assert_reserved_word!("HIDETURTLE");
+}
+
+#[test]
+fn parse_error_penup_is_a_reserved_keyword() {
+    assert_reserved_word!("PENUP");
+}
+
+#[test]
+fn parse_error_pendown_is_a_reserved_keyword() {
+    assert_reserved_word!("PENDOWN");
+}
+
+#[test]
+fn parse_error_penerase_is_a_reserved_keyword() {
+    assert_reserved_word!("PENERASE");
+}
+
+#[test]
+fn parse_error_setpencolor_is_a_reserved_keyword() {
+    assert_reserved_word!("SETPENCOLOR");
+}
+
+#[test]
+fn parse_error_setbackground_is_a_reserved_keyword() {
+    assert_reserved_word!("SETBACKGROUND");
+}
+
+#[test]
+fn parse_error_clean_is_a_reserved_keyword() {
+    assert_reserved_word!("CLEAN");
+}
+
+#[test]
+fn parse_error_clearscreen_is_a_reserved_keyword() {
+    assert_reserved_word!("CLEARSCREEN");
+}
+
+#[test]
+fn parse_error_print_is_a_reserved_keyword() {
+    assert_reserved_word!("PRINT");
+}
+
+#[test]
 fn parse_error_and_is_a_reserved_keyword() {
-    assert_reserved_word!("AND");
+    assert_invalid_identifier!("AND");
 }
 
 #[test]
-#[ignore]
 fn parse_error_or_is_a_reserved_keyword() {
-    assert_reserved_word!("OR");
+    assert_invalid_identifier!("OR");
 }
 
 #[test]
-#[ignore]
 fn parse_error_not_is_a_reserved_keyword() {
-    assert_reserved_word!("NOT");
+    assert_invalid_identifier!("NOT");
 }
