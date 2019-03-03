@@ -4,7 +4,6 @@ use crate::lexer::Token;
 pub enum BinaryOp {
     And,
     Or,
-    Not,
 
     Add,
     Mul,
@@ -21,7 +20,6 @@ impl From<&str> for BinaryOp {
         match tok {
             "AND" => BinaryOp::And,
             "OR" => BinaryOp::Or,
-            "NOT" => BinaryOp::Not,
             "+" => BinaryOp::Add,
             "*" => BinaryOp::Mul,
             ">" => BinaryOp::GT,
@@ -36,7 +34,6 @@ impl From<&Token> for BinaryOp {
         match *tok {
             Token::AND => BinaryOp::And,
             Token::OR => BinaryOp::Or,
-            Token::NOT => BinaryOp::Not,
             Token::ADD => BinaryOp::Add,
             Token::MUL => BinaryOp::Mul,
             Token::GT => BinaryOp::GT,
@@ -84,11 +81,5 @@ mod tests {
     fn binary_op_or() {
         assert_eq!(BinaryOp::from("OR"), BinaryOp::Or);
         assert_eq!(BinaryOp::from(&Token::OR), BinaryOp::Or);
-    }
-
-    #[test]
-    fn binary_op_not() {
-        assert_eq!(BinaryOp::from("NOT"), BinaryOp::Not);
-        assert_eq!(BinaryOp::from(&Token::NOT), BinaryOp::Not);
     }
 }

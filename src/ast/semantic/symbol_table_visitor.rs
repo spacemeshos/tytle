@@ -1,4 +1,4 @@
-use crate::ast::semantic::{ScopeId, Symbol, SymbolKind, SymbolTable};
+use crate::ast::semantic::{Procedure, Variable, ScopeId, Symbol, SymbolKind, SymbolTable};
 
 #[derive(Debug)]
 pub struct SymbolTableVisitor<'a> {
@@ -34,5 +34,17 @@ impl<'a> SymbolTableVisitor<'a> {
     ) -> Option<&mut Symbol> {
         self.sym_table
             .lookup_recur_mut(self.scope_id, sym_name, sym_kind)
+    }
+
+    pub fn lookup_var(&self, name: &str) -> &Variable {
+        self.lookup_recur(name, &SymbolKind::Var)
+            .unwrap()
+            .as_var()
+    }
+
+    pub fn lookup_proc(&self, name: &str) -> &Procedure {
+        self.lookup_recur(name, &SymbolKind::Proc)
+            .unwrap()
+            .as_proc()
     }
 }

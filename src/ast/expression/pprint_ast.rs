@@ -68,11 +68,7 @@ impl PrettyPrintAst {
     }
 
     fn pp_not_expr(buffer: &mut Vec<String>, not_expr: &Expression) {
-        let inner_expr = not_expr.as_not_expr();
-
-        Self::pp_binary_op(buffer, &BinaryOp::Not);
-
-        Self::do_pprint_expr(buffer, inner_expr);
+        unimplemented!()
     }
 
     fn pp_binary_expr(buffer: &mut Vec<String>, bin_expr: &Expression) {
@@ -111,7 +107,6 @@ impl PrettyPrintAst {
 
     fn pp_binary_op(buffer: &mut Vec<String>, binary_op: &BinaryOp) {
         let s = match binary_op {
-            BinaryOp::Not => "NOT ",
             BinaryOp::And => " AND ",
             BinaryOp::Or => " OR ",
             BinaryOp::Add => " + ",

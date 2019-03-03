@@ -271,7 +271,6 @@ macro_rules! halt_stmt {
     }};
 }
 
-
 #[macro_export]
 macro_rules! ret_stmt {
     ($expr:expr) => {{

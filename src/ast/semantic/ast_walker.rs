@@ -28,7 +28,7 @@ pub trait AstWalker<'a> {
             }
             Statement::Procedure(ref mut proc_stmt) => self.walk_proc_stmt(ctx_proc, proc_stmt)?,
             Statement::Return(ref mut return_stmt) => self.walk_ret_stmt(ctx_proc, return_stmt)?,
-            Statement::Expression(ref mut expr) => self.walk_expr(ctx_proc, expr)?,
+            Statement::Expression(ref mut expr) => self.walk_expr_stmt(ctx_proc, expr)?,
         }
 
         Ok(())
@@ -57,6 +57,14 @@ pub trait AstWalker<'a> {
         }
 
         self.on_ret_stmt(ctx_proc, ret_stmt)?;
+
+        Ok(())
+    }
+
+    fn walk_expr_stmt(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+        self.walk_expr(ctx_proc, expr)?;
+
+        self.on_expr_stmt(ctx_proc, expr)?;
 
         Ok(())
     }
@@ -135,10 +143,12 @@ pub trait AstWalker<'a> {
         self.on_proc_call_expr_start(ctx_proc, call_name)?;
 
         for call_param in call_params {
-            self.on_proc_param_expr_start(ctx_proc, call_param)?;
+            self.on_proc_call_param_expr_start(ctx_proc, call_param)?;
             self.walk_expr(ctx_proc, call_param)?;
-            self.on_proc_param_expr_end(ctx_proc, call_param)?;
+            self.on_proc_call_param_expr_end(ctx_proc, call_param)?;
         }
+
+        self.on_proc_call_expr_end(ctx_proc, call_name)?;
 
         Ok(())
     }
@@ -227,6 +237,10 @@ pub trait AstWalker<'a> {
         Ok(())
     }
 
+    fn on_expr_stmt(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+        Ok(())
+    }
+
     // procedure call
     fn on_proc_call_expr_start(&mut self, ctx_proc: &str, call_proc_name: &str) -> AstWalkResult {
         Ok(())
@@ -236,7 +250,7 @@ pub trait AstWalker<'a> {
         Ok(())
     }
 
-    fn on_proc_param_expr_start(
+    fn on_proc_call_param_expr_start(
         &mut self,
         ctx_proc: &str,
         param_expr: &mut Expression,
@@ -244,7 +258,7 @@ pub trait AstWalker<'a> {
         Ok(())
     }
 
-    fn on_proc_param_expr_end(
+    fn on_proc_call_param_expr_end(
         &mut self,
         ctx_proc: &str,
         param_expr: &mut Expression,
