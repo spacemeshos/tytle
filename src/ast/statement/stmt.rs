@@ -17,3 +17,12 @@ pub enum Statement {
     Procedure(ProcedureStmt),
     Return(ReturnStmt),
 }
+
+impl Statement {
+    pub fn as_expr(&self) -> &Expression {
+        match self {
+            Statement::Expression(expr) => expr,
+            _ => panic!("expected statement to be an expression-statement"),
+        }
+    }
+}

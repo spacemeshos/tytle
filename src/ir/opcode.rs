@@ -55,7 +55,7 @@ impl From<&BinaryOp> for Opcode {
             BinaryOp::GT => Opcode::GT,
             BinaryOp::Add => Opcode::ADD,
             BinaryOp::Mul => Opcode::MUL,
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
