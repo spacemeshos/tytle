@@ -1,5 +1,5 @@
 mod block_stmt;
-mod command_stmt;
+mod command;
 mod direction;
 mod if_stmt;
 mod make_stmt;
@@ -9,7 +9,7 @@ mod return_stmt;
 mod stmt;
 
 pub use block_stmt::BlockStatement;
-pub use command_stmt::CommandStmt;
+pub use command::Command;
 pub use direction::Direction;
 pub use direction::DirectionStmt;
 pub use if_stmt::IfStmt;

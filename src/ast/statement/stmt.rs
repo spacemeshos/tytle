@@ -1,7 +1,7 @@
 use crate::ast::expression::Expression;
 
 use crate::ast::statement::{
-    CommandStmt, DirectionStmt, IfStmt, MakeStmt, ProcedureStmt, RepeatStmt, ReturnStmt,
+    Command, DirectionStmt, IfStmt, MakeStmt, ProcedureStmt, RepeatStmt, ReturnStmt,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,7 +9,7 @@ pub enum Statement {
     NOP,
     EOF,
     Expression(Expression),
-    Command(CommandStmt),
+    Command(Command),
     Direction(DirectionStmt),
     Make(MakeStmt),
     If(IfStmt),

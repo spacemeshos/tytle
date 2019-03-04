@@ -144,9 +144,9 @@ macro_rules! direct_stmt {
 #[macro_export]
 macro_rules! command_stmt {
     ($cmd:ident) => {{
-        use $crate::ast::statement::{CommandStmt, Statement};
+        use $crate::ast::statement::{Command, Statement};
 
-        let cmd_enum = CommandStmt::parse(stringify!($cmd)).unwrap();
+        let cmd_enum = Command::parse(stringify!($cmd)).unwrap();
         Statement::Command(cmd_enum)
     }};
 }

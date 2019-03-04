@@ -17,7 +17,7 @@ pub trait AstWalker<'a> {
     fn walk_stmt(&mut self, ctx_proc: &str, stmt: &mut Statement) -> AstWalkResult {
         match stmt {
             Statement::NOP | Statement::EOF => {}
-            Statement::Command(ref mut cmd_stmt) => self.walk_command_stmt(ctx_proc, cmd_stmt)?,
+            Statement::Command(ref mut cmd_stmt) => self.on_command(ctx_proc, cmd_stmt)?,
             Statement::Direction(ref mut direct_stmt) => {
                 self.walk_direct_stmt(ctx_proc, direct_stmt)?
             }
@@ -151,10 +151,6 @@ pub trait AstWalker<'a> {
         self.on_proc_call_expr_end(ctx_proc, call_name)?;
 
         Ok(())
-    }
-
-    fn walk_command_stmt(&mut self, ctx_proc: &str, cmd: &mut CommandStmt) -> AstWalkResult {
-        self.on_command_stmt(ctx_proc, cmd)
     }
 
     fn walk_direct_stmt(
@@ -292,7 +288,7 @@ pub trait AstWalker<'a> {
         Ok(())
     }
 
-    fn on_command_stmt(&mut self, ctx_proc: &str, cmd: &mut CommandStmt) -> AstWalkResult {
+    fn on_command(&mut self, ctx_proc: &str, cmd: &mut Command) -> AstWalkResult {
         Ok(())
     }
 

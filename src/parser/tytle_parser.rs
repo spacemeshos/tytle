@@ -300,11 +300,11 @@ impl TytleParser {
         // first we check for built-in commands
         // and we fallback to general expression statements
 
-        let cmd_stmt = CommandStmt::parse(val);
-        if cmd_stmt.is_some() {
+        let cmd = Command::parse(val);
+        if cmd.is_some() {
             self.skip_token(lexer); // skipping the `command` token
 
-            let stmt = Statement::Command(cmd_stmt.unwrap());
+            let stmt = Statement::Command(cmd.unwrap());
             Ok(stmt)
         } else {
             let expr = self.parse_expr(lexer)?;

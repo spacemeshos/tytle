@@ -34,7 +34,7 @@ impl PrettyPrintAst {
     fn do_pprint_stmt(buffer: &mut Vec<String>, stmt: &Statement) {
         match stmt {
             Statement::NOP | Statement::EOF => return,
-            Statement::Command(cmd_stmt) => Self::pp_command_stmt(buffer, cmd_stmt),
+            Statement::Command(cmd) => Self::pp_command(buffer, cmd),
             Statement::Direction(direct_stmt) => Self::pp_direction_stmt(buffer, direct_stmt),
             Statement::Make(make_stmt) => Self::pp_make_stmt(buffer, make_stmt),
             Statement::If(if_stmt) => Self::pp_if_stmt(buffer, if_stmt),
@@ -119,7 +119,7 @@ impl PrettyPrintAst {
         buffer.push(s.to_string());
     }
 
-    fn pp_command_stmt(buffer: &mut Vec<String>, cmd_stmt: &CommandStmt) {
+    fn pp_command(buffer: &mut Vec<String>, cmd: &Command) {
         unimplemented!()
         // TODO: command into string
     }
