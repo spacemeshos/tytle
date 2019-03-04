@@ -1,5 +1,3 @@
-use crate::ast::expression::Expression;
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Direction {
     Left,
@@ -24,11 +22,6 @@ impl From<&str> for Direction {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct DirectionStmt {
-    pub direction: Direction,
-    pub expr: Expression,
-}
 
 #[cfg(test)]
 mod tests {
