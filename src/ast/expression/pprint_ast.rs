@@ -136,7 +136,7 @@ impl PrettyPrintAst {
             MakeStmtKind::Assign => "MAKE ",
         };
 
-        buffer.push(format!("{} {} = ", kind_str, make_stmt.var));
+        buffer.push(format!("{} {} = ", kind_str, make_stmt.var_name));
         Self::do_pprint_expr(buffer, &make_stmt.expr)
     }
 

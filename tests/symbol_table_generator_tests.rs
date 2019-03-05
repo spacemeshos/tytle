@@ -76,7 +76,8 @@ fn sym_generate_ast_records_var_global_index() {
 
     let make_stmt = MakeStmt {
         kind: MakeStmtKind::Global,
-        var: "B".to_string(),
+        var_name: "B".to_string(),
+        var_id: None,
         expr: Expression {
             expr_ast,
             expr_type: None,

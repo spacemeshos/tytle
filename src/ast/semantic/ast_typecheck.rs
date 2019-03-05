@@ -138,7 +138,7 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let symbol = self
             .sym_visitor
-            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
+            .lookup_recur_mut(make_stmt.var_name.as_str(), &SymbolKind::Var);
 
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 
@@ -236,7 +236,7 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
     fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let symbol = self
             .sym_visitor
-            .lookup_recur_mut(make_stmt.var.as_str(), &SymbolKind::Var);
+            .lookup_recur_mut(make_stmt.var_name.as_str(), &SymbolKind::Var);
 
         let var: &mut Variable = symbol.unwrap().as_var_mut();
 

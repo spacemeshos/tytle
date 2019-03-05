@@ -329,14 +329,19 @@ impl TytleParser {
     fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> StatementResult {
         self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
-        let mut var = self.expect_value(lexer)?;
+        let mut var_name = self.expect_value(lexer)?;
 
-        self.validate_name(var.as_str())?;
+        self.validate_name(var_name.as_str())?;
 
         self.expect_token(lexer, Token::ASSIGN)?;
 
         let expr = self.parse_expr(lexer)?;
-        let make_stmt = MakeStmt { var, expr, kind };
+        let make_stmt = MakeStmt {
+            var_name,
+            expr,
+            kind,
+            var_id: None,
+        };
         let stmt = Statement::Make(make_stmt);
 
         Ok(stmt)

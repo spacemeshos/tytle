@@ -10,6 +10,7 @@ pub enum MakeStmtKind {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MakeStmt {
     pub kind: MakeStmtKind,
-    pub var: String,
+    pub var_name: String,
+    pub var_id: Option<u64>,
     pub expr: Expression,
 }
