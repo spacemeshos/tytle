@@ -1,8 +1,8 @@
 extern crate tytle;
 
 use tytle::ast::expression::*;
-use tytle::ast::statement::*;
 use tytle::ast::semantic::*;
+use tytle::ast::statement::*;
 use tytle::ast::Ast;
 use tytle::parser::{Parser, TytleParser};
 
@@ -77,7 +77,10 @@ fn sym_generate_ast_records_var_global_index() {
     let make_stmt = MakeStmt {
         kind: MakeStmtKind::Global,
         var: "B".to_string(),
-        expr: Expression { expr_ast, expr_type: None }
+        expr: Expression {
+            expr_ast,
+            expr_type: None,
+        },
     };
 
     let expected = Statement::Make(make_stmt);

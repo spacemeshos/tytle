@@ -8,7 +8,6 @@ pub struct SymbolTableGenerator {
     sym_table: SymbolTable,
     id_generator: IdGenerator,
     globals_index: u64,
-    proc_index: u64,
     proc_locals_index: u64,
 }
 
@@ -30,6 +29,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.get_var_symbol(&make_stmt.var)?;
+
         Ok(())
     }
 
@@ -107,7 +107,6 @@ impl SymbolTableGenerator {
             sym_table: SymbolTable::new(),
             id_generator: IdGenerator::new(),
             globals_index: 0,
-            proc_index: 0,
             proc_locals_index: 0,
         }
     }
@@ -172,13 +171,15 @@ impl SymbolTableGenerator {
                 .map(|param| ExpressionType::from(param.param_type.as_str()))
                 .collect::<Vec<ExpressionType>>();
 
+            let id = self.get_next_id();
+
             let proc = Procedure {
+                id,
                 name: proc_stmt.name.to_owned(),
                 params_types,
                 return_type,
             };
 
-            self.proc_index += 1;
             self.proc_locals_index = 0; // we reset the new procedure locals counter
 
             self.sym_table.create_proc_symbol(proc);
@@ -265,7 +266,8 @@ impl SymbolTableGenerator {
     }
 
     fn gen_main_proc_symbol(&mut self) {
-        let proc = Procedure::new("__main__");
+        let id = self.get_next_id();
+        let proc = Procedure::new("__main__", id);
 
         self.sym_table.create_proc_symbol(proc);
     }

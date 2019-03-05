@@ -7,7 +7,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sym_stable_starts_at_root_scope() {
+    fn sym_table_starts_at_root_scope() {
         let mut table = SymbolTable::new();
         assert_eq!(table.is_root_scope(), true);
         assert_eq!(table.is_inner_scope(), false);
@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn sym_table_one_scope_proc_exists() {
-        let proc = Procedure::new("MYPROC");
+        let proc = Procedure::new("MYPROC", 0);
 
         let mut table = SymbolTable::new();
         let scope = table.start_scope();
@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn sym_table_one_scope_var_and_proc_with_the_same_name() {
         let var = Variable::build_global("A", 1, 0);
-        let proc = Procedure::new("A");
+        let proc = Procedure::new("A", 2);
 
         let mut table = SymbolTable::new();
         let scope = table.start_scope();
@@ -86,7 +86,8 @@ mod tests {
     }
 
     #[test]
-    fn sym_multiple_nested_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var() {
+    fn sym_table_multiple_nested_scopes_inner_scope_var_exists_while_shadowing_an_outer_scope_var()
+    {
         //
         // Scope outer
         // |

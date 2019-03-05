@@ -1,5 +1,7 @@
 use crate::ast::semantic::{Procedure, Variable};
 
+pub type SymbolId = u64;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Symbol {
     Var(Variable),
@@ -7,6 +9,13 @@ pub enum Symbol {
 }
 
 impl Symbol {
+    pub fn kind(&self) -> &SymbolKind {
+        match *self {
+            Symbol::Var(_) => &SymbolKind::Var,
+            Symbol::Proc(_) => &SymbolKind::Proc,
+        }
+    }
+
     pub fn as_var_mut(&mut self) -> &mut Variable {
         if let Symbol::Var(var) = self {
             var
@@ -70,7 +79,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "expected symbol `MYPROC` to be a Variable")]
     fn error_as_var_when_symbol_is_not_a_variable() {
-        let proc = Procedure::new("MYPROC");
+        let proc = Procedure::new("MYPROC", 0);
         let symbol = Symbol::Proc(proc);
 
         symbol.as_var();
@@ -78,10 +87,10 @@ mod tests {
 
     #[test]
     fn as_proc_when_symbol_is_a_procedure() {
-        let proc = Procedure::new("MYPROC");
+        let proc = Procedure::new("MYPROC", 0);
         let symbol = Symbol::Proc(proc);
 
-        assert_eq!(*symbol.as_proc(), Procedure::new("MYPROC"));
+        assert_eq!(*symbol.as_proc(), Procedure::new("MYPROC", 0));
     }
 
     #[test]
