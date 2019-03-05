@@ -61,10 +61,10 @@ mod tests {
 
     #[test]
     fn as_var_when_symbol_is_a_variable() {
-        let var = Variable::build_global("A");
+        let var = Variable::build_global("A", 1, 0);
         let symbol = Symbol::Var(var);
 
-        assert_eq!(*symbol.as_var(), Variable::build_global("A"));
+        assert_eq!(*symbol.as_var(), Variable::build_global("A", 1, 0));
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "expected symbol `A` to be a Procedure")]
     fn error_as_proc_when_symbol_is_not_a_variable() {
-        let var = Variable::build_global("A");
+        let var = Variable::build_global("A", 1, 0);
         let symbol = Symbol::Var(var);
 
         symbol.as_proc();

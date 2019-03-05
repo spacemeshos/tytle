@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn sym_table_one_scope_var_exists() {
-        let var = Variable::build_global("A");
+        let var = Variable::build_global("A", 1, 0);
 
         let mut table = SymbolTable::new();
         let scope = table.start_scope();
@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn sym_table_one_scope_var_and_proc_with_the_same_name() {
-        let var = Variable::build_global("A");
+        let var = Variable::build_global("A", 1, 0);
         let proc = Procedure::new("A");
 
         let mut table = SymbolTable::new();
@@ -102,10 +102,10 @@ mod tests {
         // outer scope
         let outer_scope = table.start_scope();
         let outer_scope_id = outer_scope.id;
-        let var_outer = Variable::build_local("A");
+        let var_outer = Variable::build_local("A", 1, 0);
         table.create_var_symbol(var_outer.clone());
 
-        let var_inner = Variable::build_local("A");
+        let var_inner = Variable::build_local("A", 2, 1);
         let inner_scope = table.start_scope();
         let inner_scope_id = inner_scope.id;
         table.create_var_symbol(var_inner.clone());
@@ -140,7 +140,7 @@ mod tests {
         let scope_x_id = scope_x.id;
 
         // var
-        let var = Variable::build_local("A");
+        let var = Variable::build_local("A", 1, 0);
         table.create_var_symbol(var.clone());
 
         // scope Y
@@ -217,7 +217,7 @@ mod tests {
         assert_eq!(scope_y.parent_id, Some(0));
 
         let scope_y_id = scope_y.id;
-        let var = Variable::build_local("A");
+        let var = Variable::build_local("A", 1, 0);
         table.create_var_symbol(var.clone());
         table.end_scope();
 

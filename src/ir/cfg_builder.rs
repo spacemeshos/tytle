@@ -3,7 +3,6 @@ pub use crate::ast::semantic::*;
 pub use crate::ast::statement::*;
 pub use crate::ast::Ast;
 pub use crate::ir::*;
-use std::collections::HashMap;
 
 pub struct CfgBuilder<'a, 'b: 'a> {
     cfg_graph: CfgGraph,
@@ -34,13 +33,20 @@ impl<'a, 'b: 'a> CfgBuilder<'a, 'b> {
     fn build_stmt(&mut self, stmt: &Statement) {
         match stmt {
             Statement::NOP | Statement::EOF => return,
-            Statement::Command(_) => self.append_stmt(stmt),
+            Statement::Command(cmd) => self.append_cmd(cmd),
             Statement::Expression(_) => self.append_stmt(stmt),
             Statement::Direction(_) => self.append_stmt(stmt),
             Statement::Make(make_stmt) => self.visit_make_stmt(make_stmt),
             Statement::If(if_stmt) => self.visit_if_stmt(if_stmt),
             _ => unimplemented!(),
         }
+    }
+
+    fn append_cmd(&mut self, cmd: &Command) {
+        let inst = CfgInstruction::Command(cmd.clone());
+
+        let node = self.cfg_graph.current_node_mut();
+        node.append_inst(inst);
     }
 
     fn append_stmt(&mut self, stmt: &Statement) {

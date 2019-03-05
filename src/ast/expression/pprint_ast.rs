@@ -63,7 +63,7 @@ impl PrettyPrintAst {
             LiteralExpr::Bool(false) => buffer.push("FALSE".to_string()),
             LiteralExpr::Int(num) => buffer.push(num.to_string()),
             LiteralExpr::Str(s) => buffer.push(format!("\"{}\"", s)),
-            LiteralExpr::Var(v) => buffer.push(v.clone()),
+            LiteralExpr::Var(v, _id) => buffer.push(v.clone()),
         }
     }
 

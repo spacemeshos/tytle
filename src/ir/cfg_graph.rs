@@ -18,7 +18,7 @@ impl CfgNode {
         }
     }
 
-    pub fn append_stmt(&mut self, inst: CfgInstruction) {
+    pub fn append_inst(&mut self, inst: CfgInstruction) {
         self.insts.push(inst);
     }
 }

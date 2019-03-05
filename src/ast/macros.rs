@@ -56,7 +56,7 @@ macro_rules! var_lit_expr {
     ($s:expr, parens: $parens:expr) => {{
         use $crate::ast::expression::{Expression, ExpressionAst, LiteralExpr};
 
-        let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string()));
+        let ast = ExpressionAst::Literal(LiteralExpr::Var($s.to_string(), None));
         Expression::adjust_parentheses(ast, $parens)
     }};
 }

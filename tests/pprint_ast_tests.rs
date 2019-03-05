@@ -40,7 +40,7 @@ fn pp_lit_str() {
 
 #[test]
 fn pp_lit_var() {
-    let ast = ExpressionAst::Literal(LiteralExpr::Var("MYVAR".to_string()));
+    let ast = ExpressionAst::Literal(LiteralExpr::Var("MYVAR".to_string(), None));
     let expr = Expression::new(ast);
     let buffer = PrettyPrintAst::pprint_expr(&expr);
 
@@ -62,7 +62,7 @@ fn pp_binary_expr_not() {
 #[test]
 fn pp_binary_expr_add() {
     let ast1 = ExpressionAst::Literal(LiteralExpr::Int(1));
-    let ast2 = ExpressionAst::Literal(LiteralExpr::Var("X".to_string()));
+    let ast2 = ExpressionAst::Literal(LiteralExpr::Var("X".to_string(), None));
 
     let ast = ExpressionAst::Binary(
         BinaryOp::Add,

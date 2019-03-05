@@ -1,6 +1,6 @@
 use crate::ast::expression::BinaryOp;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionType {
     Int,
     Str,

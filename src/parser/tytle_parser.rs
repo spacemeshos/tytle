@@ -589,7 +589,10 @@ impl TytleParser {
                         let lit_expr = match v.as_str() {
                             "TRUE" => LiteralExpr::Bool(true),
                             "FALSE" => LiteralExpr::Bool(false),
-                            _ => LiteralExpr::Var(v.to_string()),
+                            _ => {
+                                let var_global_id = None;
+                                LiteralExpr::Var(v.to_string(), var_global_id)
+                            }
                         };
 
                         Ok(lit_expr)

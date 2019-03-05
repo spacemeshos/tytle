@@ -1,7 +1,9 @@
 extern crate tytle;
 
-use tytle::ast::expression::ExpressionType;
+use tytle::ast::expression::*;
+use tytle::ast::statement::*;
 use tytle::ast::semantic::*;
+use tytle::ast::Ast;
 use tytle::parser::{Parser, TytleParser};
 
 macro_rules! assert_symbol_err {
@@ -20,10 +22,14 @@ macro_rules! assert_symbol_err {
 
 macro_rules! gen_symbols {
     ($code:expr, $sym_table_var: ident) => {
-        let mut ast = TytleParser.parse($code).unwrap();
+        gen_symbols!($code, $sym_table_var, __ast__)
+    };
+
+    ($code:expr, $sym_table_var: ident, $ast_var: ident) => {
+        let mut $ast_var = TytleParser.parse($code).unwrap();
         let mut generator = SymbolTableGenerator::new();
 
-        let res = generator.generate(&mut ast);
+        let res = generator.generate(&mut $ast_var);
         assert!(res.is_ok());
 
         let mut $sym_table_var = res.unwrap().clone();
@@ -45,6 +51,38 @@ fn sym_generate_global_var_int() {
 
     assert_eq!(var.global, true);
     assert_eq!(var.name, "A".to_string());
+}
+
+#[test]
+fn sym_generate_ast_records_var_global_index() {
+    let code = r#"
+            MAKEGLOBAL A = 10
+            MAKEGLOBAL B = A
+        "#;
+
+    gen_symbols!(code, sym_table, actual_ast);
+
+    let visitor = SymbolTableVisitor::new(&mut sym_table);
+
+    let symbol = visitor.lookup("B", &SymbolKind::Var);
+    let var = symbol.unwrap().as_var();
+
+    assert_eq!(var.global, true);
+    assert_eq!(var.name, "B".to_string());
+    assert_eq!(var.id, 1); // variable `B` `global index` is 1 (`A` has `global index` 0)
+
+    let lit_expr = LiteralExpr::Var("A".to_string(), Some(0));
+    let expr_ast = ExpressionAst::Literal(lit_expr);
+
+    let make_stmt = MakeStmt {
+        kind: MakeStmtKind::Global,
+        var: "B".to_string(),
+        expr: Expression { expr_ast, expr_type: None }
+    };
+
+    let expected = Statement::Make(make_stmt);
+
+    assert_eq!(expected, actual_ast.statements[1]);
 }
 
 #[test]

@@ -6,9 +6,10 @@ use crate::parser::{Parser, TytleParser};
 
 pub struct SymbolTableGenerator {
     sym_table: SymbolTable,
-    global_ref: u64,
-    proc_ref: u64,
-    proc_locals_ref: u64,
+    id_generator: IdGenerator,
+    globals_index: u64,
+    proc_index: u64,
+    proc_locals_index: u64,
 }
 
 type SymbolTableResult<'a> = Result<&'a mut SymbolTable, AstWalkError>;
@@ -37,13 +38,9 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
 
         if symbol.is_none() {
             let param_type = ExpressionType::from(proc_param.param_type.as_str());
+            let index = self.proc_locals_index;
 
-            self.create_var_symbol(
-                &proc_param.param_name,
-                Some(param_type),
-                false,
-                self.proc_locals_ref,
-            )
+            self.create_var_symbol(&proc_param.param_name, Some(param_type), false, index)
         } else {
             let err = AstWalkError::DuplicateProcParam(
                 ctx_proc.to_string(),
@@ -80,15 +77,38 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         self.end_scope();
         Ok(())
     }
+
+    fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+        let lit_expr: &mut LiteralExpr = expr.as_lit_expr_mut();
+
+        match lit_expr {
+            LiteralExpr::Var(var_name, var_id) => {
+                let var = self.get_var_symbol(var_name);
+
+                if var.is_ok() {
+                    let var = var.unwrap();
+
+                    var_id.replace(var.id);
+                } else {
+                    // TODO: return error is variable isn't found
+                    unimplemented!()
+                }
+            }
+            _ => {}
+        };
+
+        Ok(())
+    }
 }
 
 impl SymbolTableGenerator {
     pub fn new() -> Self {
         Self {
             sym_table: SymbolTable::new(),
-            global_ref: 0,
-            proc_ref: 0,
-            proc_locals_ref: 0,
+            id_generator: IdGenerator::new(),
+            globals_index: 0,
+            proc_index: 0,
+            proc_locals_index: 0,
         }
     }
 
@@ -158,8 +178,8 @@ impl SymbolTableGenerator {
                 return_type,
             };
 
-            self.proc_ref += 1;
-            self.proc_locals_ref = 0; // we reset the new procedure locals counter
+            self.proc_index += 1;
+            self.proc_locals_index = 0; // we reset the new procedure locals counter
 
             self.sym_table.create_proc_symbol(proc);
 
@@ -174,7 +194,9 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(&make_stmt.var, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(&make_stmt.var, None, true, self.global_ref)
+            let index = self.globals_index;
+
+            self.create_var_symbol(&make_stmt.var, None, true, index)
         } else {
             let err = AstWalkError::DuplicateGlobalVar(make_stmt.var.to_owned());
             Err(err)
@@ -185,7 +207,9 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol(&make_stmt.var, SymbolKind::Var);
 
         if symbol.is_none() {
-            self.create_var_symbol(&make_stmt.var, None, false, self.proc_locals_ref)
+            let index = self.proc_locals_index;
+
+            self.create_var_symbol(&make_stmt.var, None, false, index)
         } else {
             let err = AstWalkError::DuplicateProcLocalVar(make_stmt.var.to_owned());
             Err(err)
@@ -197,9 +221,13 @@ impl SymbolTableGenerator {
         var_name: &str,
         var_type: Option<ExpressionType>,
         is_global: bool,
-        reference: u64,
+        index: u64,
     ) -> AstWalkResult {
+        let id = self.get_next_id();
+
         let var = Variable {
+            id,
+            index,
             global: is_global,
             name: var_name.to_owned(),
             var_type,
@@ -208,9 +236,9 @@ impl SymbolTableGenerator {
         self.sym_table.create_var_symbol(var);
 
         if is_global {
-            self.global_ref += 1;
+            self.globals_index += 1;
         } else {
-            self.proc_locals_ref += 1;
+            self.proc_locals_index += 1;
         }
 
         Ok(())
@@ -240,5 +268,9 @@ impl SymbolTableGenerator {
         let proc = Procedure::new("__main__");
 
         self.sym_table.create_proc_symbol(proc);
+    }
+
+    fn get_next_id(&mut self) -> u64 {
+        self.id_generator.get_next_id()
     }
 }

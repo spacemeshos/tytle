@@ -18,20 +18,24 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
 
 impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
-        let lit_expr = expr.as_lit_expr();
+        let lit_expr: &LiteralExpr = expr.as_lit_expr();
 
         let expr_type = match lit_expr {
             LiteralExpr::Bool(_) => ExpressionType::Bool,
             LiteralExpr::Int(_) => ExpressionType::Int,
             LiteralExpr::Str(_) => ExpressionType::Str,
-            LiteralExpr::Var(v) => {
-                let symbol = self.sym_visitor.lookup_recur(v, &SymbolKind::Var);
+            LiteralExpr::Var(var_name, _) => {
+                let symbol = self.sym_visitor.lookup_recur(var_name, &SymbolKind::Var);
+
                 let var: &Variable = symbol.unwrap().as_var();
 
                 if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
                 } else {
-                    panic!(format!("variable `{}`, type couldn't be inferred", v))
+                    panic!(format!(
+                        "variable `{}`, type couldn't be inferred",
+                        var_name
+                    ))
                 }
             }
         };
