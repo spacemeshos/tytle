@@ -89,6 +89,54 @@ impl SymbolTable {
         self.symbols.get(&symbol_id)
     }
 
+    pub fn lookup_by_symbol_id_mut(&mut self, symbol_id: SymbolId) -> Option<&mut Symbol> {
+        self.symbols.get_mut(&symbol_id)
+    }
+
+    pub fn get_var_by_id(&self, var_id: SymbolId) -> Option<&Variable> {
+        let symbol = self.lookup_by_symbol_id(var_id);
+
+        if symbol.is_some() {
+            let var = symbol.unwrap().as_var();
+            Some(var)
+        } else {
+            return None;
+        }
+    }
+
+    pub fn get_var_by_id_mut(&mut self, var_id: SymbolId) -> Option<&mut Variable> {
+        let symbol = self.lookup_by_symbol_id_mut(var_id);
+
+        if symbol.is_some() {
+            let var = symbol.unwrap().as_var_mut();
+            Some(var)
+        } else {
+            return None;
+        }
+    }
+
+    pub fn get_proc_by_id(&self, proc_id: SymbolId) -> Option<&Procedure> {
+        let symbol = self.lookup_by_symbol_id(proc_id);
+
+        if symbol.is_some() {
+            let proc = symbol.unwrap().as_proc();
+            Some(proc)
+        } else {
+            return None;
+        }
+    }
+
+    pub fn get_proc_by_id_mut(&mut self, proc_id: SymbolId) -> Option<&mut Procedure> {
+        let symbol = self.lookup_by_symbol_id_mut(proc_id);
+
+        if symbol.is_some() {
+            let proc = symbol.unwrap().as_proc_mut();
+            Some(proc)
+        } else {
+            return None;
+        }
+    }
+
     pub fn lookup(
         &self,
         scope_id: ScopeId,
