@@ -43,19 +43,26 @@ impl CfgGraph {
         graph
     }
 
-    pub fn current_node_mut(&mut self) -> &mut CfgNode {
-        let node_id = self.next_id - 1;
+    pub fn get_node_mut(&mut self, node_id: CfgNodeId) -> &mut CfgNode {
         self.nodes.get_mut(&node_id).unwrap()
     }
 
-    pub fn new_node(&mut self) -> &mut CfgNode {
+    pub fn current_node_mut(&mut self) -> &mut CfgNode {
+        self.get_node_mut(self.next_id - 1)
+    }
+
+    pub fn new_node(&mut self) -> CfgNodeId {
         let node = CfgNode::new(self.next_id);
 
         self.nodes.insert(node.id, node);
 
         self.next_id += 1;
 
-        self.current_node_mut()
+        self.get_current_id()
+    }
+
+    pub fn get_current_id(&self) -> CfgNodeId {
+        self.get_next_id() - 1
     }
 
     pub fn get_next_id(&self) -> CfgNodeId {

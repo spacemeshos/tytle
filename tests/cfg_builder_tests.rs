@@ -25,7 +25,6 @@ fn cfg_build_translate_sanity() {
 
     let ast = prepare_ast!(code);
     let builder = CfgBuilder::new();
-    let graph = builder.build(&ast);
-
-    dbg!(graph);
+    // let graph = builder.build(&ast);
+    // dbg!(graph);
 }
