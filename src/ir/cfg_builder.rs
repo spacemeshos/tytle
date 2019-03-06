@@ -135,23 +135,19 @@ impl CfgBuilder {
 
     fn build_if(&mut self, if_stmt: &IfStmt) {
         // 1) let's mark current CFG node as `CURRENT_NODE_ID`
-        // 2) generate instructions for `if-stmt` conditional expression
-        // 3) append `jump-if-true _____` instruction
-        // 4) append `jump ____` instruction
-        // 5) create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
-        // 6) fill-in the jump destination of (3) with `TRUE_NODE_ID` (back-patching)
-        // 7) generate instructions for the `true` block
-        // 8) append `jump ____` instruction to the `true` block last-node
-        // 9) if the `if-stmt` has `else-block`
-        //      9a) 1. create a new empty CFG node, let's mark its node id as `FALSE_NODE_ID`
-        //          2. fill-in the jump destination of (4) with `FALSE_NODE_ID` (back-patching)
-        //          3. generate instructions for the `false` block
-        //          4. append `jump ____` instruction to the `false` block last-node
-        //          5. create a new empty CFG node for the next-if stmt, ler's mark its node id as `NEXT_NODE_ID`
-        //          6. fill-in the jump destination of (8) and (9a 4) with `NEXT_NODE_ID`
-        //
-        //      9b) 1. create a new empty CFG node for the next-if stmt, ler's mark its node id as `NEXT_NODE_ID`
-        //          2. fill-in the jump destination of (8) and (9b 1) with `NEXT_NODE_ID`
+        // 2) generate instructions for `if-stmt` conditional expression (within `CURRENT_NODE_ID` node)
+        // 3) create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
+        // 4) create a new empty CFG node. let's mark its node id as `NEXT_NODE_ID`
+        // 5) append `jump-if-true TRUE_NODE_ID` instruction to node `CURRENT_NODE_ID`
+        // 6) if `if-stmt` has `else-block`:
+        //    6.1) create a new empty CFG node. let's mark its node id as `FALSE_NODE_ID`
+        //    6.2) append `jump FALSE_NODE_ID` instruction to node `CURRENT_NODE_ID`
+        //    6.3) generate instructions for `false-block` starting at node-context `FALSE_NODE_ID`
+        //    6.4) append `jump NEXT_NODE_ID` instruction to the last node of (6.3)
+        // 7) if `if-stmt` has no `else-block`:
+        //    7.1) append `jump NEXT_NODE_ID` instruction to node `CURRENT_NODE_ID`
+        // 8) generate instructions for `true-block` starting at node-context `TRUE_NODE_ID`
+        // 9) append `jump NEXT_NODE_ID` instruction to the last node of (8)
 
         self.build_expr(&if_stmt.cond_expr);
 
@@ -162,7 +158,6 @@ impl CfgBuilder {
         self.build_block(&if_stmt.true_block);
 
         if if_stmt.false_block.is_some() {
-
             // self.append_jump_inst(true_node);
         }
     }
