@@ -27,7 +27,7 @@ impl CfgNode {
 
 #[derive(Debug, Clone)]
 pub struct CfgGraph {
-    pub next_id: CfgNodeId,
+    next_id: CfgNodeId,
     pub nodes: HashMap<CfgNodeId, CfgNode>,
 }
 
@@ -56,5 +56,9 @@ impl CfgGraph {
         self.next_id += 1;
 
         self.current_node_mut()
+    }
+
+    pub fn get_next_id(&self) -> CfgNodeId {
+        self.next_id
     }
 }

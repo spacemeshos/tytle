@@ -1,10 +1,18 @@
 use crate::ast::semantic::SymbolId;
 use crate::ast::statement::{Command, Direction};
+use crate::ir::CfgNodeId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum CfgInstruction {
+    JumpIfTrue(CfgNodeId),
+    Jump(CfgNodeId),
     Command(Command),
     Direction(Direction),
+    Load(SymbolId),
+    Store(SymbolId),
+    Bool(bool),
+    Int(usize),
+    Str(String),
     Add,
     Mul,
     Not,
@@ -12,9 +20,4 @@ pub enum CfgInstruction {
     Or,
     GT,
     LT,
-    Bool(bool),
-    Int(usize),
-    Str(String),
-    Load(SymbolId),
-    Store(SymbolId),
 }

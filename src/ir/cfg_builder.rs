@@ -133,11 +133,59 @@ impl CfgBuilder {
         self.append_inst(inst);
     }
 
-    fn build_if(&mut self, if_stmt: &IfStmt) {}
+    fn build_if(&mut self, if_stmt: &IfStmt) {
+        // 1) let's mark current CFG node as `CURRENT_NODE_ID`
+        // 2) generate instructions for `if-stmt` conditional expression
+        // 3) append `jump-if-true _____` instruction
+        // 4) append `jump ____` instruction
+        // 5) create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
+        // 6) fill-in the jump destination of (3) with `TRUE_NODE_ID` (back-patching)
+        // 7) generate instructions for the `true` block
+        // 8) append `jump ____` instruction to the `true` block last-node
+        // 9) if the `if-stmt` has `else-block`
+        //      9a) 1. create a new empty CFG node, let's mark its node id as `FALSE_NODE_ID`
+        //          2. fill-in the jump destination of (4) with `FALSE_NODE_ID` (back-patching)
+        //          3. generate instructions for the `false` block
+        //          4. append `jump ____` instruction to the `false` block last-node
+        //          5. create a new empty CFG node for the next-if stmt, ler's mark its node id as `NEXT_NODE_ID`
+        //          6. fill-in the jump destination of (8) and (9a 4) with `NEXT_NODE_ID`
+        //
+        //      9b) 1. create a new empty CFG node for the next-if stmt, ler's mark its node id as `NEXT_NODE_ID`
+        //          2. fill-in the jump destination of (8) and (9b 1) with `NEXT_NODE_ID`
+
+        self.build_expr(&if_stmt.cond_expr);
+
+        let true_node = self.cfg_graph.get_next_id();
+        self.append_jump_true_inst(true_node);
+
+        self.cfg_graph.new_node(); // generating node for the `true` if-block
+        self.build_block(&if_stmt.true_block);
+
+        if if_stmt.false_block.is_some() {
+
+            // self.append_jump_inst(true_node);
+        }
+    }
+
+    fn build_block(&mut self, block_stmt: &BlockStatement) {
+        for stmt in &block_stmt.stmts {
+            self.build_stmt(stmt);
+        }
+    }
 
     fn append_inst(&mut self, inst: CfgInstruction) {
         let node = self.cfg_graph.current_node_mut();
 
         node.append_inst(inst);
     }
+
+    fn append_jump_true_inst(&mut self, dst_id: CfgNodeId) {
+        let inst = CfgInstruction::JumpIfTrue(dst_id);
+        self.append_inst(inst);
+    }
+
+    // fn append_jump_inst(&mut self, dst_id: CfgNodeId) {
+    //     let inst = CfgInstruction::Jump(dst_id);
+    //     self.append_inst(inst);
+    // }
 }
