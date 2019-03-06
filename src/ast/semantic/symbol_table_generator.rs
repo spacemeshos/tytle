@@ -28,7 +28,9 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        self.get_var_symbol(&make_stmt.var_name)?;
+        let var = self.get_var_symbol(&make_stmt.var_name)?;
+
+        make_stmt.var_id = Some(var.id);
 
         Ok(())
     }

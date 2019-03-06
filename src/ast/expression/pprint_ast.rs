@@ -68,7 +68,11 @@ impl PrettyPrintAst {
     }
 
     fn pp_not_expr(buffer: &mut Vec<String>, not_expr: &Expression) {
-        unimplemented!()
+        let expr = not_expr.as_not_expr();
+
+        buffer.push("NOT ".to_string());
+
+        Self::do_pprint_expr(buffer, expr);
     }
 
     fn pp_binary_expr(buffer: &mut Vec<String>, bin_expr: &Expression) {

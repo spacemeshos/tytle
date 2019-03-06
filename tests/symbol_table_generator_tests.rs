@@ -3,7 +3,6 @@ extern crate tytle;
 use tytle::ast::expression::*;
 use tytle::ast::semantic::*;
 use tytle::ast::statement::*;
-use tytle::ast::Ast;
 use tytle::parser::{Parser, TytleParser};
 
 macro_rules! assert_symbol_err {
@@ -32,7 +31,7 @@ macro_rules! gen_symbols {
         let res = generator.generate(&mut $ast_var);
         assert!(res.is_ok());
 
-        let mut $sym_table_var = res.unwrap().clone();
+        let $sym_table_var = res.unwrap().clone();
     };
 }
 
@@ -44,9 +43,7 @@ fn sym_generate_global_var_int() {
 
     gen_symbols!(code, sym_table);
 
-    let visitor = SymbolTableVisitor::new(&mut sym_table);
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
@@ -62,22 +59,20 @@ fn sym_generate_ast_records_var_global_index() {
 
     gen_symbols!(code, sym_table, actual_ast);
 
-    let visitor = SymbolTableVisitor::new(&mut sym_table);
-
-    let symbol = visitor.lookup("B", &SymbolKind::Var);
+    let symbol = sym_table.lookup(0, "B", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
     assert_eq!(var.name, "B".to_string());
-    assert_eq!(var.id, 1); // variable `B` `global index` is 1 (`A` has `global index` 0)
+    assert_eq!(var.id, 2);
 
-    let lit_expr = LiteralExpr::Var("A".to_string(), Some(0));
+    let lit_expr = LiteralExpr::Var("A".to_string(), Some(1));
     let expr_ast = ExpressionAst::Literal(lit_expr);
 
     let make_stmt = MakeStmt {
         kind: MakeStmtKind::Global,
         var_name: "B".to_string(),
-        var_id: None,
+        var_id: Some(2),
         expr: Expression {
             expr_ast,
             expr_type: None,
@@ -97,9 +92,7 @@ fn sym_generate_global_var_bool() {
 
     gen_symbols!(code, sym_table);
 
-    let visitor = SymbolTableVisitor::new(&mut sym_table);
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
@@ -115,10 +108,7 @@ fn sym_generate_proc_param_int() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
-    visitor.next_scope(); // entering the `MYPROC` scope
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(1, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -135,9 +125,7 @@ fn sym_generate_proc_params() {
 
     gen_symbols!(code, sym_table);
 
-    let visitor = SymbolTableVisitor::new(&mut sym_table);
-
-    let symbol = visitor.lookup("MYPROC", &SymbolKind::Proc);
+    let symbol = sym_table.lookup(0, "MYPROC", &SymbolKind::Proc);
     let proc = symbol.unwrap().as_proc();
 
     let expected_params = vec![
@@ -164,9 +152,7 @@ fn sym_generate_proc_return_type() {
 
     gen_symbols!(code, sym_table);
 
-    let visitor = SymbolTableVisitor::new(&mut sym_table);
-
-    let symbol = visitor.lookup("MYPROC_INT", &SymbolKind::Proc);
+    let symbol = sym_table.lookup(0, "MYPROC_INT", &SymbolKind::Proc);
     let proc_int = symbol.unwrap().as_proc();
 
     assert_eq!(proc_int.name, "MYPROC_INT");
@@ -183,10 +169,7 @@ fn sym_generate_proc_local_var_int() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
-    visitor.next_scope(); // entering the `MYPROC` scope
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(1, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -204,11 +187,7 @@ fn sym_generate_proc_if_stmt_local_var() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
-    visitor.next_scope(); // entering the `MYPROC` scope
-    visitor.next_scope(); // entering the `if statement` scope
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -229,11 +208,7 @@ fn sym_generate_initializing_a_local_var_with_proc_call_expr() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
-    visitor.next_scope(); // entering the `MYPROC`  scope
-    visitor.next_scope(); // entering the `MYPROC_2` scope
-
-    let symbol = visitor.lookup("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -355,11 +330,7 @@ fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
 
     gen_symbols!(code, sym_table);
 
-    let mut visitor = SymbolTableVisitor::new(&mut sym_table);
-    visitor.next_scope(); // entering the `MYPROC` scope
-    visitor.next_scope(); // entering the `if statement` scope
-
-    let symbol = visitor.lookup_recur("A", &SymbolKind::Var);
+    let symbol = sym_table.lookup_recur(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);

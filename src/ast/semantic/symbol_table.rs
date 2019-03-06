@@ -85,14 +85,6 @@ impl SymbolTable {
         self.scopes.get_mut(&scope_id).unwrap()
     }
 
-    pub fn lookup_by_symbol_id(&self, symbol_id: SymbolId) -> Option<&Symbol> {
-        self.symbols.get(&symbol_id)
-    }
-
-    pub fn lookup_by_symbol_id_mut(&mut self, symbol_id: SymbolId) -> Option<&mut Symbol> {
-        self.symbols.get_mut(&symbol_id)
-    }
-
     pub fn get_var_by_id(&self, var_id: SymbolId) -> Option<&Variable> {
         let symbol = self.lookup_by_symbol_id(var_id);
 
@@ -183,57 +175,6 @@ impl SymbolTable {
         }
     }
 
-    pub fn lookup_recur(
-        &self,
-        start_scope_id: ScopeId,
-        sym_name: &str,
-        sym_kind: &SymbolKind,
-    ) -> Option<&Symbol> {
-        let mut scope_id = start_scope_id;
-
-        loop {
-            let mut scope = self.get_scope(scope_id);
-
-            let var = self.lookup(scope.id, sym_name, sym_kind);
-            if var.is_some() {
-                return var;
-            }
-
-            if scope.is_root_scope() {
-                return None;
-            }
-
-            scope_id = scope.parent_id.unwrap();
-        }
-    }
-
-    pub fn lookup_recur_mut(
-        &mut self,
-        start_scope_id: ScopeId,
-        sym_name: &str,
-        sym_kind: &SymbolKind,
-    ) -> Option<&mut Symbol> {
-        let mut scope_id = start_scope_id;
-
-        loop {
-            let mut scope = self.get_scope(scope_id);
-
-            let var = self.lookup(scope.id, sym_name, sym_kind);
-            if var.is_some() {
-                // we've found the variable (variable `sym_name` resides under scope `scode.id`)
-                // since we borrowed it as immutable,
-                // we re-borrow it again, but this time in a mutable manner
-                return self.lookup_mut(scope_id, sym_name, sym_kind);
-            }
-
-            if scope.is_root_scope() {
-                return None;
-            }
-
-            scope_id = scope.parent_id.unwrap();
-        }
-    }
-
     pub fn create_var_symbol(&mut self, var: Variable) {
         let mut var_sym = self.lookup(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
 
@@ -305,5 +246,64 @@ impl SymbolTable {
         scope.store(symbol_name, symbol_id, symbol.kind());
 
         self.symbols.insert(symbol_id, symbol);
+    }
+
+    fn lookup_by_symbol_id(&self, symbol_id: SymbolId) -> Option<&Symbol> {
+        self.symbols.get(&symbol_id)
+    }
+
+    fn lookup_by_symbol_id_mut(&mut self, symbol_id: SymbolId) -> Option<&mut Symbol> {
+        self.symbols.get_mut(&symbol_id)
+    }
+
+    pub fn lookup_recur(
+        &self,
+        start_scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&Symbol> {
+        let mut scope_id = start_scope_id;
+
+        loop {
+            let mut scope = self.get_scope(scope_id);
+
+            let var = self.lookup(scope.id, sym_name, sym_kind);
+            if var.is_some() {
+                return var;
+            }
+
+            if scope.is_root_scope() {
+                return None;
+            }
+
+            scope_id = scope.parent_id.unwrap();
+        }
+    }
+
+    pub fn lookup_recur_mut(
+        &mut self,
+        start_scope_id: ScopeId,
+        sym_name: &str,
+        sym_kind: &SymbolKind,
+    ) -> Option<&mut Symbol> {
+        let mut scope_id = start_scope_id;
+
+        loop {
+            let mut scope = self.get_scope(scope_id);
+
+            let var = self.lookup(scope.id, sym_name, sym_kind);
+            if var.is_some() {
+                // we've found the variable (variable `sym_name` resides under scope `scode.id`)
+                // since we borrowed it as immutable,
+                // we re-borrow it again, but this time in a mutable manner
+                return self.lookup_mut(scope_id, sym_name, sym_kind);
+            }
+
+            if scope.is_root_scope() {
+                return None;
+            }
+
+            scope_id = scope.parent_id.unwrap();
+        }
     }
 }

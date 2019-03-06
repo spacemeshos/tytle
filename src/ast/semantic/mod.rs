@@ -8,7 +8,6 @@ mod scope;
 mod symbol;
 mod symbol_table;
 mod symbol_table_generator;
-mod symbol_table_visitor;
 mod variable;
 
 pub use ast_typecheck::*;
@@ -21,5 +20,4 @@ pub use scope::*;
 pub use symbol::*;
 pub use symbol_table::*;
 pub use symbol_table_generator::*;
-pub use symbol_table_visitor::*;
 pub use variable::*;

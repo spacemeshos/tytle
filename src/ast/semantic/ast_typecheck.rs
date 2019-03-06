@@ -2,13 +2,13 @@ use crate::ast::semantic::*;
 use crate::ast::Ast;
 use crate::ast::{expression::*, statement::*};
 
-pub struct AstTypeCheck<'a, 'b: 'a> {
-    sym_visitor: &'a mut SymbolTableVisitor<'b>,
+pub struct AstTypeCheck<'a> {
+    symbol_table: &'a mut SymbolTable,
 }
 
-impl<'a, 'b> AstTypeCheck<'a, 'b> {
-    pub fn new(sym_visitor: &'a mut SymbolTableVisitor<'b>) -> Self {
-        Self { sym_visitor }
+impl<'a> AstTypeCheck<'a> {
+    pub fn new(symbol_table: &'a mut SymbolTable) -> Self {
+        Self { symbol_table }
     }
 
     pub fn check(&mut self, ast: &mut Ast) -> AstWalkResult {
@@ -16,7 +16,7 @@ impl<'a, 'b> AstTypeCheck<'a, 'b> {
     }
 }
 
-impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
+impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
     fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr: &LiteralExpr = expr.as_lit_expr();
 
@@ -24,10 +24,9 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             LiteralExpr::Bool(_) => ExpressionType::Bool,
             LiteralExpr::Int(_) => ExpressionType::Int,
             LiteralExpr::Str(_) => ExpressionType::Str,
-            LiteralExpr::Var(var_name, _) => {
-                let symbol = self.sym_visitor.lookup_recur(var_name, &SymbolKind::Var);
-
-                let var: &Variable = symbol.unwrap().as_var();
+            LiteralExpr::Var(var_name, var_id_wrapped) => {
+                let var_id = var_id_wrapped.unwrap();
+                let var: &Variable = self.symbol_table.get_var_by_id(var_id).unwrap();
 
                 if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
@@ -71,9 +70,10 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
 
-        // TODO: ask directly the root scope
-        let symbol = self.sym_visitor.lookup_recur(proc_name, &SymbolKind::Proc);
-
+        let root_scope_id = 0;
+        let symbol = self
+            .symbol_table
+            .lookup_recur(root_scope_id, proc_name, &SymbolKind::Proc);
         let proc: &Procedure = symbol.unwrap().as_proc();
 
         let expected_params_types = proc.params_types.clone();
@@ -136,11 +136,8 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        let symbol = self
-            .sym_visitor
-            .lookup_recur_mut(make_stmt.var_name.as_str(), &SymbolKind::Var);
-
-        let var: &mut Variable = symbol.unwrap().as_var_mut();
+        let var_id = make_stmt.var_id.unwrap();
+        let var: &mut Variable = self.symbol_table.get_var_by_id_mut(var_id).unwrap();
 
         if var.var_type.is_none() {
             panic!()
@@ -154,21 +151,6 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
             return Err(err);
         }
 
-        Ok(())
-    }
-
-    // visiting scopes
-    fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
-        self.sym_visitor.next_scope();
-        Ok(())
-    }
-
-    fn on_block_stmt_start(
-        &mut self,
-        ctx_proc: &str,
-        block_stmt: &mut BlockStatement,
-    ) -> AstWalkResult {
-        self.sym_visitor.next_scope();
         Ok(())
     }
 
@@ -209,11 +191,12 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 
     fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
+        let root_scope_id = 0;
         let symbol = self
-            .sym_visitor
-            .lookup_recur_mut(ctx_proc, &SymbolKind::Proc);
+            .symbol_table
+            .lookup_recur(root_scope_id, ctx_proc, &SymbolKind::Proc);
+        let proc: &Procedure = symbol.unwrap().as_proc();
 
-        let proc = symbol.unwrap().as_proc();
         let actual_ret_type = if ret_stmt.expr.is_some() {
             let ret_expr = ret_stmt.expr.as_ref().unwrap();
             let ret_expr_type = ret_expr.expr_type.as_ref().unwrap();
@@ -232,13 +215,10 @@ impl<'a, 'b> AstWalker<'a> for AstTypeCheck<'a, 'b> {
     }
 }
 
-impl<'a, 'b> AstTypeCheck<'a, 'b> {
+impl<'a> AstTypeCheck<'a> {
     fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        let symbol = self
-            .sym_visitor
-            .lookup_recur_mut(make_stmt.var_name.as_str(), &SymbolKind::Var);
-
-        let var: &mut Variable = symbol.unwrap().as_var_mut();
+        let var_id = make_stmt.var_id.unwrap();
+        let var: &mut Variable = self.symbol_table.get_var_by_id_mut(var_id).unwrap();
 
         let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
 
