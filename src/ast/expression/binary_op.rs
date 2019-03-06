@@ -4,15 +4,10 @@ use crate::lexer::Token;
 pub enum BinaryOp {
     And,
     Or,
-
     Add,
     Mul,
-
     GT,
     LT,
-    // GTE,
-    // LTE,
-    // EQEQ,
 }
 
 impl From<&str> for BinaryOp {

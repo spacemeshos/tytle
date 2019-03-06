@@ -2,6 +2,6 @@
 pub enum LiteralExpr {
     Bool(bool),
     Int(usize),
-    Var(String, Option<u64>),
     Str(String),
+    Var(String, Option<u64>),
 }

@@ -3,8 +3,10 @@ use std::collections::HashMap;
 
 pub type CfgNodeId = usize;
 
+#[derive(Debug, Clone)]
 pub struct CfgEdge(CfgNodeId, CfgNodeId);
 
+#[derive(Debug, Clone)]
 pub struct CfgNode {
     pub id: CfgNodeId,
     pub insts: Vec<CfgInstruction>,
@@ -23,6 +25,7 @@ impl CfgNode {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CfgGraph {
     pub next_id: CfgNodeId,
     pub nodes: HashMap<CfgNodeId, CfgNode>,
@@ -48,8 +51,9 @@ impl CfgGraph {
     pub fn new_node(&mut self) -> &mut CfgNode {
         let node = CfgNode::new(self.next_id);
 
-        let mut nodes = HashMap::new();
-        nodes.insert(node.id, node);
+        self.nodes.insert(node.id, node);
+
+        self.next_id += 1;
 
         self.current_node_mut()
     }
