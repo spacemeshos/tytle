@@ -1,22 +1,22 @@
 #[macro_use]
 extern crate tytle;
 
-// use tytle::ast::semantic::{AstTypeCheck, SymbolTableGenerator};
-use tytle::ast::statement::{Command, Direction};
+use tytle::ast::semantic::*;
+use tytle::ast::statement::*;
 use tytle::ir::*;
-// use tytle::parser::{Parser, TytleParser};
-//
-// macro_rules! prepare_ast {
-//     ($code:expr) => {{
-//         let mut ast = TytleParser.parse($code).unwrap();
-//         let mut generator = SymbolTableGenerator::new();
-//         let mut symbol_table = generator.generate(&mut ast).unwrap();
-//         let mut checker = AstTypeCheck::new(&mut symbol_table);
-//
-//         let _ = checker.check(&mut ast);
-//         ast
-//     }};
-// }
+use tytle::parser::{Parser, TytleParser};
+
+macro_rules! prepare_ast {
+    ($code:expr) => {{
+        let mut ast = TytleParser.parse($code).unwrap();
+        let mut generator = SymbolTableGenerator::new();
+        let mut symbol_table = generator.generate(&mut ast).unwrap();
+        let mut checker = AstTypeCheck::new(&mut symbol_table);
+
+        let _ = checker.check(&mut ast);
+        ast
+    }};
+}
 
 #[test]
 fn cfg_build_bool_ins_macro_sanity() {
@@ -91,6 +91,118 @@ fn cfg_build_cmd_ins_macro_sanity() {
 
 #[test]
 fn cfg_build_direct_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::Direction(Direction::Left), direct_ins!(LEFT));
-    assert_eq!(CfgInstruction::Direction(Direction::Right), direct_ins!(RIGHT));
+    assert_eq!(
+        CfgInstruction::Direction(Direction::Left),
+        direct_ins!(LEFT)
+    );
+    assert_eq!(
+        CfgInstruction::Direction(Direction::Right),
+        direct_ins!(RIGHT)
+    );
+}
+
+#[test]
+fn cfg_build_node_insts_macro_sanity() {
+    let actual = cfg_graph! {
+        node!(0,
+            int_ins!(10),
+            int_ins!(20),
+            add_ins!()
+        )
+    };
+
+    let mut expected = CfgGraph::new();
+    let node = expected.current_node_mut();
+
+    node.append_inst(CfgInstruction::Int(10));
+    node.append_inst(CfgInstruction::Int(20));
+    node.append_inst(CfgInstruction::Add);
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_edge_insts_macro_sanity() {
+    let actual = cfg_graph! {
+        node!(0, int_ins!(10)),
+        node!(1, int_ins!(20)),
+        edge_true_jmp!(0, 1)
+    };
+
+    let mut expected = CfgGraph::new();
+    let node0 = expected.current_node_mut();
+    node0.append_inst(CfgInstruction::Int(10));
+
+    expected.new_node();
+    let node1 = expected.current_node_mut();
+    node1.append_inst(CfgInstruction::Int(20));
+
+    expected.add_edge(0, 1, CfgJumpType::WhenTrue);
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_make_global_assign_int_expr() {
+    let code = r#"
+        MAKEGLOBAL A = (1 + 2) * 5
+    "#;
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(1),
+            int_ins!(2),
+            add_ins!(),
+            int_ins!(5),
+            mul_ins!(),
+            store_ins!(1)
+        )
+    };
+
+    let ast = prepare_ast!(code);
+    let builder = CfgBuilder::new();
+    let actual = builder.build(&ast);
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_if_stmt_without_else_block() {
+    let code = r#"
+        MAKEGLOBAL A = 10
+
+        IF 1 < 2 [
+            MAKE A = 20
+        ]
+        MAKEGLOBAL B = A + 1
+    "#;
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(10),
+            store_ins!(1),
+            int_ins!(1),
+            int_ins!(2),
+            lt_ins!()
+        ),
+        node!(2,
+            load_ins!(1),
+            int_ins!(1),
+            add_ins!(),
+            store_ins!(2)
+        ),
+        node!(1,
+            int_ins!(20),
+            store_ins!(1)
+        ),
+        edge_true_jmp!(0, 1),
+        edge_always_jmp!(1, 2),
+        edge_fallback_jmp!(0, 2)
+    };
+
+    let ast = prepare_ast!(code);
+    let builder = CfgBuilder::new();
+    let actual = builder.build(&ast);
+
+    assert_eq!(expected, actual);
 }

@@ -150,16 +150,18 @@ impl CfgBuilder {
         // 3) create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
         // 4) generate statement-instructions for `if-stmt` `true-block` (within `TRUE_NODE_ID` node)
         //    the CFG generation will return `LAST_TRUE_BLOCK_NODE_ID` node_id
-        // 5) add edge `CURRENT_NODE_ID` --> `TRUE_NODE_ID`
+        // 5) add edge `CURRENT_NODE_ID` --jmp-when-true--> `TRUE_NODE_ID`
         // 6) if `if-stmt` has `else-block`:
         //      6.1) create a new empty CFG node. let's mark its node id as `FALSE_NODE_ID`
         //      6.2) generate statement-instructions for `false-block` (within `FALSE_NODE_ID` node)
         //           the CFG generation will return `LAST_FALSE_BLOCK_NODE_ID` node_id
-        //      6.3) add edge `CURRENT_NODE_ID` --> `FALSE_NODE_ID`
+        //      6.3) add edge `CURRENT_NODE_ID` --jmp-fallback--> `FALSE_NODE_ID`
         // 7) create a new empty CFG node. let's mark its node id as `AFTER_NODE_ID`
-        // 8) add edge `LAST_TRUE_BLOCK_NODE_ID` --> `AFTER_NODE_ID`
+        // 8) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
         // 9) if `if-stmt` has `else-block`:
-        //    9.1) add edge `LAST_TRUE_BLOCK_NODE_ID` --> `AFTER_NODE_ID`
+        //      9.1) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+        //    else:
+        //      9.1) add edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
         // 10) return `AFTER_NODE_ID` node_id (empty CFG node to be used for the next statement)
 
         self.build_expr(node_id, &if_stmt.cond_expr);
@@ -189,6 +191,8 @@ impl CfgBuilder {
                 after_node_id,
                 CfgJumpType::Always,
             );
+        } else {
+            self.add_edge(node_id, after_node_id, CfgJumpType::Fallback);
         }
 
         after_node_id
@@ -210,11 +214,7 @@ impl CfgBuilder {
         node.append_inst(inst);
     }
 
-    fn add_edge(&mut self, src_node_id: CfgNodeId, dst_node_id: CfgNodeId, jmp_type: CfgJumpType) {
-        let mut src_node = self.cfg_graph.get_node_mut(src_node_id);
-        src_node.add_outgoing_edge(dst_node_id, jmp_type);
-
-        let mut dst_node = self.cfg_graph.get_node_mut(dst_node_id);
-        dst_node.add_incoming_edge(src_node_id, jmp_type);
+    fn add_edge(&mut self, src_id: CfgNodeId, dst_id: CfgNodeId, jmp_type: CfgJumpType) {
+        self.cfg_graph.add_edge(src_id, dst_id, jmp_type);
     }
 }

@@ -106,3 +106,58 @@ macro_rules! direct_ins {
         CfgInstruction::Direction(direct)
     }};
 }
+
+#[macro_export]
+macro_rules! node {
+    ($node_id:expr, $ ($ins:expr) ,*) => {
+        {
+            use $crate::ir::CfgNode;
+
+            let mut node = CfgNode::new($node_id);
+            $( node.append_inst($ins); )*
+
+            CfgElement::Node(node)
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! edge_true_jmp {
+    ($src_id:expr, $dst_id:expr) => {{
+        use $crate::ir::{CfgElement, CfgJumpType};
+
+        CfgElement::Edge($src_id, $dst_id, CfgJumpType::WhenTrue)
+    }};
+}
+
+#[macro_export]
+macro_rules! edge_fallback_jmp {
+    ($src_id:expr, $dst_id:expr) => {{
+        use $crate::ir::{CfgElement, CfgJumpType};
+
+        CfgElement::Edge($src_id, $dst_id, CfgJumpType::Fallback)
+    }};
+}
+
+#[macro_export]
+macro_rules! edge_always_jmp {
+    ($src_id:expr, $dst_id:expr) => {{
+        use $crate::ir::{CfgElement, CfgJumpType};
+
+        CfgElement::Edge($src_id, $dst_id, CfgJumpType::Always)
+    }};
+}
+
+#[macro_export]
+macro_rules! cfg_graph {
+    ($ ($elem:expr) ,*) => {
+        {
+            use $crate::ir::CfgGraph;
+
+            let mut graph = CfgGraph::new();
+            $( graph.add_element($elem); )*
+
+            graph
+        }
+    }
+}
