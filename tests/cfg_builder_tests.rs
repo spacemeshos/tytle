@@ -185,19 +185,64 @@ fn cfg_build_if_stmt_without_else_block() {
             int_ins!(2),
             lt_ins!()
         ),
+        node!(1,
+            int_ins!(20),
+            store_ins!(1)
+        ),
         node!(2,
             load_ins!(1),
             int_ins!(1),
             add_ins!(),
             store_ins!(2)
         ),
+        edge_true_jmp!(0, 1),
+        edge_always_jmp!(1, 2),
+        edge_fallback_jmp!(0, 2)
+    };
+
+    let ast = prepare_ast!(code);
+    let builder = CfgBuilder::new();
+    let actual = builder.build(&ast);
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_if_stmt_with_else_block() {
+    let code = r#"
+        MAKEGLOBAL A = 10
+
+        IF 1 < 2 [MAKE A = 20] [MAKE A = 30]
+
+        MAKEGLOBAL B = A + 1
+    "#;
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(10),
+            store_ins!(1),
+            int_ins!(1),
+            int_ins!(2),
+            lt_ins!()
+        ),
         node!(1,
             int_ins!(20),
             store_ins!(1)
         ),
+        node!(2,
+            int_ins!(30),
+            store_ins!(1)
+        ),
+        node!(3,
+            load_ins!(1),
+            int_ins!(1),
+            add_ins!(),
+            store_ins!(2)
+        ),
         edge_true_jmp!(0, 1),
-        edge_always_jmp!(1, 2),
-        edge_fallback_jmp!(0, 2)
+        edge_fallback_jmp!(0, 2),
+        edge_always_jmp!(1, 3),
+        edge_always_jmp!(2, 3)
     };
 
     let ast = prepare_ast!(code);
