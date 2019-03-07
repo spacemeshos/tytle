@@ -4,8 +4,6 @@ use crate::ir::CfgNodeId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum CfgInstruction {
-    JumpIfTrue(CfgNodeId),
-    Jump(CfgNodeId),
     Command(Command),
     Direction(Direction),
     Load(SymbolId),

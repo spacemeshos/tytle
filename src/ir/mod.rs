@@ -2,6 +2,7 @@ mod cfg_builder;
 mod cfg_graph;
 mod cfg_instruction;
 mod instruction;
+pub mod macros;
 mod opcode;
 mod operand;
 

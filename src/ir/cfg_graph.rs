@@ -3,13 +3,26 @@ use std::collections::HashMap;
 
 pub type CfgNodeId = usize;
 
+#[derive(Debug, Copy, Clone)]
+pub enum CfgJumpType {
+    WhenTrue,
+    WhenFalse,
+    Always,
+    Fallback,
+}
+
 #[derive(Debug, Clone)]
-pub struct CfgEdge(CfgNodeId, CfgNodeId);
+pub struct CfgEdge {
+    pub node_id: CfgNodeId,
+    pub jmp_type: CfgJumpType,
+}
 
 #[derive(Debug, Clone)]
 pub struct CfgNode {
     pub id: CfgNodeId,
     pub insts: Vec<CfgInstruction>,
+    pub incoming: Vec<CfgEdge>,
+    pub outgoing: Vec<CfgEdge>,
 }
 
 impl CfgNode {
@@ -17,11 +30,27 @@ impl CfgNode {
         Self {
             id,
             insts: Vec::new(),
+            incoming: Vec::new(),
+            outgoing: Vec::new(),
         }
     }
 
     pub fn append_inst(&mut self, inst: CfgInstruction) {
         self.insts.push(inst);
+    }
+
+    pub fn add_outgoing_edge(&mut self, dst_node_id: CfgNodeId, jmp_type: CfgJumpType) {
+        self.outgoing.push(CfgEdge {
+            node_id: dst_node_id,
+            jmp_type,
+        });
+    }
+
+    pub fn add_incoming_edge(&mut self, src_node_id: CfgNodeId, jmp_type: CfgJumpType) {
+        self.incoming.push(CfgEdge {
+            node_id: src_node_id,
+            jmp_type,
+        });
     }
 }
 

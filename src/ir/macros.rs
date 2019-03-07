@@ -1,4 +1,108 @@
 #[macro_export]
-macro_rules! cfg_inst {
+macro_rules! int_ins {
+    ($num:expr) => {{
+        use $crate::ir::CfgInstruction;
+        CfgInstruction::Int($num)
+    }};
+}
 
+#[macro_export]
+macro_rules! bool_ins {
+    ($bool:expr) => {{
+        use $crate::ir::CfgInstruction;
+        CfgInstruction::Bool($bool)
+    }};
+}
+
+#[macro_export]
+macro_rules! str_ins {
+    ($str:expr) => {{
+        use $crate::ir::CfgInstruction;
+        CfgInstruction::Str($str.to_string())
+    }};
+}
+
+#[macro_export]
+macro_rules! add_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Add
+    }};
+}
+
+#[macro_export]
+macro_rules! mul_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Mul
+    }};
+}
+
+#[macro_export]
+macro_rules! not_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Not
+    }};
+}
+
+#[macro_export]
+macro_rules! and_ins {
+    () => {{
+        $crate::ir::CfgInstruction::And
+    }};
+}
+
+#[macro_export]
+macro_rules! or_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Or
+    }};
+}
+
+#[macro_export]
+macro_rules! gt_ins {
+    () => {{
+        $crate::ir::CfgInstruction::GT
+    }};
+}
+
+#[macro_export]
+macro_rules! lt_ins {
+    () => {{
+        $crate::ir::CfgInstruction::LT
+    }};
+}
+
+#[macro_export]
+macro_rules! store_ins {
+    ($symbol_id:expr) => {{
+        $crate::ir::CfgInstruction::Store($symbol_id)
+    }};
+}
+
+#[macro_export]
+macro_rules! load_ins {
+    ($symbol_id:expr) => {{
+        $crate::ir::CfgInstruction::Load($symbol_id)
+    }};
+}
+
+#[macro_export]
+macro_rules! cmd_ins {
+    ($cmd:ident) => {{
+        use $crate::ast::statement::Command;
+        use $crate::ir::CfgInstruction;
+
+        let cmd = Command::parse(stringify!($cmd)).unwrap();
+        CfgInstruction::Command(cmd)
+    }};
+}
+
+#[macro_export]
+macro_rules! direct_ins {
+    ($direct:ident) => {{
+        use $crate::ast::statement::Direction;
+        use $crate::ir::CfgInstruction;
+
+        let direct = Direction::from(stringify!($direct));
+        CfgInstruction::Direction(direct)
+    }};
 }
