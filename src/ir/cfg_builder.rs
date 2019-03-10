@@ -4,15 +4,16 @@ pub use crate::ast::statement::*;
 pub use crate::ast::Ast;
 pub use crate::ir::*;
 
-pub struct CfgBuilder {
+pub struct CfgBuilder<'a> {
     cfg_graph: CfgGraph,
+    env: &'a mut Environment,
 }
 
-impl CfgBuilder {
-    pub fn new() -> Self {
+impl<'a> CfgBuilder<'a> {
+    pub fn new(env: &'a mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
 
-        Self { cfg_graph }
+        Self { cfg_graph, env }
     }
 
     pub fn build(mut self, ast: &Ast) -> CfgGraph {
@@ -33,6 +34,7 @@ impl CfgBuilder {
             Statement::Expression(expr) => self.build_expr(node_id, expr),
             Statement::Make(make_stmt) => self.build_make(node_id, make_stmt),
             Statement::If(if_stmt) => self.build_if(node_id, if_stmt),
+            Statement::Repeat(repeat_stmt) => self.build_repeat(node_id, repeat_stmt),
             _ => unimplemented!(),
         }
     }
@@ -141,6 +143,36 @@ impl CfgBuilder {
         let inst = CfgInstruction::Load(*var_id);
 
         self.append_inst(node_id, inst);
+    }
+
+    fn build_repeat(&mut self, node_id: CfgNodeId, repeat_stmt: &RepeatStmt) -> CfgNodeId {
+        // in order to implement the `REPEAT`-statement CFG
+        // we reduce the statement into a general `while` loop.
+        // we do that by introducing a temporary internal local variable
+        // that will save how many iterations are left to the loop
+
+        let expr = repeat_stmt.count_expr.clone();
+        let var_id = 100; //
+        let var_name = format!("$TMP{}", var_id);
+
+        let make_stmt = MakeStmt {
+            kind: MakeStmtKind::Local,
+            var_name,
+            var_id: Some(var_id),
+            expr,
+        };
+
+        // self.build_while(node_id, expr, &repeat_stmt.block)
+        unreachable!()
+    }
+
+    fn build_while(
+        &mut self,
+        node_id: CfgNodeId,
+        cond_expr: &Expression,
+        block_stmt: &BlockStatement,
+    ) -> CfgNodeId {
+        unimplemented!()
     }
 
     fn build_if(&mut self, node_id: CfgNodeId, if_stmt: &IfStmt) -> CfgNodeId {

@@ -3,12 +3,12 @@ use crate::ast::Ast;
 use crate::ast::{expression::*, statement::*};
 
 pub struct AstTypeCheck<'a> {
-    symbol_table: &'a mut SymbolTable,
+    env: &'a mut Environment,
 }
 
 impl<'a> AstTypeCheck<'a> {
-    pub fn new(symbol_table: &'a mut SymbolTable) -> Self {
-        Self { symbol_table }
+    pub fn new(env: &'a mut Environment) -> Self {
+        Self { env }
     }
 
     pub fn check(&mut self, ast: &mut Ast) -> AstWalkResult {
@@ -26,7 +26,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
             LiteralExpr::Str(_) => ExpressionType::Str,
             LiteralExpr::Var(var_name, var_id_wrapped) => {
                 let var_id = var_id_wrapped.unwrap();
-                let var: &Variable = self.symbol_table.get_var_by_id(var_id).unwrap();
+                let var: &Variable = self.env.symbol_table.get_var_by_id(var_id).unwrap();
 
                 if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
@@ -71,9 +71,10 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
         let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
 
         let root_scope_id = 0;
-        let symbol = self
-            .symbol_table
-            .lookup_recur(root_scope_id, proc_name, &SymbolKind::Proc);
+        let symbol =
+            self.env
+                .symbol_table
+                .lookup_recur(root_scope_id, proc_name, &SymbolKind::Proc);
         let proc: &Procedure = symbol.unwrap().as_proc();
 
         let expected_params_types = proc.params_types.clone();
@@ -137,7 +138,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
-        let var: &mut Variable = self.symbol_table.get_var_by_id_mut(var_id).unwrap();
+        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id).unwrap();
 
         if var.var_type.is_none() {
             panic!()
@@ -193,6 +194,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
     fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
         let root_scope_id = 0;
         let symbol = self
+            .env
             .symbol_table
             .lookup_recur(root_scope_id, ctx_proc, &SymbolKind::Proc);
         let proc: &Procedure = symbol.unwrap().as_proc();
@@ -218,7 +220,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
 impl<'a> AstTypeCheck<'a> {
     fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
-        let var: &mut Variable = self.symbol_table.get_var_by_id_mut(var_id).unwrap();
+        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id).unwrap();
 
         let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
 

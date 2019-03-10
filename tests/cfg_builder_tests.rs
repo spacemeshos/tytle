@@ -6,15 +6,17 @@ use tytle::ast::statement::*;
 use tytle::ir::*;
 use tytle::parser::{Parser, TytleParser};
 
-macro_rules! prepare_ast {
+macro_rules! prepare {
     ($code:expr) => {{
         let mut ast = TytleParser.parse($code).unwrap();
-        let mut generator = SymbolTableGenerator::new();
-        let mut symbol_table = generator.generate(&mut ast).unwrap();
-        let mut checker = AstTypeCheck::new(&mut symbol_table);
+        let generator = SymbolTableGenerator::new();
+        let mut env = generator.generate(&mut ast).unwrap();
+        let mut checker = AstTypeCheck::new(&mut env);
 
-        let _ = checker.check(&mut ast);
-        ast
+        let res = checker.check(&mut ast);
+        assert!(res.is_ok());
+
+        (ast, env)
     }};
 }
 
@@ -159,8 +161,8 @@ fn cfg_build_make_global_assign_int_expr() {
         )
     };
 
-    let ast = prepare_ast!(code);
-    let builder = CfgBuilder::new();
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
     let actual = builder.build(&ast);
 
     assert_eq!(expected, actual);
@@ -200,8 +202,8 @@ fn cfg_build_if_stmt_without_else_block() {
         edge_fallback_jmp!(0, 2)
     };
 
-    let ast = prepare_ast!(code);
-    let builder = CfgBuilder::new();
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
     let actual = builder.build(&ast);
 
     assert_eq!(expected, actual);
@@ -245,9 +247,33 @@ fn cfg_build_if_stmt_with_else_block() {
         edge_always_jmp!(2, 3)
     };
 
-    let ast = prepare_ast!(code);
-    let builder = CfgBuilder::new();
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
     let actual = builder.build(&ast);
 
     assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_nested_if_stmts() {
+    let code = r#"
+        MAKEGLOBAL A = 10
+        MAKEGLOBAL B = 20
+
+        IF 1 < 2 [
+            IF 1 + A < B [
+                FORWARD 100
+                RIGHT 90
+            ]
+        ]
+
+        MAKEGLOBAL C = A * B
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    dbg!(actual);
+    // assert_eq!(expected, actual);
 }

@@ -1,6 +1,7 @@
 mod ast_typecheck;
 mod ast_walker;
 mod ast_walker_error;
+mod environment;
 mod id_generator;
 mod procedure;
 mod program;
@@ -13,6 +14,7 @@ mod variable;
 pub use ast_typecheck::*;
 pub use ast_walker::*;
 pub use ast_walker_error::*;
+pub use environment::Environment;
 pub use id_generator::IdGenerator;
 pub use procedure::*;
 pub use program::*;

@@ -5,17 +5,15 @@ use crate::ast::{expression::*, statement::*};
 use crate::parser::{Parser, TytleParser};
 
 pub struct SymbolTableGenerator {
-    sym_table: SymbolTable,
-    id_generator: IdGenerator,
-    globals_index: u64,
+    env: Environment,
     proc_locals_index: u64,
 }
 
-type SymbolTableResult<'a> = Result<&'a mut SymbolTable, AstWalkError>;
+type EnvironmentResult<'a> = Result<Environment, AstWalkError>;
 
 impl<'a> AstWalker<'a> for SymbolTableGenerator {
     fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        if self.sym_table.is_inner_scope() {
+        if self.env.symbol_table.is_inner_scope() {
             let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var_name.to_string());
             Err(err)
         } else {
@@ -108,19 +106,17 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
 impl SymbolTableGenerator {
     pub fn new() -> Self {
         Self {
-            sym_table: SymbolTable::new(),
-            id_generator: IdGenerator::new(),
-            globals_index: 0,
+            env: Environment::new(),
             proc_locals_index: 0,
         }
     }
 
-    pub fn generate(&mut self, ast: &mut Ast) -> SymbolTableResult {
+    pub fn generate(mut self, ast: &mut Ast) -> EnvironmentResult {
         self.gen_main_proc_symbol();
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
 
-        Ok(&mut self.sym_table)
+        Ok(self.env)
     }
 
     pub fn prewalk_ast(&mut self, ast: &mut Ast) -> AstWalkResult {
@@ -187,7 +183,7 @@ impl SymbolTableGenerator {
 
             self.proc_locals_index = 0; // we reset the new procedure locals counter
 
-            self.sym_table.create_proc_symbol(proc);
+            self.env.symbol_table.create_proc_symbol(proc);
 
             Ok(())
         } else {
@@ -202,7 +198,7 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(var_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let index = self.globals_index;
+            let index = self.env.globals_index;
 
             let var_id = self.create_var_symbol(var_name, None, true, index)?;
             make_stmt.var_id = Some(var_id);
@@ -248,10 +244,10 @@ impl SymbolTableGenerator {
             var_type,
         };
 
-        self.sym_table.create_var_symbol(var);
+        self.env.symbol_table.create_var_symbol(var);
 
         if is_global {
-            self.globals_index += 1;
+            self.env.globals_index += 1;
         } else {
             self.proc_locals_index += 1;
         }
@@ -260,33 +256,35 @@ impl SymbolTableGenerator {
     }
 
     fn try_get_symbol_recur(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
-        let current_scope_id = self.sym_table.get_current_scope_id();
+        let current_scope_id = self.env.symbol_table.get_current_scope_id();
 
-        self.sym_table.lookup_recur(current_scope_id, name, &kind)
+        self.env
+            .symbol_table
+            .lookup_recur(current_scope_id, name, &kind)
     }
 
     fn try_get_symbol(&self, name: &str, kind: SymbolKind) -> Option<&Symbol> {
-        let current_scope_id = self.sym_table.get_current_scope_id();
+        let current_scope_id = self.env.symbol_table.get_current_scope_id();
 
-        self.sym_table.lookup(current_scope_id, name, &kind)
+        self.env.symbol_table.lookup(current_scope_id, name, &kind)
     }
 
     fn start_scope(&mut self) {
-        self.sym_table.start_scope();
+        self.env.symbol_table.start_scope();
     }
 
     fn end_scope(&mut self) {
-        self.sym_table.end_scope();
+        self.env.symbol_table.end_scope();
     }
 
     fn gen_main_proc_symbol(&mut self) {
         let id = self.get_next_id();
         let proc = Procedure::new("__main__", id);
 
-        self.sym_table.create_proc_symbol(proc);
+        self.env.symbol_table.create_proc_symbol(proc);
     }
 
     fn get_next_id(&mut self) -> u64 {
-        self.id_generator.get_next_id()
+        self.env.id_generator.get_next_id()
     }
 }

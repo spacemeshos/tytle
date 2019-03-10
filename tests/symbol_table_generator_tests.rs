@@ -28,10 +28,11 @@ macro_rules! gen_symbols {
         let mut $ast_var = TytleParser.parse($code).unwrap();
         let mut generator = SymbolTableGenerator::new();
 
-        let res = generator.generate(&mut $ast_var);
-        assert!(res.is_ok());
+        let env_res = generator.generate(&mut $ast_var);
+        assert!(env_res.is_ok());
 
-        let $sym_table_var = res.unwrap().clone();
+        let env = env_res.unwrap();
+        let $sym_table_var = env.symbol_table.clone();
     };
 }
 

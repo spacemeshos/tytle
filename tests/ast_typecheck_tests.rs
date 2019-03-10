@@ -9,8 +9,8 @@ macro_rules! assert_type_err {
         let mut ast = TytleParser.parse($code).unwrap();
 
         let mut generator = SymbolTableGenerator::new();
-        let mut symbol_table = generator.generate(&mut ast).unwrap();
-        let mut checker = AstTypeCheck::new(&mut symbol_table);
+        let mut env = generator.generate(&mut ast).unwrap();
+        let mut checker = AstTypeCheck::new(&mut env);
 
         let actual = checker.check(&mut ast).err().unwrap();
 
@@ -19,12 +19,12 @@ macro_rules! assert_type_err {
 }
 
 macro_rules! do_typecheck {
-    ($code:expr, $sym_table_var: ident) => {
+    ($code:expr, $env: ident) => {
         let mut ast = TytleParser.parse($code).unwrap();
 
         let mut sym_generator = SymbolTableGenerator::new();
-        let mut $sym_table_var = sym_generator.generate(&mut ast).unwrap();
-        let mut type_checker = AstTypeCheck::new(&mut $sym_table_var);
+        let mut $env = sym_generator.generate(&mut ast).unwrap();
+        let mut type_checker = AstTypeCheck::new(&mut $env);
 
         let actual = type_checker.check(&mut ast);
 
@@ -38,9 +38,9 @@ fn ast_typecheck_halt_from_root_scope() {
             HALT
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "__main__", &SymbolKind::Proc);
+    let symbol = env.symbol_table.lookup(0, "__main__", &SymbolKind::Proc);
     let proc = symbol.unwrap().as_proc();
 
     assert_eq!(proc.return_type, ExpressionType::Unit);
@@ -54,7 +54,7 @@ fn ast_typecheck_halt_from_proc_returning_unit() {
             END
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 }
 
 #[test]
@@ -64,15 +64,15 @@ fn ast_typecheck_var_assign_bool_literal() {
             MAKEGLOBAL B = FALSE
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
     // variable A
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
 
     // variable B
-    let symbol = sym_table.lookup(0, "B", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "B", &SymbolKind::Var);
     let var_b = symbol.unwrap().as_var();
     assert_eq!(var_b.var_type, Some(ExpressionType::Bool));
 }
@@ -83,9 +83,9 @@ fn ast_typecheck_var_assign_cmp_expr() {
             MAKEGLOBAL A = 1 < 2
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
 }
@@ -96,9 +96,9 @@ fn ast_typecheck_var_assign_not_expr() {
             MAKEGLOBAL A = NOT FALSE
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Bool));
 }
@@ -109,9 +109,9 @@ fn ast_typecheck_var_assign_int_literal() {
             MAKEGLOBAL A = 10
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Int));
 }
@@ -122,9 +122,9 @@ fn ast_typecheck_var_assign_int_expr() {
             MAKEGLOBAL A = (1 + 2) * (3 + 4)
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Int));
 }
@@ -135,9 +135,9 @@ fn ast_typecheck_var_assign_str_literal() {
             MAKEGLOBAL A = "Hello"
         "#;
 
-    do_typecheck!(code, sym_table);
+    do_typecheck!(code, env);
 
-    let symbol = sym_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
     assert_eq!(var_a.var_type, Some(ExpressionType::Str));
 }
