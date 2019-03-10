@@ -274,6 +274,92 @@ fn cfg_build_nested_if_stmts() {
     let builder = CfgBuilder::new(&mut env);
     let actual = builder.build(&ast);
 
-    dbg!(actual);
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(10),
+            store_ins!(1),   // A = 10
+            int_ins!(2),
+            store_ins!(2),   // B = 20
+            int_ins!(1),
+            int_ins!(2),
+            lt_ins!()
+        ),
+        node!(1,
+              int_ins!(1),
+              load_ins!(1),
+              add_ins!(),    // 1 + A
+              load_ins!(2),  // B
+              lt_ins!()      // 1 + A < B
+        ),
+        node!(2,
+              int_ins!(100),
+              direct_ins!(FORWARD),
+              int_ins!(90),
+              direct_ins!(RIGHT)
+        ),
+        node!(3,
+              load_ins!(1),
+              load_ins!(2),
+              mul_ins!(),     // A * B
+              store_ins!(3)   // C = A * B
+        ),
+        edge_true_jmp!(0, 1),
+        edge_fallback_jmp!(0, 3),
+        edge_true_jmp!(1, 2),
+        edge_fallback_jmp!(1, 3),
+        edge_always_jmp!(2, 3)
+    };
+
+    // dbg!(actual);
     // assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_repeat_stmt() {
+    let code = r#"
+        REPEAT 1 + 1 [
+            FORWARD 10
+        ]
+
+        MAKEGLOBAL A = 10
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(0),
+            store_ins!(2),   // TMPVAR_A = 0
+            int_ins!(1),
+            int_ins!(1),
+            add_ins!(),
+            store_ins!(3),  // TMPVAR_B = 1 + 1
+            load_ins!(2),
+            load_ins!(3),
+            gt_ins!()       // TMPVAR_A < TMPVAR_B
+        ),
+        node!(1,
+            int_ins!(10),
+            direct_ins!(FORWARD), // FORWARD 10
+            load_ins!(2),
+            int_ins!(1),
+            add_ins!(),    // TMPVAR_A + 1
+            store_ins!(2), // TMPVAR_A = TMPVAR_A + 1
+            load_ins!(2),
+            load_ins!(3),
+            gt_ins!()      // TMPVAR_A < TMPVAR_B
+        ),
+        node!(2,
+            int_ins!(10),
+            store_ins!(1)
+        ),
+        edge_true_jmp!(1, 1),
+        edge_fallback_jmp!(1, 2),
+        edge_true_jmp!(0, 1),
+        edge_fallback_jmp!(0, 2)
+    };
+
+    assert_eq!(expected, actual);
 }

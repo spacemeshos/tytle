@@ -8,7 +8,7 @@ use tytle::parser::{Parser, TytleParser};
 macro_rules! assert_symbol_err {
     ($expected:expr, $code:expr) => {{
         let mut ast = TytleParser.parse($code).unwrap();
-        let mut generator = SymbolTableGenerator::new();
+        let generator = SymbolTableGenerator::new();
 
         let res = generator.generate(&mut ast);
         assert!(res.is_err());
@@ -26,7 +26,7 @@ macro_rules! gen_symbols {
 
     ($code:expr, $sym_table_var: ident, $ast_var: ident) => {
         let mut $ast_var = TytleParser.parse($code).unwrap();
-        let mut generator = SymbolTableGenerator::new();
+        let generator = SymbolTableGenerator::new();
 
         let env_res = generator.generate(&mut $ast_var);
         assert!(env_res.is_ok());

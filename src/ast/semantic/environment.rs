@@ -16,19 +16,19 @@ impl Environment {
         }
     }
 
-    pub fn new_tmp_var(&mut self, var_type: ExpressionType) -> u64 {
+    pub fn new_tmp_var(&mut self, var_type: ExpressionType) -> (u64, String) {
         let id = self.id_generator.get_next_id();
-        let name = format!("$TMP{}", id);
+        let var_name = format!("$TMP{}", id);
 
         let var = Variable {
             id,
-            name,
+            name: var_name.clone(),
             var_type: Some(var_type),
             global: false,
         };
 
         self.symbol_table.create_var_symbol(var);
 
-        id
+        (id, var_name)
     }
 }

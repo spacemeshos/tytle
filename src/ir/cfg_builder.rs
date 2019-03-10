@@ -59,9 +59,15 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn build_make(&mut self, node_id: CfgNodeId, make_stmt: &MakeStmt) -> CfgNodeId {
-        self.build_expr(node_id, &make_stmt.expr);
-
+        let expr = &make_stmt.expr;
         let var_id = make_stmt.var_id.unwrap();
+
+        self.build_assign(node_id, var_id, expr)
+    }
+
+    fn build_assign(&mut self, node_id: CfgNodeId, var_id: u64, expr: &Expression) -> CfgNodeId {
+        self.build_expr(node_id, expr);
+
         let inst = CfgInstruction::Store(var_id);
 
         self.append_inst(node_id, inst);
@@ -146,47 +152,124 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn build_repeat(&mut self, node_id: CfgNodeId, repeat_stmt: &RepeatStmt) -> CfgNodeId {
-        // in order to implement the `REPEAT`-statement CFG
-        // we reduce the statement into a general `while` loop.
-        // we do that by introducing a temporary internal local variable
-        // that will save how many iterations are left to the loop
+        // 1)  allocate a new local variable of type `INT`, let's call it `TMPVAR_A`
+        // 2)  allocate a new local variable of type `INT`, let's call it `TMPVAR_B`
+        // 3)  emit instructions for `MAKE TMPVAR_A = 0               (within `CURRENT_NODE_ID node)
+        // 4)  emit instructions for `MAKE TMPVAR_B = `cond_expr`     (within `CURRENT_NODE_ID node)
+        // 5)  emit expression-instructions for `TMPVAR_A < TMPVAR_B` (within `CURRENT_NODE_ID node)
+        // 6)  create a new empty CFG node. let's mark its node id as `WHILE_NODE_ID`
+        // 7)  add edge `CURRENT_NODE_ID` --jmp-when-true--> `WHILE_NODE_ID`
+        // 8)  generate statement-instructions for `block_stmt`  (within `WHILE_NODE_ID` node)
+        //     the CFG generation will return `LAST_WHILE_BLOCK_NODE_ID` node_id
+        // 9)  emit instructions for `TMPVAR_A = TMPVAR_A + 1`   (within `LAST_TRUE_BLOCK_NODE_ID`)
+        // 10) emit expression-instructions for `TMPVAR_A < TMPVAR_B` (within `LAST_TRUE_BLOCK_NODE_ID`)
+        // 11) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-when-true--> `WHILE_NODE_ID`
+        // 12) create a new empty CFG node. let's mark its node id as `AFTER_NODE_ID`
+        // 13) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
+        // 14) add edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
+        // 15) return `AFTER_NODE_ID` node_id (empty CFG node to be used for the next statement)
 
-        let expr = repeat_stmt.count_expr.clone();
-        let var_id = self.env.new_tmp_var(ExpressionType::Int);
+        // allocating temporary variables: `TMPVAR_A` and `TMPVAR_B`
+        let (var_id_a, var_name_a) = self.env.new_tmp_var(ExpressionType::Int);
+        let (var_id_b, var_name_b) = self.env.new_tmp_var(ExpressionType::Int);
 
-        // self.build_while(node_id, expr, &repeat_stmt.block)
+        // MAKE TMPVAR_A = 0
+        let expr = &repeat_stmt.count_expr;
+        let zero_lit = LiteralExpr::Int(0);
+        let zero_expr = Expression {
+            expr_type: Some(ExpressionType::Int),
+            expr_ast: ExpressionAst::Literal(zero_lit),
+        };
+        self.build_assign(node_id, var_id_a, &zero_expr);
 
-        unreachable!()
-    }
+        // MAKE TMPVAR_B = `cond_expr`
+        self.build_assign(node_id, var_id_b, &repeat_stmt.count_expr);
 
-    fn build_while(
-        &mut self,
-        node_id: CfgNodeId,
-        cond_expr: &Expression,
-        block_stmt: &BlockStatement,
-    ) -> CfgNodeId {
-        unimplemented!()
+        // TMPVAR_A < TMPVAR_B
+        let var_lit_a = LiteralExpr::Var(var_name_a, Some(var_id_a));
+        let var_lit_b = LiteralExpr::Var(var_name_b, Some(var_id_b));
+        let var_lit_a_clone = var_lit_a.clone();
+        let var_lit_b_clone = var_lit_b.clone();
+
+        let var_expr_a = Expression {
+            expr_ast: ExpressionAst::Literal(var_lit_a),
+            expr_type: Some(ExpressionType::Int),
+        };
+        let var_expr_b = Expression {
+            expr_ast: ExpressionAst::Literal(var_lit_b),
+            expr_type: Some(ExpressionType::Int),
+        };
+        let cond_ast =
+            ExpressionAst::Binary(BinaryOp::GT, Box::new(var_expr_a), Box::new(var_expr_b));
+        let cond_expr = Expression {
+            expr_ast: cond_ast,
+            expr_type: Some(ExpressionType::Bool),
+        };
+        self.build_expr(node_id, &cond_expr);
+
+        // `Repeat block`
+        let while_node_id = self.cfg_graph.new_node();
+        self.add_edge(node_id, while_node_id, CfgJumpType::WhenTrue);
+        let last_while_block_node_id = self.build_block(while_node_id, &repeat_stmt.block);
+
+        // TMPVAR_A = TMPVAR_A + 1
+        let one_lit = LiteralExpr::Int(1);
+        let one_expr = Expression {
+            expr_type: Some(ExpressionType::Int),
+            expr_ast: ExpressionAst::Literal(one_lit),
+        };
+        let var_expr_a = Expression {
+            expr_ast: ExpressionAst::Literal(var_lit_a_clone),
+            expr_type: Some(ExpressionType::Int),
+        };
+        let incr_var_a_ast =
+            ExpressionAst::Binary(BinaryOp::Add, Box::new(var_expr_a), Box::new(one_expr));
+        let incr_expr = Expression {
+            expr_type: Some(ExpressionType::Int),
+            expr_ast: incr_var_a_ast,
+        };
+        self.build_assign(last_while_block_node_id, var_id_a, &incr_expr);
+
+        // TMPVAR_A < TMPVAR_B
+        self.build_expr(last_while_block_node_id, &cond_expr);
+
+        // jump when-true to the start of the loop
+        self.add_edge(
+            last_while_block_node_id,
+            while_node_id,
+            CfgJumpType::WhenTrue,
+        );
+
+        let after_node_id = self.cfg_graph.new_node();
+        self.add_edge(
+            last_while_block_node_id,
+            after_node_id,
+            CfgJumpType::Fallback,
+        );
+        self.add_edge(node_id, after_node_id, CfgJumpType::Fallback);
+
+        after_node_id
     }
 
     fn build_if(&mut self, node_id: CfgNodeId, if_stmt: &IfStmt) -> CfgNodeId {
-        // 1) let's mark current CFG node as `CURRENT_NODE_ID` (the `node_id` paramter)
-        //    this node is assumed to be empty
-        // 2) generate expression-instructions for `if-stmt` conditional-expression (within `CURRENT_NODE_ID` node)
-        // 3) create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
-        // 4) generate statement-instructions for `if-stmt` `true-block` (within `TRUE_NODE_ID` node)
-        //    the CFG generation will return `LAST_TRUE_BLOCK_NODE_ID` node_id
-        // 5) add edge `CURRENT_NODE_ID` --jmp-when-true--> `TRUE_NODE_ID`
-        // 6) if `if-stmt` has `else-block`:
-        //      6.1) create a new empty CFG node. let's mark its node id as `FALSE_NODE_ID`
-        //      6.2) generate statement-instructions for `false-block` (within `FALSE_NODE_ID` node)
-        //           the CFG generation will return `LAST_FALSE_BLOCK_NODE_ID` node_id
-        //      6.3) add edge `CURRENT_NODE_ID` --jmp-fallback--> `FALSE_NODE_ID`
-        // 7) create a new empty CFG node. let's mark its node id as `AFTER_NODE_ID`
-        // 8) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
-        // 9) if `if-stmt` has `else-block`:
-        //      9.1) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
-        //    else:
-        //      9.1) add edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
+        // 1)  let's mark current CFG node as `CURRENT_NODE_ID` (the `node_id` parameter)
+        //     this node is assumed to be empty
+        // 2)  generate expression-instructions for `if-stmt` conditional-expression (within `CURRENT_NODE_ID` node)
+        // 3)  create a new empty CFG node. let's mark its node id as `TRUE_NODE_ID`
+        // 4)  generate statement-instructions for `if-stmt` `true-block` (within `TRUE_NODE_ID` node)
+        //     the CFG generation will return `LAST_TRUE_BLOCK_NODE_ID` node_id
+        // 5)  add edge `CURRENT_NODE_ID` --jmp-when-true--> `TRUE_NODE_ID`
+        // 6)  if `if-stmt` has `else-block`:
+        //       6.1) create a new empty CFG node. let's mark its node id as `FALSE_NODE_ID`
+        //       6.2) generate statement-instructions for `false-block` (within `FALSE_NODE_ID` node)
+        //            the CFG generation will return `LAST_FALSE_BLOCK_NODE_ID` node_id
+        //       6.3) add edge `CURRENT_NODE_ID` --jmp-fallback--> `FALSE_NODE_ID`
+        // 7)  create a new empty CFG node. let's mark its node id as `AFTER_NODE_ID`
+        // 8)  add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+        // 9)  if `if-stmt` has `else-block`:
+        //       9.1) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+        //     else:
+        //       9.1) add edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
         // 10) return `AFTER_NODE_ID` node_id (empty CFG node to be used for the next statement)
 
         self.build_expr(node_id, &if_stmt.cond_expr);
@@ -202,6 +285,7 @@ impl<'env> CfgBuilder<'env> {
 
             let last_node_id =
                 self.build_block(false_node_id, if_stmt.false_block.as_ref().unwrap());
+
             last_false_block_node_id = Some(last_node_id);
 
             self.add_edge(node_id, false_node_id, CfgJumpType::Fallback);

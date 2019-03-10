@@ -1,9 +1,9 @@
 use crate::ir::CfgInstruction;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub type CfgNodeId = usize;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub enum CfgJumpType {
     WhenTrue,
     Always,
@@ -16,7 +16,7 @@ pub enum CfgElement {
     Edge(CfgNodeId, CfgNodeId, CfgJumpType),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct CfgEdge {
     pub node_id: CfgNodeId,
     pub jmp_type: CfgJumpType,
@@ -26,8 +26,8 @@ pub struct CfgEdge {
 pub struct CfgNode {
     pub id: CfgNodeId,
     pub insts: Vec<CfgInstruction>,
-    pub incoming: Vec<CfgEdge>,
-    pub outgoing: Vec<CfgEdge>,
+    pub incoming: HashSet<CfgEdge>,
+    pub outgoing: HashSet<CfgEdge>,
 }
 
 impl CfgNode {
@@ -35,8 +35,8 @@ impl CfgNode {
         Self {
             id,
             insts: Vec::new(),
-            incoming: Vec::new(),
-            outgoing: Vec::new(),
+            incoming: Default::default(),
+            outgoing: Default::default(),
         }
     }
 
@@ -45,14 +45,14 @@ impl CfgNode {
     }
 
     pub fn add_outgoing_edge(&mut self, dst_node_id: CfgNodeId, jmp_type: CfgJumpType) {
-        self.outgoing.push(CfgEdge {
+        self.outgoing.insert(CfgEdge {
             node_id: dst_node_id,
             jmp_type,
         });
     }
 
     pub fn add_incoming_edge(&mut self, src_node_id: CfgNodeId, jmp_type: CfgJumpType) {
-        self.incoming.push(CfgEdge {
+        self.incoming.insert(CfgEdge {
             node_id: src_node_id,
             jmp_type,
         });
