@@ -291,8 +291,15 @@ impl<'env> CfgBuilder<'env> {
             self.add_edge(node_id, false_node_id, CfgJumpType::Fallback);
         }
 
-        let after_node_id = self.cfg_graph.new_node();
-        self.add_edge(last_true_block_node_id, after_node_id, CfgJumpType::Always);
+        let after_node_id = if self.cfg_graph.node_is_empty(last_true_block_node_id) {
+            last_true_block_node_id
+        } else {
+            self.cfg_graph.new_node()
+        };
+
+        if self.cfg_graph.node_is_empty(last_true_block_node_id) == false {
+            self.add_edge(last_true_block_node_id, after_node_id, CfgJumpType::Always);
+        }
 
         if if_stmt.false_block.is_some() {
             self.add_edge(

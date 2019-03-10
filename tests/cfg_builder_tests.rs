@@ -310,8 +310,7 @@ fn cfg_build_nested_if_stmts() {
         edge_always_jmp!(2, 3)
     };
 
-    // dbg!(actual);
-    // assert_eq!(expected, actual);
+    assert_eq!(expected, actual);
 }
 
 #[test]

@@ -40,6 +40,10 @@ impl CfgNode {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.insts.is_empty()
+    }
+
     pub fn append_inst(&mut self, inst: CfgInstruction) {
         self.insts.push(inst);
     }
@@ -77,6 +81,12 @@ impl CfgGraph {
         graph
     }
 
+    pub fn node_is_empty(&self, node_id: CfgNodeId) -> bool {
+        let node = self.get_node(node_id);
+
+        node.is_empty()
+    }
+
     // used for testing when manually building a graph
     pub fn add_element(&mut self, elem: CfgElement) {
         match elem {
@@ -103,6 +113,10 @@ impl CfgGraph {
 
         let mut dst_node = self.get_node_mut(dst_id);
         dst_node.add_incoming_edge(src_id, jmp_type);
+    }
+
+    pub fn get_node(&self, node_id: CfgNodeId) -> &CfgNode {
+        self.nodes.get(&node_id).unwrap()
     }
 
     pub fn get_node_mut(&mut self, node_id: CfgNodeId) -> &mut CfgNode {
