@@ -4,13 +4,13 @@ pub use crate::ast::statement::*;
 pub use crate::ast::Ast;
 pub use crate::ir::*;
 
-pub struct CfgBuilder<'a> {
+pub struct CfgBuilder<'env> {
     cfg_graph: CfgGraph,
-    env: &'a mut Environment,
+    env: &'env mut Environment,
 }
 
-impl<'a> CfgBuilder<'a> {
-    pub fn new(env: &'a mut Environment) -> Self {
+impl<'env> CfgBuilder<'env> {
+    pub fn new(env: &'env mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
 
         Self { cfg_graph, env }
@@ -152,17 +152,10 @@ impl<'a> CfgBuilder<'a> {
         // that will save how many iterations are left to the loop
 
         let expr = repeat_stmt.count_expr.clone();
-        let var_id = 100; //
-        let var_name = format!("$TMP{}", var_id);
-
-        let make_stmt = MakeStmt {
-            kind: MakeStmtKind::Local,
-            var_name,
-            var_id: Some(var_id),
-            expr,
-        };
+        let var_id = self.env.new_tmp_var(ExpressionType::Int);
 
         // self.build_while(node_id, expr, &repeat_stmt.block)
+
         unreachable!()
     }
 

@@ -238,7 +238,6 @@ impl SymbolTableGenerator {
 
         let var = Variable {
             id: var_id,
-            index,
             global: is_global,
             name: var_name.to_owned(),
             var_type,

@@ -8,7 +8,7 @@ macro_rules! assert_type_err {
     ($expected:expr, $code:expr) => {{
         let mut ast = TytleParser.parse($code).unwrap();
 
-        let mut generator = SymbolTableGenerator::new();
+        let generator = SymbolTableGenerator::new();
         let mut env = generator.generate(&mut ast).unwrap();
         let mut checker = AstTypeCheck::new(&mut env);
 
@@ -22,8 +22,8 @@ macro_rules! do_typecheck {
     ($code:expr, $env: ident) => {
         let mut ast = TytleParser.parse($code).unwrap();
 
-        let mut sym_generator = SymbolTableGenerator::new();
-        let mut $env = sym_generator.generate(&mut ast).unwrap();
+        let generator = SymbolTableGenerator::new();
+        let mut $env = generator.generate(&mut ast).unwrap();
         let mut type_checker = AstTypeCheck::new(&mut $env);
 
         let actual = type_checker.check(&mut ast);
