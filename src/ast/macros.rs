@@ -253,6 +253,7 @@ macro_rules! proc_stmt {
         let return_type = stringify!($ret_type).to_string();
 
         let proc_stmt = Statement::Procedure(ProcedureStmt {
+            id: None,
             params,
             name: $proc_name.to_string(),
             return_type,
@@ -362,7 +363,7 @@ macro_rules! proc_call_expr {
             let mut params = Vec::<Expression>::new();
             $( params.push($param); )*
 
-            let ast = ExpressionAst::ProcCall($proc_name.to_string(), params);
+            let ast = ExpressionAst::ProcCall($proc_name.to_string(), params, None);
             Expression::new(ast)
         }
     };

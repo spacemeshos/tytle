@@ -133,6 +133,7 @@ impl TytleParser {
         let block = self.parse_block_stmt(lexer, borders)?;
 
         let proc_stmt = ProcedureStmt {
+            id: None, // we'll assign procedure id in the symbols-generation process
             name,
             block,
             params,
@@ -515,7 +516,7 @@ impl TytleParser {
         let ast = match *token {
             Token::LPAREN => {
                 let (proc_name, proc_params) = self.parse_proc_call_expr(lexer)?;
-                ExpressionAst::ProcCall(proc_name, proc_params)
+                ExpressionAst::ProcCall(proc_name, proc_params, None)
             }
             _ => {
                 let lit_expr = self.parse_literal_expr(lexer)?;

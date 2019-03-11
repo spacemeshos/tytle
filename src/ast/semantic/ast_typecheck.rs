@@ -68,13 +68,14 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
     }
 
     fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
-        let (proc_name, proc_args_exprs) = expr.as_proc_call_expr();
+        let (proc_name, proc_args_exprs, _proc_id) = expr.as_proc_call_expr();
 
         let root_scope_id = 0;
         let symbol =
             self.env
                 .symbol_table
                 .lookup_recur(root_scope_id, proc_name, &SymbolKind::Proc);
+
         let proc: &Procedure = symbol.unwrap().as_proc();
 
         let expected_params_types = proc.params_types.clone();
@@ -193,10 +194,12 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
 
     fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
         let root_scope_id = 0;
+
         let symbol = self
             .env
             .symbol_table
             .lookup_recur(root_scope_id, ctx_proc, &SymbolKind::Proc);
+
         let proc: &Procedure = symbol.unwrap().as_proc();
 
         let actual_ret_type = if ret_stmt.expr.is_some() {

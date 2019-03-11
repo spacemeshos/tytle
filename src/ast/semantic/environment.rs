@@ -5,11 +5,13 @@ pub struct Environment {
     pub symbol_table: SymbolTable,
     pub id_generator: IdGenerator,
     pub globals_index: u64,
+    pub main_proc_id: Option<u64>,
 }
 
 impl Environment {
     pub fn new() -> Self {
         Self {
+            main_proc_id: None,
             symbol_table: SymbolTable::new(),
             id_generator: IdGenerator::new(),
             globals_index: 0,

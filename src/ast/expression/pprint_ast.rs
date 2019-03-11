@@ -50,7 +50,7 @@ impl PrettyPrintAst {
         match expr.expr_ast {
             ExpressionAst::Literal(ref lit_expr) => Self::pp_lit_expr(buffer, &lit_expr),
             ExpressionAst::Binary(_, _, _) => Self::pp_binary_expr(buffer, expr),
-            ExpressionAst::ProcCall(_, _) => Self::pp_proc_call_expr(buffer, expr),
+            ExpressionAst::ProcCall(_, _, _) => Self::pp_proc_call_expr(buffer, expr),
             ExpressionAst::Not(_) => Self::pp_not_expr(buffer, expr),
             ExpressionAst::Parentheses(_) => Self::pp_parentheses_expr(buffer, expr),
             _ => unimplemented!(),
@@ -84,7 +84,7 @@ impl PrettyPrintAst {
     }
 
     fn pp_proc_call_expr(buffer: &mut Vec<String>, proc_call_expr: &Expression) {
-        let (proc_name, proc_args) = proc_call_expr.as_proc_call_expr();
+        let (proc_name, proc_args, _proc_id) = proc_call_expr.as_proc_call_expr();
 
         buffer.push(format!("{}(", proc_name));
 

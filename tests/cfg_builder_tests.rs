@@ -278,7 +278,7 @@ fn cfg_build_nested_if_stmts() {
         node!(0,
             int_ins!(10),
             store_ins!(1),   // A = 10
-            int_ins!(2),
+            int_ins!(20),
             store_ins!(2),   // B = 20
             int_ins!(1),
             int_ins!(2),

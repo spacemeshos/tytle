@@ -99,7 +99,7 @@ fn pp_proc_call_expr() {
     let ast2 = ExpressionAst::Literal(LiteralExpr::Int(2));
 
     let proc_args = vec![Expression::new(ast1), Expression::new(ast2)];
-    let ast = ExpressionAst::ProcCall("MYPROC".to_string(), proc_args);
+    let ast = ExpressionAst::ProcCall("MYPROC".to_string(), proc_args, None);
 
     let expr = Expression::new(ast);
     let buffer = PrettyPrintAst::pprint_expr(&expr);

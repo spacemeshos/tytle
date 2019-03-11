@@ -33,6 +33,19 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         Ok(())
     }
 
+    fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+        let (proc_name, proc_args, proc_id_option) = expr.as_proc_call_expr_mut();
+
+        let proc: &Procedure = self
+            .try_get_symbol_recur(&proc_name, SymbolKind::Proc)
+            .unwrap()
+            .as_proc();
+
+        proc_id_option.replace(proc.id);
+
+        Ok(())
+    }
+
     fn on_proc_param(&mut self, ctx_proc: &str, proc_param: &mut ProcParam) -> AstWalkResult {
         let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
@@ -92,7 +105,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
 
                     var_id.replace(var.id);
                 } else {
-                    // TODO: return error is variable isn't found
+                    // TODO: return error if variable isn't found
                     unimplemented!()
                 }
             }
@@ -112,7 +125,7 @@ impl SymbolTableGenerator {
     }
 
     pub fn generate(mut self, ast: &mut Ast) -> EnvironmentResult {
-        self.gen_main_proc_symbol();
+        self.generate_main_symbol();
         self.prewalk_ast(ast)?;
         self.walk_ast(ast)?;
 
@@ -159,7 +172,7 @@ impl SymbolTableGenerator {
         }
     }
 
-    fn create_proc_symbol(&mut self, proc_stmt: &ProcedureStmt) -> AstWalkResult {
+    fn create_proc_symbol(&mut self, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         let symbol = self.try_get_symbol_recur(&proc_stmt.name, SymbolKind::Proc);
 
         if symbol.is_none() {
@@ -184,6 +197,7 @@ impl SymbolTableGenerator {
             self.proc_locals_index = 0; // we reset the new procedure locals counter
 
             self.env.symbol_table.create_proc_symbol(proc);
+            proc_stmt.id = Some(id);
 
             Ok(())
         } else {
@@ -276,9 +290,11 @@ impl SymbolTableGenerator {
         self.env.symbol_table.end_scope();
     }
 
-    fn gen_main_proc_symbol(&mut self) {
+    fn generate_main_symbol(&mut self) {
         let id = self.get_next_id();
         let proc = Procedure::new("__main__", id);
+
+        self.env.main_proc_id = Some(id);
 
         self.env.symbol_table.create_proc_symbol(proc);
     }

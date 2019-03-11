@@ -3,7 +3,7 @@ use crate::ast::expression::{BinaryOp, Expression, ExpressionType, LiteralExpr};
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionAst {
     Literal(LiteralExpr),
-    ProcCall(String, Vec<Expression>),
+    ProcCall(String, Vec<Expression>, Option<u64>),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
     Parentheses(Box<Expression>),
     Not(Box<Expression>),

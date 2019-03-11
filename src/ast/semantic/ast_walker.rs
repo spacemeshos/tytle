@@ -110,8 +110,8 @@ pub trait AstWalker<'a> {
     fn walk_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         match expr.expr_ast {
             ExpressionAst::Literal(_) => self.on_literal_expr(ctx_proc, expr),
-            ExpressionAst::ProcCall(ref call_name, ref mut call_params) => {
-                self.walk_proc_call_expr(ctx_proc, call_name, call_params)?;
+            ExpressionAst::ProcCall(ref call_name, ref mut call_params, ref mut call_id) => {
+                self.walk_proc_call_expr(ctx_proc, call_name, call_params, call_id)?;
 
                 self.on_proc_call_expr(ctx_proc, expr)
             }
@@ -139,6 +139,7 @@ pub trait AstWalker<'a> {
         ctx_proc: &str,
         call_name: &str,
         call_params: &mut Vec<Expression>,
+        call_id: &mut Option<u64>,
     ) -> AstWalkResult {
         self.on_proc_call_expr_start(ctx_proc, call_name)?;
 

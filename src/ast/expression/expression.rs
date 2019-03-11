@@ -68,9 +68,22 @@ impl Expression {
         }
     }
 
-    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>) {
+    pub fn as_proc_call_expr_mut(
+        &mut self,
+    ) -> (&mut String, &mut Vec<Expression>, &mut Option<u64>) {
+        match &mut self.expr_ast {
+            ExpressionAst::ProcCall(proc_name, proc_args_exprs, proc_id) => {
+                return (proc_name, proc_args_exprs, proc_id);
+            }
+            _ => panic!("expected a procedure call"),
+        }
+    }
+
+    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>, &Option<u64>) {
         match &self.expr_ast {
-            ExpressionAst::ProcCall(proc_name, proc_args_exprs) => (proc_name, proc_args_exprs),
+            ExpressionAst::ProcCall(proc_name, proc_args_exprs, proc_id) => {
+                (proc_name, proc_args_exprs, proc_id)
+            }
             _ => panic!(
                 "expected a procedure call expression. got: `{:?}`",
                 self.expr_ast
