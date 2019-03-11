@@ -144,4 +144,8 @@ impl CfgGraph {
     pub fn get_next_id(&self) -> CfgNodeId {
         self.next_id
     }
+
+    pub fn get_entry_node_id(&self) -> CfgNodeId {
+        0
+    }
 }

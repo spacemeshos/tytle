@@ -108,6 +108,22 @@ macro_rules! direct_ins {
 }
 
 #[macro_export]
+macro_rules! call_ins {
+    ($node_id:expr) => {{
+        use $crate::ir::CfgInstruction;
+
+        CfgInstruction::Call($node_id)
+    }};
+}
+
+#[macro_export]
+macro_rules! return_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Return
+    }};
+}
+
+#[macro_export]
 macro_rules! node {
     ($node_id:expr, $ ($ins:expr) ,*) => {
         {

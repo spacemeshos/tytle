@@ -3,24 +3,37 @@ pub use crate::ast::semantic::*;
 pub use crate::ast::statement::*;
 pub use crate::ast::Ast;
 pub use crate::ir::*;
+pub use std::collections::HashMap;
+
+struct CfgProc {
+    pub node_id: CfgNodeId,
+    pub proc_id: u64,
+    pub built: bool,
+}
 
 pub struct CfgBuilder<'env> {
     cfg_graph: CfgGraph,
     env: &'env mut Environment,
+    proc_jmp_table: HashMap<u64, CfgProc>,
 }
 
 impl<'env> CfgBuilder<'env> {
     pub fn new(env: &'env mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
+        let proc_jmp_table = Default::default();
 
-        Self { cfg_graph, env }
+        Self {
+            cfg_graph,
+            env,
+            proc_jmp_table,
+        }
     }
 
     pub fn build(mut self, ast: &Ast) -> CfgGraph {
-        for stmt in &ast.statements {
-            let node_id = self.cfg_graph.get_current_id();
+        let mut node_id = self.cfg_graph.get_entry_node_id();
 
-            self.build_stmt(node_id, stmt);
+        for stmt in &ast.statements {
+            node_id = self.build_stmt(node_id, stmt);
         }
 
         self.cfg_graph
@@ -35,8 +48,68 @@ impl<'env> CfgBuilder<'env> {
             Statement::Make(make_stmt) => self.build_make(node_id, make_stmt),
             Statement::If(if_stmt) => self.build_if(node_id, if_stmt),
             Statement::Repeat(repeat_stmt) => self.build_repeat(node_id, repeat_stmt),
-            _ => unimplemented!(),
+            Statement::Procedure(proc_stmt) => self.build_proc(node_id, proc_stmt),
+            Statement::Return(return_stmt) => self.build_return(node_id, return_stmt),
         }
+    }
+
+    fn build_return(&mut self, node_id: CfgNodeId, return_stmt: &ReturnStmt) -> CfgNodeId {
+        if return_stmt.expr.is_some() {
+            let expr: &Expression = return_stmt.expr.as_ref().unwrap();
+            self.build_expr(node_id, expr);
+        }
+
+        let node = self.cfg_graph.get_node_mut(node_id);
+        node.append_inst(CfgInstruction::Return);
+
+        node_id
+    }
+
+    fn build_proc(&mut self, node_id: CfgNodeId, proc_stmt: &ProcedureStmt) -> CfgNodeId {
+        let proc_id = proc_stmt.id.unwrap();
+        let cfg_proc = self.proc_jmp_table.get(&proc_id);
+
+        let mut proc_node_id;
+
+        if cfg_proc.is_some() {
+            let cfg_proc = cfg_proc.unwrap();
+
+            if cfg_proc.built == true {
+                // we've already built the CFG for the procedure
+                // so we just return the start node id
+                return cfg_proc.node_id;
+            }
+
+            // we have allocated already the proc start node
+            // (even though we didn't build the proc instructions yet)
+            proc_node_id = cfg_proc.node_id;
+        } else {
+            // there is no proc CFG node, so we'll allocate one
+            proc_node_id = self.cfg_graph.new_node();
+
+            // we explicitly save immediately the cfg proc in order
+            // to support recursive procedures
+
+            let cfg_proc = CfgProc {
+                node_id: proc_node_id,
+                proc_id,
+                built: false,
+            };
+            self.proc_jmp_table.insert(proc_id, cfg_proc);
+        }
+
+        self.build_block(proc_node_id, &proc_stmt.block);
+
+        // marking the cfg proc as built
+        let cfg_proc = CfgProc {
+            proc_id,
+            node_id: proc_node_id,
+            built: true,
+        };
+        self.proc_jmp_table.insert(proc_id, cfg_proc);
+
+        // the empty CFG node `node_id` will be used in the next non-procedure statement
+        node_id
     }
 
     fn build_cmd(&mut self, node_id: CfgNodeId, cmd: &Command) -> CfgNodeId {
@@ -81,14 +154,44 @@ impl<'env> CfgBuilder<'env> {
             ExpressionAst::Not(_) => self.build_not_expr(node_id, expr),
             ExpressionAst::Binary(..) => self.build_bin_expr(node_id, expr),
             ExpressionAst::Parentheses(_) => self.build_parentheses_expr(node_id, expr),
-            ExpressionAst::ProcCall(..) => unimplemented!(),
+            ExpressionAst::ProcCall(..) => self.build_proc_call_expr(node_id, expr),
         }
 
         node_id
     }
 
     fn build_proc_call_expr(&mut self, node_id: CfgNodeId, expr: &Expression) {
-        //
+        let (proc_name, proc_args_exprs, proc_id_option) = expr.as_proc_call_expr();
+
+        for proc_arg_expr in proc_args_exprs {
+            self.build_expr(node_id, proc_arg_expr);
+        }
+
+        let proc_id = proc_id_option.unwrap();
+        let mut cfg_proc = self.proc_jmp_table.get(&proc_id);
+
+        let mut jmp_node_id;
+
+        if cfg_proc.is_none() {
+            let proc_node_id = self.cfg_graph.new_node();
+
+            let cfg_proc = CfgProc {
+                node_id: proc_node_id,
+                proc_id,
+                built: false,
+            };
+            self.proc_jmp_table.insert(proc_id, cfg_proc);
+
+            jmp_node_id = proc_node_id;
+        } else {
+            jmp_node_id = cfg_proc.unwrap().node_id;
+        }
+
+        self.append_inst(node_id, CfgInstruction::Call(jmp_node_id));
+    }
+
+    fn find_ast_proc_stmt(&self, proc_name: &str) -> &ProcedureStmt {
+        unimplemented!()
     }
 
     fn build_parentheses_expr(&mut self, node_id: CfgNodeId, expr: &Expression) {

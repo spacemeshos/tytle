@@ -11,6 +11,8 @@ pub enum CfgInstruction {
     Bool(bool),
     Int(usize),
     Str(String),
+    Call(CfgNodeId),
+    Return,
     Add,
     Mul,
     Not,

@@ -362,3 +362,74 @@ fn cfg_build_repeat_stmt() {
 
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn cfg_build_proc_with_no_external_calls() {
+    let code = r#"
+        TO MYPROC(): INT
+            MAKELOCAL A = 10
+            MAKELOCAL B = 20
+
+            RETURN A + B
+        END
+
+        MAKEGLOBAL C = 30
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(30),
+            store_ins!(2) // C = 30
+        ),
+        node!(1,
+            int_ins!(10),
+            store_ins!(3),  // A = 10
+            int_ins!(20),
+            store_ins!(4),  // B = 20
+            load_ins!(3),
+            load_ins!(4),
+            add_ins!(),     // A + B
+            return_ins!()
+        )
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_proc_with_external_calls() {
+    let code = r#"
+        MYPROC(1, TRUE)
+
+        TO MYPROC(A: INT, B: BOOL): INT
+            RETURN 10
+        END
+
+        MYPROC(2, FALSE)
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(1),
+            bool_ins!(true),
+            call_ins!(1),  // MYPROC(1, TRUE)
+            int_ins!(2),
+            bool_ins!(false),
+            call_ins!(1)   // MYPROC(2, FALSE)
+        ),
+        node!(1,
+            int_ins!(10),
+            return_ins!() // RETURN 10
+        )
+    };
+
+    assert_eq!(expected, actual);
+}
