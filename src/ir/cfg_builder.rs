@@ -102,8 +102,8 @@ impl<'env> CfgBuilder<'env> {
 
         // marking the cfg proc as built
         let cfg_proc = CfgProc {
-            proc_id,
             node_id: proc_node_id,
+            proc_id,
             built: true,
         };
         self.proc_jmp_table.insert(proc_id, cfg_proc);
@@ -370,7 +370,7 @@ impl<'env> CfgBuilder<'env> {
         // 7)  create a new empty CFG node. let's mark its node id as `AFTER_NODE_ID`
         // 8)  add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
         // 9)  if `if-stmt` has `else-block`:
-        //       9.1) add edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+        //       9.1) add edge `LAST_FALSE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
         //     else:
         //       9.1) add edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
         // 10) return `AFTER_NODE_ID` node_id (empty CFG node to be used for the next statement)
@@ -394,27 +394,66 @@ impl<'env> CfgBuilder<'env> {
             self.add_edge(node_id, false_node_id, CfgJumpType::Fallback);
         }
 
-        let after_node_id = if self.cfg_graph.node_is_empty(last_true_block_node_id) {
-            last_true_block_node_id
-        } else {
-            self.cfg_graph.new_node()
+        let true_block_ends_with_empty_node = self.cfg_graph.node_is_empty(last_true_block_node_id);
+        let true_block_ends_with_return = self.cfg_graph.ends_with_return(last_true_block_node_id);
+
+        let mut draw_true_block_to_after_node_edge = false;
+
+        let after_node_id = match true_block_ends_with_empty_node {
+            true => Some(last_true_block_node_id), // we'll reuse this empty node
+            false => {
+                // we know the `true-block last node` isn't empty
+                // but we want to allocate a new empty CFG node **only**
+                // when the last node-statement *IS NOT* a `RETURN`-statement
+
+                if true_block_ends_with_return {
+                    // no need to draw edge `LAST_TRUE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+                    None
+                } else {
+                    draw_true_block_to_after_node_edge = true;
+                    Some(self.cfg_graph.new_node())
+                }
+            }
         };
 
-        if self.cfg_graph.node_is_empty(last_true_block_node_id) == false {
-            self.add_edge(last_true_block_node_id, after_node_id, CfgJumpType::Always);
+        if draw_true_block_to_after_node_edge {
+            self.add_edge(
+                last_true_block_node_id,
+                after_node_id.unwrap(),
+                CfgJumpType::Always,
+            );
         }
 
         if if_stmt.false_block.is_some() {
-            self.add_edge(
-                last_false_block_node_id.unwrap(),
-                after_node_id,
-                CfgJumpType::Always,
-            );
+            // we draw edge `LAST_FALSE_BLOCK_NODE_ID` --jmp-always--> `AFTER_NODE_ID`
+            // only if the `else-block` statement *IS NOT* a `RETURN`-statement
+            let last_false_block_node_id = last_false_block_node_id.unwrap();
+
+            let false_block_ends_with_return =
+                self.cfg_graph.ends_with_return(last_false_block_node_id);
+
+            if false_block_ends_with_return == false {
+                self.add_edge(
+                    last_false_block_node_id,
+                    after_node_id.unwrap(),
+                    CfgJumpType::Always,
+                );
+            }
         } else {
-            self.add_edge(node_id, after_node_id, CfgJumpType::Fallback);
+            // there is no `else-block`
+            // we'll draw edge `CURRENT_NODE_ID` --jmp-fallback--> `AFTER_NODE_ID`
+            // in case there is an after node
+
+            if after_node_id.is_some() {
+                self.add_edge(node_id, after_node_id.unwrap(), CfgJumpType::Fallback);
+            }
         }
 
-        after_node_id
+        if after_node_id.is_some() {
+            after_node_id.unwrap()
+        } else {
+            self.cfg_graph.new_node()
+        }
     }
 
     fn build_block(&mut self, node_id: CfgNodeId, block_stmt: &BlockStatement) -> CfgNodeId {

@@ -125,6 +125,13 @@ macro_rules! return_ins {
 
 #[macro_export]
 macro_rules! node {
+    ($node_id:expr) => {{
+        use $crate::ir::CfgNode;
+        let mut node = CfgNode::new($node_id);
+
+        CfgElement::Node(node)
+    }};
+
     ($node_id:expr, $ ($ins:expr) ,*) => {
         {
             use $crate::ir::CfgNode;

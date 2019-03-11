@@ -44,6 +44,24 @@ impl CfgNode {
         self.insts.is_empty()
     }
 
+    pub fn is_orphan(&self) -> bool {
+        self.incoming.len() == 0 && self.outgoing.len() == 0
+    }
+
+    pub fn ends_with_return(&self) -> bool {
+        if self.insts.is_empty() {
+            return false;
+        }
+
+        let last_inst: &CfgInstruction = self.insts.last().unwrap();
+
+        if let CfgInstruction::Return = last_inst {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     pub fn append_inst(&mut self, inst: CfgInstruction) {
         self.insts.push(inst);
     }
@@ -85,6 +103,18 @@ impl CfgGraph {
         let node = self.get_node(node_id);
 
         node.is_empty()
+    }
+
+    pub fn ends_with_return(&self, node_id: CfgNodeId) -> bool {
+        let node = self.get_node(node_id);
+
+        node.ends_with_return()
+    }
+
+    pub fn is_orphan(&self, node_id: CfgNodeId) -> bool {
+        let node = self.get_node(node_id);
+
+        node.is_orphan()
     }
 
     // used for testing when manually building a graph
@@ -147,5 +177,93 @@ impl CfgGraph {
 
     pub fn get_entry_node_id(&self) -> CfgNodeId {
         0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cfg_graph_node_is_empty() {
+        let mut node = CfgNode::new(1);
+        assert!(node.is_empty());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(cfg_graph.node_is_empty(1));
+    }
+
+    #[test]
+    fn cfg_graph_node_is_not_empty() {
+        let mut node = CfgNode::new(1);
+        node.append_inst(CfgInstruction::Load(1));
+
+        assert!(!node.is_empty());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(!cfg_graph.node_is_empty(1));
+    }
+
+    #[test]
+    fn cfg_graph_node_ends_with_return() {
+        let mut node = CfgNode::new(1);
+        node.append_inst(CfgInstruction::Return);
+        assert!(node.ends_with_return());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(cfg_graph.ends_with_return(1));
+    }
+
+    #[test]
+    fn cfg_graph_node_does_not_ends_with_return() {
+        let mut node = CfgNode::new(1);
+        node.append_inst(CfgInstruction::Load(1));
+        assert!(!node.ends_with_return());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(!cfg_graph.ends_with_return(1));
+    }
+
+    #[test]
+    fn cfg_build_orphan_node() {
+        let mut node = CfgNode::new(1);
+        assert!(node.is_orphan());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(cfg_graph.is_orphan(1));
+    }
+
+    #[test]
+    fn cfg_build_node_with_outgoing_edges_is_not_orphan() {
+        let mut node = CfgNode::new(1);
+        node.add_outgoing_edge(2, CfgJumpType::Always);
+        assert!(!node.is_orphan());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(!cfg_graph.is_orphan(1));
+    }
+
+    #[test]
+    fn cfg_build_node_with_incoming_edges_is_not_orphan() {
+        let mut node = CfgNode::new(1);
+        node.add_incoming_edge(2, CfgJumpType::Always);
+        assert!(!node.is_orphan());
+
+        let mut cfg_graph = CfgGraph::new();
+        cfg_graph.add_node(node);
+
+        assert!(!cfg_graph.is_orphan(1));
     }
 }

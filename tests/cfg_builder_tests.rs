@@ -92,6 +92,16 @@ fn cfg_build_cmd_ins_macro_sanity() {
 }
 
 #[test]
+fn cfg_build_return_ins_macro_sanity() {
+    assert_eq!(CfgInstruction::Return, return_ins!());
+}
+
+#[test]
+fn cfg_build_call_ins_macro_sanity() {
+    assert_eq!(CfgInstruction::Call(10), call_ins!(10));
+}
+
+#[test]
 fn cfg_build_direct_ins_macro_sanity() {
     assert_eq!(
         CfgInstruction::Direction(Direction::Left),
@@ -428,6 +438,96 @@ fn cfg_build_proc_with_external_calls() {
         node!(1,
             int_ins!(10),
             return_ins!() // RETURN 10
+        )
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_recursive_procedure() {
+    let code = r#"
+        TO RECUR_PROC(I: INT, N: INT, ACC: INT): INT
+            IF I < N [RETURN RECUR_PROC(I + 1, N, ACC * (I + 1))] [RETURN ACC]
+        END
+        RECUR_PROC(0, 5, 1)
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(0),
+            int_ins!(5),
+            int_ins!(1),
+            call_ins!(1)
+        ),
+        node!(1,
+            load_ins!(2), // I
+            load_ins!(3), // N
+            lt_ins!()     // IF I < N
+        ),
+        node!(2,
+            load_ins!(2),
+            int_ins!(1),
+            add_ins!(),   // I + 1  => ARG #1
+            load_ins!(3), // N      => ARG #2
+            load_ins!(4), // ACC
+            load_ins!(2), // I
+            int_ins!(1),
+            add_ins!(),   // I + 1
+            mul_ins!(),   // ACC * (I + 1)  => ARG #3
+            call_ins!(1), // RECUR_PROC(I + 1, N, ACC * (I + 1))
+            return_ins!() // RETURN RECUR_PROC(I + 1, N, ACC * (I + 1))
+        ),
+        node!(3,
+              load_ins!(4), // ACC
+              return_ins!() // RETURN ACC
+        ),
+        node!(4),
+        edge_true_jmp!(1, 2),
+        edge_fallback_jmp!(1, 3)
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn cfg_build_mutually_exclusive_procedures() {
+    let code = r#"
+        TO F(A: INT): INT
+            10 + G(1)
+        END
+
+        TO G(B: INT): INT
+            20 * F(2)
+        END
+
+        F(1)
+    "#;
+
+    let (ast, mut env) = prepare!(code);
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let expected = cfg_graph! {
+        node!(0,
+            int_ins!(1),
+            call_ins!(1)
+        ),
+        node!(1,
+            int_ins!(10),
+            int_ins!(1),
+            call_ins!(2),  // G(1)
+            add_ins!()     // 10 + G(1)
+        ),
+        node!(2,
+            int_ins!(20),
+            int_ins!(2),
+            call_ins!(1), // F(2)
+            mul_ins!()    // 20 * F(2)
         )
     };
 
