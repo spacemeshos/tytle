@@ -178,6 +178,19 @@ impl CfgGraph {
     pub fn get_entry_node_id(&self) -> CfgNodeId {
         0
     }
+
+    pub fn compact(&mut self) {
+        let orphan_ids: Vec<usize> = self
+            .nodes
+            .keys()
+            .filter(|&nid| self.is_orphan(*nid))
+            .map(|nid| *nid)
+            .collect();
+
+        for nid in orphan_ids {
+            self.nodes.remove(&nid);
+        }
+    }
 }
 
 #[cfg(test)]

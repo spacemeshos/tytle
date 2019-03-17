@@ -36,6 +36,8 @@ impl<'env> CfgBuilder<'env> {
             node_id = self.build_stmt(node_id, stmt);
         }
 
+        // self.cfg_graph.compact();
+
         self.cfg_graph
     }
 

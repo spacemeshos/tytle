@@ -155,6 +155,19 @@ fn cfg_build_edge_insts_macro_sanity() {
 }
 
 #[test]
+#[ignore]
+fn cfg_build_empty_program() {
+    let (ast, mut env) = prepare!("");
+    let builder = CfgBuilder::new(&mut env);
+    let actual = builder.build(&ast);
+
+    let mut expected = cfg_graph! {};
+    expected.compact();
+
+    assert_eq!(expected, actual)
+}
+
+#[test]
 fn cfg_build_make_global_assign_int_expr() {
     let code = r#"
         MAKEGLOBAL A = (1 + 2) * 5
