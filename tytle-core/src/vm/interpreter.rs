@@ -1,46 +1,18 @@
-use crate::ir::Instruction;
-use crate::vm::position::Position;
-use crate::vm::screen::Screen;
-use crate::vm::turtle::Turtle;
+use crate::ir::CfgInstruction;
+use crate::vm::*;
 
 pub struct Interpreter {
     turtle: Turtle,
-    bytecode: Vec<Instruction>,
-    screen: Box<Screen>,
+    bytecode: Vec<CfgInstruction>,
+    call_stack: CallStack,
 }
 
 impl Interpreter {
-    pub fn new(bytecode: Vec<Instruction>, screen: Box<Screen>) -> Self {
-        let turtle = Turtle::default();
-
+    pub fn new() -> Self {
         Self {
-            bytecode,
-            turtle,
-            screen,
+            bytecode: Vec::new(),
+            turtle: Turtle::new(),
+            call_stack: CallStack::new(),
         }
     }
-
-    pub fn set_turtle_color(&mut self, color: (u8, u8, u8)) {
-        self.turtle.color = color;
-    }
-
-    fn exec_next_inst(&mut self) {
-        let inst = self.bytecode.pop();
-
-        if inst.is_none() {
-            return;
-        }
-
-        let inst: Instruction = inst.unwrap();
-
-        match inst.opcode {
-            _ => panic!(),
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn turtle_starts_at_0_0() {}
 }
