@@ -30,6 +30,13 @@ pub struct CfgNode {
     pub outgoing: HashSet<CfgEdge>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct CfgProc {
+    pub node_id: CfgNodeId,
+    pub proc_id: u64,
+    pub built: bool,
+}
+
 impl CfgNode {
     pub fn new(id: CfgNodeId) -> Self {
         Self {
@@ -90,8 +97,8 @@ pub struct CfgGraph {
 impl CfgGraph {
     pub fn new() -> Self {
         let mut graph = Self {
-            nodes: HashMap::new(),
             next_id: 0,
+            nodes: HashMap::new(),
         };
 
         graph.new_node();

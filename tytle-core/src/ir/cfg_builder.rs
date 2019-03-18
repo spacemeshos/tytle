@@ -5,12 +5,6 @@ pub use crate::ast::Ast;
 pub use crate::ir::*;
 pub use std::collections::HashMap;
 
-struct CfgProc {
-    pub node_id: CfgNodeId,
-    pub proc_id: u64,
-    pub built: bool,
-}
-
 pub struct CfgBuilder<'env> {
     cfg_graph: CfgGraph,
     env: &'env mut Environment,
@@ -20,13 +14,8 @@ pub struct CfgBuilder<'env> {
 impl<'env> CfgBuilder<'env> {
     pub fn new(env: &'env mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
-        let proc_jmp_table = Default::default();
 
-        Self {
-            cfg_graph,
-            env,
-            proc_jmp_table,
-        }
+        Self { cfg_graph, env, proc_jmp_table: HashMap::new() }
     }
 
     pub fn build(mut self, ast: &Ast) -> CfgGraph {

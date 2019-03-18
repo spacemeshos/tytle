@@ -8,5 +8,5 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-tytle-core = { path = "../tytle-core" }
+tytle = { path = "../tytle-core" }
 wasm-bindgen = "0.2.39"
