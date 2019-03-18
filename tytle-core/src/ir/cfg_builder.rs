@@ -1,7 +1,4 @@
-pub use crate::ast::expression::*;
-pub use crate::ast::semantic::*;
-pub use crate::ast::statement::*;
-pub use crate::ast::Ast;
+pub use crate::ast::{expression::*, semantic::*, statement::*, Ast};
 pub use crate::ir::*;
 pub use std::collections::HashMap;
 
@@ -15,7 +12,11 @@ impl<'env> CfgBuilder<'env> {
     pub fn new(env: &'env mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
 
-        Self { cfg_graph, env, proc_jmp_table: HashMap::new() }
+        Self {
+            cfg_graph,
+            env,
+            proc_jmp_table: HashMap::new(),
+        }
     }
 
     pub fn build(mut self, ast: &Ast) -> CfgGraph {
@@ -25,6 +26,7 @@ impl<'env> CfgBuilder<'env> {
             node_id = self.build_stmt(node_id, stmt);
         }
 
+        // TODO: fix the orphans deletions
         // self.cfg_graph.compact();
 
         self.cfg_graph
