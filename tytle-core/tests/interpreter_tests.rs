@@ -6,7 +6,7 @@ use tytle::parser::{Parser, TytleParser};
 use tytle::vm::*;
 
 #[test]
-pub fn interpreter_forward() {
+pub fn interpreter_forward_int_lit_expr() {
     let code = "FORWARD 10";
     let mut ast = TytleParser.parse(code).unwrap();
     let generator = SymbolTableGenerator::new();
@@ -28,3 +28,90 @@ pub fn interpreter_forward() {
 
     assert_eq!((0, 10), host.xycors());
 }
+
+#[test]
+#[ignore]
+pub fn interpreter_backward_int_lit_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_right_int_lit_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_left_int_lit_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_forward_one_var_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_forward_two_vars_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_forward_const_repeat_const_times() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_if_true_bool_lit_cond_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_if_else_false_bool_lit_cond_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_xcor() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_ycor() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_pen_up() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_pen_erase() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_clear() {}
+
+pub fn interpreter_clear_screen() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_set_pen_color() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_set_bg_color() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_show_turtle() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_hide_turtle() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_wait_const_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_wait_var_expr() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_stop_within_main_proc() {}
+
+#[test]
+#[ignore]
+pub fn interpreter_stop_within_sub_proc() {}
+
