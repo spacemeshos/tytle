@@ -1,6 +1,7 @@
 use crate::ast::statement::{Command, Direction};
 use crate::vm::{Host, Pen, Turtle};
 
+#[derive(Debug)]
 pub struct DummyHost {
     pen: Pen,
     turtle: Turtle,
@@ -9,7 +10,9 @@ pub struct DummyHost {
 impl Host for DummyHost {
     fn exec_cmd(&mut self, cmd: &Command) {}
 
-    fn exec_direct(&mut self, direct: &Direction) {}
+    fn exec_direct(&mut self, direct: &Direction, count: usize) {
+        self.turtle.exec_direct(direct, count);
+    }
 }
 
 impl DummyHost {
@@ -26,6 +29,13 @@ impl DummyHost {
 
     pub fn ycor(&self) -> usize {
         self.turtle.ycor()
+    }
+
+    pub fn xycors(&self) -> (usize, usize) {
+        let x = self.xcor();
+        let y = self.ycor();
+
+        (x, y)
     }
 
     pub fn pen_up(&mut self) {

@@ -1,3 +1,6 @@
+use crate::ast::statement::Direction;
+
+#[derive(Debug)]
 pub struct Turtle {
     position: (usize, usize),
     visible: bool,
@@ -8,6 +11,17 @@ impl Turtle {
         Self {
             visible: true,
             position: (0, 0),
+        }
+    }
+
+    pub fn exec_direct(&mut self, direct: &Direction, count: usize) {
+        match direct {
+            Direction::Forward => self.position.1 += count,
+            Direction::Backward => self.position.1 -= count,
+            Direction::Right => self.position.0 += count,
+            Direction::Left => self.position.0 -= count,
+            Direction::SetY => self.position.1 = count,
+            Direction::SetX => self.position.0 = count,
         }
     }
 

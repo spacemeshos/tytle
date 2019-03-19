@@ -1,5 +1,6 @@
 use crate::ir::CfgNodeId;
 
+#[derive(Debug)]
 pub enum CallStackItem {
     Int(usize),
     Bool(bool),
@@ -51,6 +52,7 @@ impl CallStackItem {
     }
 }
 
+#[derive(Debug)]
 pub struct CallStackFrame {
     items: Vec<CallStackItem>,
 }
@@ -73,6 +75,7 @@ impl CallStackFrame {
     }
 }
 
+#[derive(Debug)]
 pub struct CallStack {
     pub frames: Vec<CallStackFrame>,
 }

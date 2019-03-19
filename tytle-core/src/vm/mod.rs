@@ -3,6 +3,7 @@ mod dummy_host;
 mod globals;
 mod host;
 mod interpreter;
+pub mod macros;
 mod memory;
 mod pen;
 mod turtle;

@@ -4,10 +4,10 @@ use crate::ir::{CfgGraph, CfgInstruction, CfgNodeId, CfgObject};
 use crate::vm::*;
 
 pub struct Interpreter<'env, 'cfg, 'host> {
-    ip: usize,
-    node_id: CfgNodeId,
-    memory: Memory,
-    call_stack: CallStack,
+    pub ip: usize,
+    pub node_id: CfgNodeId,
+    pub memory: Memory,
+    pub call_stack: CallStack,
     env: &'env Environment,
     cfg: &'cfg CfgObject,
     host: &'host mut Host,
@@ -17,22 +17,22 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     pub fn new(cfg: &'cfg CfgObject, env: &'env Environment, host: &'host mut Host) -> Self {
         // node with `id = 0` is reserved for the `main wrapper`
         // while node having `id = 1` is reserved for the `main`
-        let start_id = cfg.graph.get_entry_node_id() - 1;
+        let main_node_id = cfg.graph.get_entry_node_id();
 
-        let mut interpreter = Self {
+        let mut intr = Self {
             ip: 0,
             env,
             host,
             cfg,
             memory: Memory::new(),
             call_stack: CallStack::new(),
-            node_id: start_id,
+            node_id: main_node_id,
         };
 
-        interpreter.init_memory();
-        interpreter.init_callstack();
+        intr.init_memory();
+        intr.init_callstack();
 
-        interpreter
+        intr
     }
 
     pub fn exec_next(&mut self) -> bool {
@@ -45,9 +45,13 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         }
 
         let inst = inst.unwrap();
+        let mut is_jmp = false;
 
         match inst {
-            CfgInstruction::Call(ref node_id) => self.exec_call(*node_id),
+            CfgInstruction::Call(ref node_id) => {
+                is_jmp = true;
+                self.exec_call(*node_id);
+            }
             CfgInstruction::Command(ref cmd) => self.exec_cmd(cmd),
             CfgInstruction::Direction(ref direct) => self.exec_direct(direct),
             CfgInstruction::Bool(v) => self.exec_bool(*v),
@@ -58,18 +62,25 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Or | CfgInstruction::And | CfgInstruction::GT | CfgInstruction::LT => {
                 self.exec_bool_binary(inst.clone())
             }
-            // CfgInstruction::Load(ref symbol_id) => self.exec_load(symbol_id),
-            // CfgInstruction::Store(ref symbol_id) => self.exec_store(symbol_id),
-            // CfgInstruction::Str(v) => unimplemented!(),
-            _ => unimplemented!(),
+            CfgInstruction::Load(ref symbol_id) => self.exec_load(symbol_id),
+            CfgInstruction::Store(ref symbol_id) => self.exec_store(symbol_id),
+            CfgInstruction::Str(v) => unimplemented!(),
         };
+
+        if is_jmp == false {
+            self.ip += 1;
+        }
 
         true
     }
 
-    fn exec_load(&mut self, symbol_id: &SymbolId) {}
+    fn exec_load(&mut self, symbol_id: &SymbolId) {
+        unimplemented!()
+    }
 
-    fn exec_store(&mut self, symbol_id: &SymbolId) {}
+    fn exec_store(&mut self, symbol_id: &SymbolId) {
+        unimplemented!()
+    }
 
     fn exec_call(&mut self, callee_id: CfgNodeId) {
         let old_frame = self.call_stack.current_frame_mut();
@@ -125,7 +136,9 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_direct(&mut self, direct: &Direction) {
-        self.host.exec_direct(direct)
+        let count = self.call_stack.pop_item().to_int();
+
+        self.host.exec_direct(direct, count)
     }
 
     fn exec_int_binary(&mut self, op: CfgInstruction) {
@@ -211,12 +224,5 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
         assert!(self.call_stack.is_empty());
         self.call_stack.open_stackframe();
-
-        let main_node_id = self.cfg.graph.get_entry_node_id();
-
-        self.exec_call(main_node_id);
-
-        self.call_stack.close_stackframe();
-        assert!(self.call_stack.is_empty());
     }
 }

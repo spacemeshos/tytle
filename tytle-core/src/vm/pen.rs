@@ -1,9 +1,11 @@
+#[derive(Debug)]
 pub enum PenState {
     Up,
     Down,
     Erase,
 }
 
+#[derive(Debug)]
 pub struct Pen {
     state: PenState,
     color: (u8, u8, u8),

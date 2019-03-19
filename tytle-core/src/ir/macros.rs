@@ -184,3 +184,31 @@ macro_rules! cfg_graph {
         }
     }
 }
+
+#[macro_export]
+macro_rules! compile_cfg_obj {
+    ($code: expr) => {{
+        let mut ast = TytleParser.parse($code).unwrap();
+        let generator = SymbolTableGenerator::new();
+
+        let mut env = generator.generate(&mut ast).unwrap();
+        let mut checker = AstTypeCheck::new(&mut env);
+
+        let res = checker.check(&mut ast);
+        assert!(res.is_ok());
+
+        let builder = CfgBuilder::new(&mut env);
+        let cfg_obj = builder.build(&ast);
+
+        cfg_obj
+    }};
+}
+
+#[macro_export]
+macro_rules! compile_cfg_graph {
+    ($code: expr) => {{
+        let cfg_obj = compile_cfg_obj!($code);
+
+        cfg_obj.graph
+    }};
+}
