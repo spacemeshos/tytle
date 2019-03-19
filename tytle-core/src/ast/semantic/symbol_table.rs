@@ -25,7 +25,7 @@ impl SymbolTable {
         // * `id` = 0
         // * `parent_id = None`
         //
-        // each root scope child scope holds: `parent_id = Some(0)`
+        // each root's child-scope holds: `parent_id = Some(0)`
 
         table.start_scope();
 

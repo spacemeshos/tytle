@@ -32,7 +32,7 @@ pub struct CfgGraph {
 impl CfgGraph {
     pub fn new() -> Self {
         let mut graph = Self {
-            next_id: 0,
+            next_id: Self::default_entry_node_id(),
             nodes: HashMap::new(),
         };
 
@@ -117,8 +117,13 @@ impl CfgGraph {
         self.next_id
     }
 
+    pub fn default_entry_node_id() -> CfgNodeId {
+        // we reserve `0` for the `main_wrapper`
+        1
+    }
+
     pub fn get_entry_node_id(&self) -> CfgNodeId {
-        0
+        Self::default_entry_node_id()
     }
 
     pub fn compact(&mut self) {
