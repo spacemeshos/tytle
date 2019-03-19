@@ -5,41 +5,117 @@ use tytle::ir::*;
 use tytle::parser::{Parser, TytleParser};
 use tytle::vm::*;
 
+#[macro_export]
+macro_rules! setup_interpreter {
+    ($code: expr, $env: ident, $cfg: ident, $host: ident, $intr: ident) => {
+        let mut ast = TytleParser.parse($code).unwrap();
+        let generator = SymbolTableGenerator::new();
+
+        let mut $env = generator.generate(&mut ast).unwrap();
+        let mut checker = AstTypeCheck::new(&mut $env);
+
+        let res = checker.check(&mut ast);
+        assert!(res.is_ok());
+
+        let builder = CfgBuilder::new(&mut $env);
+        let $cfg = builder.build(&ast);
+
+        let mut $host = DummyHost::new();
+        let mut $intr = Interpreter::new(&$cfg, &$env, &mut $host);
+    };
+}
+
 #[test]
 pub fn interpreter_forward_int_lit_expr() {
     let code = "FORWARD 10";
-    let mut ast = TytleParser.parse(code).unwrap();
-    let generator = SymbolTableGenerator::new();
 
-    let mut env = generator.generate(&mut ast).unwrap();
-    let mut checker = AstTypeCheck::new(&mut env);
-
-    let res = checker.check(&mut ast);
-    assert!(res.is_ok());
-
-    let builder = CfgBuilder::new(&mut env);
-    let cfg = builder.build(&ast);
-
-    let mut host = DummyHost::new();
-    let mut intr = Interpreter::new(&cfg, &env, &mut host);
-
-    intr.exec_next();
-    intr.exec_next();
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
 
     assert_eq!((0, 10), host.xycors());
 }
 
 #[test]
-#[ignore]
-pub fn interpreter_backward_int_lit_expr() {}
+pub fn interpreter_backward_int_lit_expr() {
+    let code = r#"
+        FORWARD 10
+        BACKWARD 5
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((0, 5), host.xycors());
+}
 
 #[test]
-#[ignore]
-pub fn interpreter_right_int_lit_expr() {}
+pub fn interpreter_ycor_minimum_is_zero() {
+    let code = r#"
+        FORWARD 10
+        BACKWARD 20
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((0, 0), host.xycors());
+}
 
 #[test]
-#[ignore]
-pub fn interpreter_left_int_lit_expr() {}
+pub fn interpreter_right_int_lit_expr() {
+    let code = "RIGHT 10";
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((10, 0), host.xycors());
+}
+
+#[test]
+pub fn interpreter_left_int_lit_expr() {
+    let code = r#"
+        RIGHT 10
+        LEFT 5
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((5, 0), host.xycors());
+}
+
+#[test]
+pub fn interpreter_xcor_minimum_is_zero() {
+    let code = r#"
+        RIGHT 10
+        LEFT 20
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((0, 0), host.xycors());
+}
+
+#[test]
+pub fn interpreter_setx_int_lit_expr() {
+    let code = "SETX 10";
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((10, 0), host.xycors());
+}
+
+#[test]
+pub fn interpreter_sety_int_lit_expr() {
+    let code = "SETY 10";
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_all();
+
+    assert_eq!((0, 10), host.xycors());
+}
 
 #[test]
 #[ignore]
@@ -114,4 +190,3 @@ pub fn interpreter_stop_within_main_proc() {}
 #[test]
 #[ignore]
 pub fn interpreter_stop_within_sub_proc() {}
-

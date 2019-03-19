@@ -35,13 +35,23 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         intr
     }
 
+    pub fn exec_all(&mut self) {
+        loop {
+            let completed = self.exec_next();
+
+            if completed {
+                return;
+            }
+        }
+    }
+
     pub fn exec_next(&mut self) -> bool {
         let node = self.cfg.graph.get_node(self.node_id);
 
         let inst = node.insts.get(self.ip);
 
         if inst.is_none() {
-            return false;
+            return true;
         }
 
         let inst = inst.unwrap();
@@ -58,7 +68,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Int(v) => self.exec_int(*v),
             CfgInstruction::Return => self.exec_ret(),
             CfgInstruction::Not => self.exec_not(),
-            CfgInstruction::Add | CfgInstruction::Mul => self.exec_int_binary(CfgInstruction::Add),
+            CfgInstruction::Add | CfgInstruction::Mul => self.exec_int_binary(inst.clone()),
             CfgInstruction::Or | CfgInstruction::And | CfgInstruction::GT | CfgInstruction::LT => {
                 self.exec_bool_binary(inst.clone())
             }
@@ -71,7 +81,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             self.ip += 1;
         }
 
-        true
+        false
     }
 
     fn exec_load(&mut self, symbol_id: &SymbolId) {
@@ -216,10 +226,12 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // |      ....        |
         // |                  |
         // |    __main__      |
+        // |  (node_id = 1)   |
         // |------------------|
         // |-------------------
         // |                  |
         // | __main_wrapper__ |
+        // |  (node_id = 0)   |
         // |------------------|
 
         assert!(self.call_stack.is_empty());

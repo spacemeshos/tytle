@@ -23,15 +23,15 @@ impl DummyHost {
         }
     }
 
-    pub fn xcor(&self) -> usize {
+    pub fn xcor(&self) -> isize {
         self.turtle.xcor()
     }
 
-    pub fn ycor(&self) -> usize {
+    pub fn ycor(&self) -> isize {
         self.turtle.ycor()
     }
 
-    pub fn xycors(&self) -> (usize, usize) {
+    pub fn xycors(&self) -> (isize, isize) {
         let x = self.xcor();
         let y = self.ycor();
 
