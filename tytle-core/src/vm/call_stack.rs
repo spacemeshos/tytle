@@ -2,7 +2,7 @@ use crate::ir::CfgNodeId;
 
 #[derive(Debug)]
 pub enum CallStackItem {
-    Int(usize),
+    Int(isize),
     Bool(bool),
     Addr(CfgNodeId, usize),
     // StrRef
@@ -30,7 +30,7 @@ impl CallStackItem {
         }
     }
 
-    pub fn to_int(&self) -> usize {
+    pub fn to_int(&self) -> isize {
         match self {
             CallStackItem::Int(v) => *v,
             _ => panic!("expected an integer"),

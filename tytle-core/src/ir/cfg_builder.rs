@@ -242,7 +242,7 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn append_int_lit(&mut self, node_id: CfgNodeId, lit: usize) {
-        self.append_inst(node_id, CfgInstruction::Int(lit));
+        self.append_inst(node_id, CfgInstruction::Int(lit as isize));
     }
 
     fn append_str_lit(&mut self, node_id: CfgNodeId, lit: &str) {

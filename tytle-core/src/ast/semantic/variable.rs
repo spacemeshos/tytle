@@ -6,6 +6,10 @@ pub struct Variable {
     pub global: bool,
     pub name: String,
     pub var_type: Option<ExpressionType>,
+
+    // for global variables - `index` will be the index within the global variables
+    // for local  variables - `index` will be the local index within the enclosing procedure
+    pub index: Option<usize>,
 }
 
 impl Variable {
@@ -23,6 +27,7 @@ impl Variable {
             global,
             name: name.to_string(),
             var_type: None,
+            index: None,
         }
     }
 

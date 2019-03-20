@@ -35,7 +35,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         intr
     }
 
-    pub fn exec_all(&mut self) {
+    pub fn exec_code(&mut self) {
         loop {
             let completed = self.exec_next();
 
@@ -72,8 +72,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Or | CfgInstruction::And | CfgInstruction::GT | CfgInstruction::LT => {
                 self.exec_bool_binary(inst.clone())
             }
-            CfgInstruction::Load(ref symbol_id) => self.exec_load(symbol_id),
-            CfgInstruction::Store(ref symbol_id) => self.exec_store(symbol_id),
+            CfgInstruction::Load(var_id) => self.exec_load(*var_id),
+            CfgInstruction::Store(var_id) => self.exec_store(*var_id),
             CfgInstruction::Str(v) => unimplemented!(),
         };
 
@@ -84,20 +84,49 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         false
     }
 
-    fn exec_load(&mut self, symbol_id: &SymbolId) {
-        unimplemented!()
+    fn exec_load(&mut self, var_id: SymbolId) {
+        let var = self.env.symbol_table.get_var_by_id(var_id).unwrap();
+
+        if var.global {
+            // for global variables the rule is: `addr` <=> `global index`
+            let addr = Address(var.index.unwrap());
+
+            let value = self.memory.get_global(addr).unwrap();
+
+            match value {
+                MemoryValue::Int(v) => self.exec_int(*v),
+                MemoryValue::Bool(v) => self.exec_bool(*v),
+                MemoryValue::Str(v) => unimplemented!(),
+            };
+        } else {
+            unimplemented!()
+        }
     }
 
-    fn exec_store(&mut self, symbol_id: &SymbolId) {
-        unimplemented!()
+    fn exec_store(&mut self, var_id: SymbolId) {
+        let var = self.env.symbol_table.get_var_by_id(var_id).unwrap();
+        let index = var.index.unwrap();
+
+        if var.global {
+            let stack_value = self.call_stack.pop_item();
+
+            let value = match stack_value {
+                CallStackItem::Int(v) => MemoryValue::Int(v),
+                CallStackItem::Bool(v) => MemoryValue::Bool(v),
+                _ => unimplemented!(),
+            };
+
+            let addr = Address(index);
+            self.memory.set_global(addr, value);
+        } else {
+            unimplemented!()
+        }
     }
 
     fn exec_call(&mut self, callee_id: CfgNodeId) {
         let old_frame = self.call_stack.current_frame_mut();
 
-        // TODO: get calle proc-symbol
         let proc_id = self.cfg.jmp_table[&callee_id];
-
         let proc = self.env.symbol_table.get_proc_by_id(proc_id).unwrap();
 
         let mut params = Vec::new();
@@ -199,17 +228,12 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         self.call_stack.push_item(CallStackItem::Bool(v));
     }
 
-    fn exec_int(&mut self, v: usize) {
+    fn exec_int(&mut self, v: isize) {
         self.call_stack.push_item(CallStackItem::Int(v));
     }
 
     fn init_memory(&mut self) {
-        // TODO:
-        // environment should have globals index
-
-        // self.memory.globals.allocate_int();
-        // self.memory.globals.allocate_bool();
-        // self.memory.globals.allocate_str();
+        self.memory.init_globals(self.env);
     }
 
     fn init_callstack(&mut self) {
@@ -217,8 +241,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // and we call `__main__` within this stack-frame context
         //
         //
-        //      Call-Stack
-        //      ===========
+        //     Call-Stack
+        //     ===========
         //
         // |                  |
         // |      ....        |

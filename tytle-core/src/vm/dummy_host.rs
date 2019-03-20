@@ -10,7 +10,7 @@ pub struct DummyHost {
 impl Host for DummyHost {
     fn exec_cmd(&mut self, cmd: &Command) {}
 
-    fn exec_direct(&mut self, direct: &Direction, count: usize) {
+    fn exec_direct(&mut self, direct: &Direction, count: isize) {
         self.turtle.exec_direct(direct, count);
     }
 }

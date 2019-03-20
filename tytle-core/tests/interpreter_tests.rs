@@ -30,7 +30,7 @@ pub fn interpreter_forward_int_lit_expr() {
     let code = "FORWARD 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((0, 10), host.xycors());
 }
@@ -43,7 +43,7 @@ pub fn interpreter_backward_int_lit_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((0, 5), host.xycors());
 }
@@ -56,7 +56,7 @@ pub fn interpreter_ycor_minimum_is_zero() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((0, 0), host.xycors());
 }
@@ -66,7 +66,7 @@ pub fn interpreter_right_int_lit_expr() {
     let code = "RIGHT 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((10, 0), host.xycors());
 }
@@ -79,7 +79,7 @@ pub fn interpreter_left_int_lit_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((5, 0), host.xycors());
 }
@@ -92,7 +92,7 @@ pub fn interpreter_xcor_minimum_is_zero() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((0, 0), host.xycors());
 }
@@ -102,7 +102,7 @@ pub fn interpreter_setx_int_lit_expr() {
     let code = "SETX 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((10, 0), host.xycors());
 }
@@ -112,18 +112,38 @@ pub fn interpreter_sety_int_lit_expr() {
     let code = "SETY 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_all();
+    intr.exec_code();
 
     assert_eq!((0, 10), host.xycors());
 }
 
 #[test]
-#[ignore]
-pub fn interpreter_forward_one_var_expr() {}
+pub fn interpreter_forward_one_var_expr() {
+    let code = r#"
+       MAKEGLOBAL X = 1 + 2
+       FORWARD X * X
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+
+    intr.exec_code();
+
+    assert_eq!((0, 9), host.xycors());
+}
 
 #[test]
-#[ignore]
-pub fn interpreter_forward_two_vars_expr() {}
+pub fn interpreter_forward_two_vars_expr() {
+    let code = r#"
+       MAKEGLOBAL X = 10
+       MAKEGLOBAL Y = 20
+       FORWARD X + Y
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 30), host.xycors());
+}
 
 #[test]
 #[ignore]

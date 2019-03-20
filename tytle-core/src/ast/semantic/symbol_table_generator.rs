@@ -255,12 +255,16 @@ impl SymbolTableGenerator {
             global: is_global,
             name: var_name.to_owned(),
             var_type,
+            index: Some(index as usize)
         };
 
         self.env.symbol_table.create_var_symbol(var);
 
         if is_global {
+            let global_id = self.env.globals_index;
+
             self.env.globals_index += 1;
+            self.env.globals_symbols.insert(global_id, var_id);
         } else {
             self.proc_locals_index += 1;
         }

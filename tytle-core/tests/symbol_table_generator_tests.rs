@@ -1,5 +1,8 @@
 extern crate tytle;
 
+#[macro_use]
+extern crate maplit;
+
 use tytle::ast::expression::*;
 use tytle::ast::semantic::*;
 use tytle::ast::statement::*;
@@ -20,19 +23,18 @@ macro_rules! assert_symbol_err {
 }
 
 macro_rules! gen_symbols {
-    ($code:expr, $symbol_table_var: ident) => {
-        gen_symbols!($code, $symbol_table_var, __ast__)
+    ($code: expr, $env: ident) => {
+        gen_symbols!($code, $env, _ast__)
     };
 
-    ($code:expr, $symbol_table_var: ident, $ast_var: ident) => {
-        let mut $ast_var = TytleParser.parse($code).unwrap();
+    ($code:expr, $env: ident, $ast: ident) => {
+        let mut $ast = TytleParser.parse($code).unwrap();
         let generator = SymbolTableGenerator::new();
 
-        let env_res = generator.generate(&mut $ast_var);
-        assert!(env_res.is_ok());
+        let res = generator.generate(&mut $ast);
+        assert!(res.is_ok());
 
-        let env = env_res.unwrap();
-        let $symbol_table_var = env.symbol_table.clone();
+        let $env = res.unwrap();
     };
 }
 
@@ -42,13 +44,15 @@ fn sym_generate_global_var_int() {
             MAKEGLOBAL A = 20
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
     assert_eq!(var.name, "A".to_string());
+
+    assert_eq!(hashmap! { 0 => var.id }, env.globals_symbols);
 }
 
 #[test]
@@ -58,9 +62,9 @@ fn sym_generate_ast_records_var_global_index() {
             MAKEGLOBAL B = A
         "#;
 
-    gen_symbols!(code, symbol_table, actual_ast);
+    gen_symbols!(code, env, actual_ast);
 
-    let symbol = symbol_table.lookup(0, "B", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "B", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
@@ -83,6 +87,11 @@ fn sym_generate_ast_records_var_global_index() {
     let expected = Statement::Make(make_stmt);
 
     assert_eq!(expected, actual_ast.statements[1]);
+
+    assert_eq!(
+        hashmap! { 0 => var.id - 1, 1 => var.id },
+        env.globals_symbols
+    );
 }
 
 #[test]
@@ -91,9 +100,9 @@ fn sym_generate_global_var_bool() {
             MAKEGLOBAL A = TRUE
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(0, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(0, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);
@@ -107,9 +116,9 @@ fn sym_generate_proc_param_int() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(1, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -124,9 +133,9 @@ fn sym_generate_proc_params() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(0, "MYPROC", &SymbolKind::Proc);
+    let symbol = env.symbol_table.lookup(0, "MYPROC", &SymbolKind::Proc);
     let proc = symbol.unwrap().as_proc();
 
     let expected_params = vec![
@@ -151,9 +160,9 @@ fn sym_generate_proc_return_type() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(0, "MYPROC_INT", &SymbolKind::Proc);
+    let symbol = env.symbol_table.lookup(0, "MYPROC_INT", &SymbolKind::Proc);
     let proc_int = symbol.unwrap().as_proc();
 
     assert_eq!(proc_int.name, "MYPROC_INT");
@@ -168,9 +177,9 @@ fn sym_generate_proc_local_var_int() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(1, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -186,9 +195,9 @@ fn sym_generate_proc_if_stmt_local_var() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(2, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -207,9 +216,9 @@ fn sym_generate_initializing_a_local_var_with_proc_call_expr() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup(2, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, false);
@@ -226,9 +235,9 @@ fn sym_generate_proc_call_inject_proc_id() {
             FOO(10)
         "#;
 
-    gen_symbols!(code, symbol_table, ast);
+    gen_symbols!(code, env, ast);
 
-    let symbol = symbol_table.lookup(0, "FOO", &SymbolKind::Proc);
+    let symbol = env.symbol_table.lookup(0, "FOO", &SymbolKind::Proc);
     let proc = symbol.unwrap().as_proc();
 
     let proc_call_stmt = &ast.statements[1];
@@ -358,9 +367,9 @@ fn sym_generate_lookup_global_var_from_within_an_inner_scope() {
             END
         "#;
 
-    gen_symbols!(code, symbol_table);
+    gen_symbols!(code, env);
 
-    let symbol = symbol_table.lookup_recur(2, "A", &SymbolKind::Var);
+    let symbol = env.symbol_table.lookup_recur(2, "A", &SymbolKind::Var);
     let var = symbol.unwrap().as_var();
 
     assert_eq!(var.global, true);

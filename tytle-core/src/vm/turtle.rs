@@ -15,16 +15,14 @@ impl Turtle {
         }
     }
 
-    pub fn exec_direct(&mut self, direct: &Direction, count: usize) {
+    pub fn exec_direct(&mut self, direct: &Direction, count: isize) {
         match direct {
-            Direction::Forward => self.position.1 += count as isize,
-            Direction::Backward => {
-                self.position.1 = cmp::max(self.position.1 - (count as isize), 0)
-            }
-            Direction::Right => self.position.0 += count as isize,
-            Direction::Left => self.position.0 = cmp::max(self.position.0 - (count as isize), 0),
-            Direction::SetX => self.position.0 = cmp::max(count as isize, 0),
-            Direction::SetY => self.position.1 = cmp::max(count as isize, 0),
+            Direction::Forward => self.position.1 += count,
+            Direction::Backward => self.position.1 = cmp::max(self.position.1 - count, 0),
+            Direction::Right => self.position.0 += count,
+            Direction::Left => self.position.0 = cmp::max(self.position.0 - count, 0),
+            Direction::SetX => self.position.0 = cmp::max(count, 0),
+            Direction::SetY => self.position.1 = cmp::max(count, 0),
             _ => unimplemented!(),
         };
     }

@@ -1,10 +1,13 @@
 use crate::ast::expression::ExpressionType;
-use crate::ast::semantic::{IdGenerator, SymbolTable, Variable};
+use crate::ast::semantic::{IdGenerator, SymbolId, SymbolTable, Variable};
+
+use std::collections::HashMap;
 
 pub struct Environment {
     pub symbol_table: SymbolTable,
     pub id_generator: IdGenerator,
     pub globals_index: u64,
+    pub globals_symbols: HashMap<u64, SymbolId>,
     pub main_proc_id: Option<u64>,
 }
 
@@ -12,9 +15,10 @@ impl Environment {
     pub fn new() -> Self {
         Self {
             main_proc_id: None,
+            globals_index: 0,
+            globals_symbols: HashMap::new(),
             symbol_table: SymbolTable::new(),
             id_generator: IdGenerator::new(),
-            globals_index: 0,
         }
     }
 
@@ -27,6 +31,7 @@ impl Environment {
             name: var_name.clone(),
             var_type: Some(var_type),
             global: false,
+            index: None,
         };
 
         self.symbol_table.create_var_symbol(var);

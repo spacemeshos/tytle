@@ -10,7 +10,7 @@ pub enum CfgInstruction {
     Store(SymbolId),
     Call(CfgNodeId),
     Bool(bool),
-    Int(usize),
+    Int(isize),
     Str(String),
     Return,
     Add,
