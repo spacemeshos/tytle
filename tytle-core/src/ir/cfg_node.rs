@@ -23,6 +23,10 @@ impl CfgNode {
         self.insts.is_empty()
     }
 
+    pub fn has_outgoing_edges(&self) -> bool {
+        self.outgoing.len() > 0
+    }
+
     pub fn is_orphan(&self) -> bool {
         self.incoming.len() == 0 && self.outgoing.len() == 0
     }

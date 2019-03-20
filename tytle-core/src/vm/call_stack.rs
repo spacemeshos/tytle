@@ -70,6 +70,10 @@ impl CallStackFrame {
         self.items.push(item);
     }
 
+    pub fn peek(&self) -> &CallStackItem {
+        self.items.last().unwrap()
+    }
+
     pub fn pop(&mut self) -> CallStackItem {
         self.items.pop().unwrap()
     }
@@ -97,6 +101,11 @@ impl CallStack {
     pub fn pop_item(&mut self) -> CallStackItem {
         let frame = self.current_frame_mut();
         frame.pop()
+    }
+
+    pub fn peek_item(&self) -> &CallStackItem {
+        let frame = self.current_frame();
+        frame.peek()
     }
 
     pub fn open_stackframe(&mut self) -> &mut CallStackFrame {

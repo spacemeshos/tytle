@@ -1,6 +1,6 @@
 use crate::ast::semantic::{Environment, SymbolId, SymbolKind};
 use crate::ast::statement::{Command, Direction};
-use crate::ir::{CfgGraph, CfgInstruction, CfgNodeId, CfgObject};
+use crate::ir::*;
 use crate::vm::*;
 
 pub struct Interpreter<'env, 'cfg, 'host> {
@@ -43,6 +43,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
                 return;
             }
         }
+
+        // assert!(self.call_stack.is_empty());
     }
 
     pub fn exec_next(&mut self) -> bool {
@@ -51,15 +53,21 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let inst = node.insts.get(self.ip);
 
         if inst.is_none() {
-            return true;
+            if node.has_outgoing_edges() {
+                self.choose_outgoing_edge();
+                return false;
+            } else {
+                // we've completed program execution
+                return true;
+            }
         }
 
         let inst = inst.unwrap();
-        let mut is_jmp = false;
+        let mut is_call = false;
 
         match inst {
             CfgInstruction::Call(ref node_id) => {
-                is_jmp = true;
+                is_call = true;
                 self.exec_call(*node_id);
             }
             CfgInstruction::Command(ref cmd) => self.exec_cmd(cmd),
@@ -77,7 +85,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Str(v) => unimplemented!(),
         };
 
-        if is_jmp == false {
+        if is_call == false {
             self.ip += 1;
         }
 
@@ -210,16 +218,11 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let a = self.call_stack.pop_item();
         let b = self.call_stack.pop_item();
 
-        assert!(a.is_bool() && b.is_bool());
-
-        let a = a.to_bool();
-        let b = b.to_bool();
-
         match op {
-            CfgInstruction::And => self.exec_bool(a && b),
-            CfgInstruction::Or => self.exec_bool(a || b),
-            CfgInstruction::GT => self.exec_bool(a > b),
-            CfgInstruction::LT => self.exec_bool(a < b),
+            CfgInstruction::And => self.exec_bool(a.to_bool() && b.to_bool()),
+            CfgInstruction::Or => self.exec_bool(a.to_bool() || b.to_bool()),
+            CfgInstruction::GT => self.exec_bool(a.to_int() < b.to_int()),
+            CfgInstruction::LT => self.exec_bool(a.to_int() > b.to_int()),
             _ => panic!("invalid binary-op: `{:?}`", op),
         }
     }
@@ -260,5 +263,47 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
         assert!(self.call_stack.is_empty());
         self.call_stack.open_stackframe();
+    }
+
+    fn choose_outgoing_edge(&mut self) {
+        let node = self.cfg.graph.get_node(self.node_id);
+
+        assert!(node.outgoing.len() < 3);
+
+        for edge in node.outgoing.iter() {
+            match edge.jmp_type {
+                CfgJumpType::Always => {
+                    self.jmp_edge(edge, false);
+                    return;
+                }
+                CfgJumpType::WhenTrue => {
+                    let v = self.call_stack.peek_item().to_bool();
+
+                    if v {
+                        self.jmp_edge(edge, true);
+                        return;
+                    }
+                }
+                CfgJumpType::Fallback => {
+                    let v = self.call_stack.peek_item().to_bool();
+
+                    if !v {
+                        self.jmp_edge(edge, false);
+                        return;
+                    }
+                }
+            }
+        }
+
+        unreachable!()
+    }
+
+    fn jmp_edge(&mut self, edge: &CfgEdge, pop_stack: bool) {
+        if pop_stack {
+            self.call_stack.pop_item();
+        }
+
+        self.node_id = edge.node_id;
+        self.ip = 0;
     }
 }

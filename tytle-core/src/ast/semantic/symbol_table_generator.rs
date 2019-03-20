@@ -255,7 +255,7 @@ impl SymbolTableGenerator {
             global: is_global,
             name: var_name.to_owned(),
             var_type,
-            index: Some(index as usize)
+            index: Some(index as usize),
         };
 
         self.env.symbol_table.create_var_symbol(var);
