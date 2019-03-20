@@ -124,6 +124,11 @@ fn sym_generate_proc_param_int() {
     assert_eq!(var.global, false);
     assert_eq!(var.name, "A".to_string());
     assert_eq!(var.var_type, Some(ExpressionType::Int));
+
+    let symbol = env.symbol_table.lookup(0, "MYPROC", &SymbolKind::Proc);
+    let proc = symbol.unwrap().as_proc();
+
+    assert_eq!(hashmap! { proc.id => vec![var.id] }, env.locals_symbols);
 }
 
 #[test]
@@ -145,6 +150,11 @@ fn sym_generate_proc_params() {
     ];
 
     assert_eq!(expected_params, proc.params_types);
+
+    let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+
+    assert_eq!(hashmap! { proc.id => vec![var_a.id, var_a.id + 1, var_a.id + 2] }, env.locals_symbols);
 }
 
 #[test]

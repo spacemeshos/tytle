@@ -22,7 +22,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_make_local_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
-        self.create_local_var_symbol(make_stmt)
+        self.create_local_var_symbol(ctx_proc, make_stmt)
     }
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
@@ -53,7 +53,13 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
             let param_type = ExpressionType::from(proc_param.param_type.as_str());
             let index = self.proc_locals_index;
 
-            self.create_var_symbol(&proc_param.param_name, Some(param_type), false, index)?;
+            self.create_var_symbol(
+                ctx_proc,
+                &proc_param.param_name,
+                Some(param_type),
+                false,
+                index,
+            )?;
 
             Ok(())
         } else {
@@ -137,7 +143,8 @@ impl SymbolTableGenerator {
             match stmt {
                 Statement::Make(make_stmt) => match make_stmt.kind {
                     MakeStmtKind::Global => {
-                        self.create_global_var_symbol(make_stmt)?;
+                        // only `__main__` can declare globals
+                        self.create_global_var_symbol("__main__", make_stmt)?;
                     }
                     MakeStmtKind::Local => {
                         let err = AstWalkError::LocalsNotAllowedUnderRootScope(
@@ -206,7 +213,11 @@ impl SymbolTableGenerator {
         }
     }
 
-    fn create_global_var_symbol(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn create_global_var_symbol(
+        &mut self,
+        ctx_proc: &str,
+        make_stmt: &mut MakeStmt,
+    ) -> AstWalkResult {
         let var_name = &make_stmt.var_name;
 
         let symbol = self.try_get_symbol_recur(var_name, SymbolKind::Var);
@@ -214,7 +225,7 @@ impl SymbolTableGenerator {
         if symbol.is_none() {
             let index = self.env.globals_index;
 
-            let var_id = self.create_var_symbol(var_name, None, true, index)?;
+            let var_id = self.create_var_symbol(ctx_proc, var_name, None, true, index)?;
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -224,14 +235,18 @@ impl SymbolTableGenerator {
         }
     }
 
-    fn create_local_var_symbol(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn create_local_var_symbol(
+        &mut self,
+        ctx_proc: &str,
+        make_stmt: &mut MakeStmt,
+    ) -> AstWalkResult {
         let var_name = &make_stmt.var_name;
         let symbol = self.try_get_symbol(var_name, SymbolKind::Var);
 
         if symbol.is_none() {
             let index = self.proc_locals_index;
 
-            let var_id: u64 = self.create_var_symbol(var_name, None, false, index)?;
+            let var_id: u64 = self.create_var_symbol(ctx_proc, var_name, None, false, index)?;
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -243,6 +258,7 @@ impl SymbolTableGenerator {
 
     fn create_var_symbol(
         &mut self,
+        ctx_proc: &str,
         var_name: &str,
         var_type: Option<ExpressionType>,
         is_global: bool,
@@ -266,6 +282,17 @@ impl SymbolTableGenerator {
             self.env.globals_index += 1;
             self.env.globals_symbols.insert(global_id, var_id);
         } else {
+            let proc = self
+                .env
+                .symbol_table
+                .lookup(0, ctx_proc, &SymbolKind::Proc)
+                .unwrap()
+                .as_proc();
+            let proc_id = proc.id;
+
+            let proc_locals_entry = self.env.locals_symbols.entry(proc_id).or_insert(Vec::new());
+            proc_locals_entry.push(var_id);
+
             self.proc_locals_index += 1;
         }
 

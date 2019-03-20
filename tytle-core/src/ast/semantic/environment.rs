@@ -7,7 +7,13 @@ pub struct Environment {
     pub symbol_table: SymbolTable,
     pub id_generator: IdGenerator,
     pub globals_index: u64,
+
+    // used for allocating globals
     pub globals_symbols: HashMap<u64, SymbolId>,
+
+    // used for allocating procs-locals
+    pub locals_symbols: HashMap<u64, Vec<SymbolId>>,
+
     pub main_proc_id: Option<u64>,
 }
 
@@ -17,6 +23,7 @@ impl Environment {
             main_proc_id: None,
             globals_index: 0,
             globals_symbols: HashMap::new(),
+            locals_symbols: HashMap::new(),
             symbol_table: SymbolTable::new(),
             id_generator: IdGenerator::new(),
         }
