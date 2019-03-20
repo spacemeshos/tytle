@@ -13,3 +13,4 @@
   * open question: how to allocate locals which are created inside the procedure? (i.e: not params)
   * implement stackoverflow (for example: max call-stack frames = 10_000)
   * implement `STOP`
+* DRY: `__main__`, `root scope <=> scope_id = 0`

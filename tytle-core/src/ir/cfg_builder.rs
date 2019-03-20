@@ -6,13 +6,17 @@ pub struct CfgBuilder<'env> {
     cfg_graph: CfgGraph,
     env: &'env mut Environment,
     proc_jmp_table: HashMap<u64, CfgProc>,
+    current_proc_id: u64,
 }
 
 impl<'env> CfgBuilder<'env> {
     pub fn new(env: &'env mut Environment) -> Self {
         let mut cfg_graph = CfgGraph::new();
 
+        let main_proc = env.symbol_table.get_proc_by_name("__main__");
+
         Self {
+            current_proc_id: main_proc.id,
             cfg_graph,
             env,
             proc_jmp_table: HashMap::new(),
@@ -70,6 +74,8 @@ impl<'env> CfgBuilder<'env> {
     fn build_proc(&mut self, node_id: CfgNodeId, proc_stmt: &ProcedureStmt) -> CfgNodeId {
         let proc_id = proc_stmt.id.unwrap();
         let cfg_proc = self.proc_jmp_table.get(&proc_id);
+
+        self.current_proc_id = proc_id;
 
         let mut proc_node_id;
 
@@ -192,10 +198,6 @@ impl<'env> CfgBuilder<'env> {
         self.append_inst(node_id, CfgInstruction::Call(jmp_node_id));
     }
 
-    fn find_ast_proc_stmt(&self, proc_name: &str) -> &ProcedureStmt {
-        unimplemented!()
-    }
-
     fn build_parentheses_expr(&mut self, node_id: CfgNodeId, expr: &Expression) {
         let expr = expr.as_parentheses_expr();
         self.build_expr(node_id, expr);
@@ -275,8 +277,12 @@ impl<'env> CfgBuilder<'env> {
         // 15) return `AFTER_NODE_ID` node_id (empty CFG node to be used for the next statement)
 
         // allocating temporary variables: `TMPVAR_A` and `TMPVAR_B`
-        let (var_id_a, var_name_a) = self.env.new_tmp_var(ExpressionType::Int);
-        let (var_id_b, var_name_b) = self.env.new_tmp_var(ExpressionType::Int);
+        let (var_id_a, var_name_a) = self
+            .env
+            .new_tmp_var(self.current_proc_id, ExpressionType::Int);
+        let (var_id_b, var_name_b) = self
+            .env
+            .new_tmp_var(self.current_proc_id, ExpressionType::Int);
 
         // MAKE TMPVAR_A = 0
         let expr = &repeat_stmt.count_expr;

@@ -146,16 +146,14 @@ pub fn interpreter_forward_two_vars_expr() {
 }
 
 #[test]
-#[ignore]
 pub fn interpreter_forward_const_repeat_const_times() {
     let code = r#"
         REPEAT 3 [FORWARD 5]
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    dbg!(cfg.graph);
     // intr.exec_code();
-    //
+
     // assert_eq!((0, 15), host.xycors());
 }
 

@@ -26,7 +26,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
             LiteralExpr::Str(_) => ExpressionType::Str,
             LiteralExpr::Var(var_name, var_id_wrapped) => {
                 let var_id = var_id_wrapped.unwrap();
-                let var: &Variable = self.env.symbol_table.get_var_by_id(var_id).unwrap();
+                let var: &Variable = self.env.symbol_table.get_var_by_id(var_id);
 
                 if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
@@ -139,7 +139,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
 
     fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
-        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id).unwrap();
+        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id);
 
         if var.var_type.is_none() {
             panic!()
@@ -223,7 +223,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
 impl<'a> AstTypeCheck<'a> {
     fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
-        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id).unwrap();
+        let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id);
 
         let expr_type: &ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap();
 

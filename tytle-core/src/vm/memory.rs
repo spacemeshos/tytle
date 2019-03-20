@@ -22,7 +22,7 @@ impl Memory {
     pub fn init_globals(&mut self, env: &Environment) {
         (0..env.globals_index).into_iter().for_each(|i| {
             let var_id = env.globals_symbols[&i];
-            let var = env.symbol_table.get_var_by_id(var_id).unwrap();
+            let var = env.symbol_table.get_var_by_id(var_id);
 
             let addr = Address(var.index.unwrap());
             let var_type = var.var_type.as_ref().unwrap();

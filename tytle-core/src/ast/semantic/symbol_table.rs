@@ -85,48 +85,24 @@ impl SymbolTable {
         self.scopes.get_mut(&scope_id).unwrap()
     }
 
-    pub fn get_var_by_id(&self, var_id: SymbolId) -> Option<&Variable> {
+    pub fn get_var_by_id(&self, var_id: SymbolId) -> &Variable {
         let symbol = self.lookup_by_symbol_id(var_id);
-
-        if symbol.is_some() {
-            let var = symbol.unwrap().as_var();
-            Some(var)
-        } else {
-            return None;
-        }
+        symbol.unwrap().as_var()
     }
 
-    pub fn get_var_by_id_mut(&mut self, var_id: SymbolId) -> Option<&mut Variable> {
+    pub fn get_var_by_id_mut(&mut self, var_id: SymbolId) -> &mut Variable {
         let symbol = self.lookup_by_symbol_id_mut(var_id);
-
-        if symbol.is_some() {
-            let var = symbol.unwrap().as_var_mut();
-            Some(var)
-        } else {
-            return None;
-        }
+        symbol.unwrap().as_var_mut()
     }
 
-    pub fn get_proc_by_id(&self, proc_id: SymbolId) -> Option<&Procedure> {
+    pub fn get_proc_by_id(&self, proc_id: SymbolId) -> &Procedure {
         let symbol = self.lookup_by_symbol_id(proc_id);
-
-        if symbol.is_some() {
-            let proc = symbol.unwrap().as_proc();
-            Some(proc)
-        } else {
-            return None;
-        }
+        symbol.unwrap().as_proc()
     }
 
-    pub fn get_proc_by_id_mut(&mut self, proc_id: SymbolId) -> Option<&mut Procedure> {
+    pub fn get_proc_by_id_mut(&mut self, proc_id: SymbolId) -> &mut Procedure {
         let symbol = self.lookup_by_symbol_id_mut(proc_id);
-
-        if symbol.is_some() {
-            let proc = symbol.unwrap().as_proc_mut();
-            Some(proc)
-        } else {
-            return None;
-        }
+        symbol.unwrap().as_proc_mut()
     }
 
     pub fn lookup(
@@ -193,6 +169,11 @@ impl SymbolTable {
         }
 
         self.store_proc(proc);
+    }
+
+    pub fn get_proc_by_name(&self, proc_name: &str) -> &Procedure {
+        let symbol = self.lookup(0, proc_name, &SymbolKind::Proc);
+        symbol.unwrap().as_proc()
     }
 
     pub fn get_current_scope_id(&self) -> u64 {

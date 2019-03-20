@@ -29,19 +29,26 @@ impl Environment {
         }
     }
 
-    pub fn new_tmp_var(&mut self, var_type: ExpressionType) -> (u64, String) {
+    pub fn new_tmp_var(&mut self, proc_id: SymbolId, var_type: ExpressionType) -> (u64, String) {
         let id = self.id_generator.get_next_id();
         let var_name = format!("$TMP{}", id);
+
+        let proc_locals = self.locals_symbols.entry(proc_id).or_insert(Vec::new());
+
+        let proc_locals_count = proc_locals.len();
 
         let var = Variable {
             id,
             name: var_name.clone(),
             var_type: Some(var_type),
             global: false,
-            index: None,
+            index: Some(proc_locals_count),
         };
 
         self.symbol_table.create_var_symbol(var);
+
+        let proc_locals = self.locals_symbols.entry(proc_id).or_insert(Vec::new());
+        proc_locals.push(id);
 
         (id, var_name)
     }

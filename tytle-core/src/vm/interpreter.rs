@@ -93,7 +93,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_load(&mut self, var_id: SymbolId) {
-        let var = self.env.symbol_table.get_var_by_id(var_id).unwrap();
+        let var = self.env.symbol_table.get_var_by_id(var_id);
 
         if var.global {
             // for global variables the rule is: `addr` <=> `global index`
@@ -112,7 +112,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_store(&mut self, var_id: SymbolId) {
-        let var = self.env.symbol_table.get_var_by_id(var_id).unwrap();
+        let var = self.env.symbol_table.get_var_by_id(var_id);
         let index = var.index.unwrap();
 
         if var.global {
@@ -135,7 +135,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let old_frame = self.call_stack.current_frame_mut();
 
         let proc_id = self.cfg.jmp_table[&callee_id];
-        let proc = self.env.symbol_table.get_proc_by_id(proc_id).unwrap();
+        let proc = self.env.symbol_table.get_proc_by_id(proc_id);
 
         let mut params = Vec::new();
         let nparams = proc.params_types.len();
@@ -263,6 +263,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
         assert!(self.call_stack.is_empty());
         self.call_stack.open_stackframe();
+
+        // allocate `__main__` locals
+        let main_proc = self.env.symbol_table.get_proc_by_name("__main__");
+        self.init_proc_locals(main_proc.id);
     }
 
     fn choose_outgoing_edge(&mut self) {
@@ -305,5 +309,21 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
         self.node_id = edge.node_id;
         self.ip = 0;
+    }
+
+    fn init_proc_locals(&mut self, proc_id: u64) {
+        let proc_locals = self.env.locals_symbols.get(&proc_id);
+
+        if proc_locals.is_none() {
+            return;
+        }
+
+        let proc_locals = proc_locals.unwrap();
+
+        for var_id in proc_locals {
+            let var = self.env.symbol_table.get_var_by_id(*var_id);
+
+            dbg!(var);
+        }
     }
 }
