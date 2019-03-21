@@ -13,6 +13,7 @@ pub enum CfgInstruction {
     Int(isize),
     Str(String),
     Return,
+    EOC,
     Add,
     Mul,
     Not,

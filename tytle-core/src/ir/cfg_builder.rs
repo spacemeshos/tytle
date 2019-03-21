@@ -30,6 +30,9 @@ impl<'env> CfgBuilder<'env> {
             node_id = self.build_stmt(node_id, stmt);
         }
 
+        // appending `EOC` to the end of `main`
+        self.append_eoc(node_id);
+
         // TODO: fix the orphans deletions
         // self.cfg_graph.compact();
 
@@ -500,5 +503,9 @@ impl<'env> CfgBuilder<'env> {
         if append_ret {
             self.append_inst(node_id, CfgInstruction::Return);
         }
+    }
+
+    fn append_eoc(&mut self, node_id: CfgNodeId) {
+        self.append_inst(node_id, CfgInstruction::EOC);
     }
 }

@@ -18,6 +18,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     pub fn new(cfg: &'cfg CfgObject, env: &'env Environment, host: &'host mut Host) -> Self {
         // node with `id = 0` is reserved for the `main wrapper`
         // while node having `id = 1` is reserved for the `main`
+
         let main_node_id = cfg.graph.get_entry_node_id();
 
         let mut intr = Self {
@@ -45,7 +46,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             }
         }
 
-        // assert!(self.call_stack.is_empty());
+        assert!(self.call_stack.is_empty());
     }
 
     pub fn exec_next(&mut self) -> bool {
@@ -67,6 +68,13 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let mut is_call = false;
 
         match inst {
+            CfgInstruction::EOC => {
+                // reached `EOC` (END-OF-CODE)
+                // unwinding the last stackframe
+                self.call_stack.close_stackframe();
+
+                return true;
+            }
             CfgInstruction::Call(ref node_id) => {
                 is_call = true;
                 self.exec_call(*node_id);
@@ -166,9 +174,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_ret(&mut self) {
-        // TODO: handle procs returning `Unit`
-
-        let ret_item = self.call_stack.pop_item();
+        // TODO: handle procs returning non-`Unit` values
+        // let ret_item = self.call_stack.pop_item();
 
         // unwinding the procedure callstack frame
         self.call_stack.close_stackframe();
@@ -243,27 +250,6 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn init_callstack(&mut self) {
-        // we create a `__main__` wrapper stack-frame a.k.a `__main_wrapper__`
-        // and we call `__main__` within this stack-frame context
-        //
-        //
-        //     Call-Stack
-        //     ===========
-        //
-        // |                  |
-        // |      ....        |
-        // |      ....        |
-        // |      ....        |
-        // |                  |
-        // |    __main__      |
-        // |  (node_id = 1)   |
-        // |------------------|
-        // |-------------------
-        // |                  |
-        // | __main_wrapper__ |
-        // |  (node_id = 0)   |
-        // |------------------|
-
         assert!(self.call_stack.is_empty());
         self.call_stack.open_stackframe();
 

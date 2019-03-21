@@ -220,11 +220,9 @@ pub fn interpreter_proc_call_with_no_params_and_locals_and_no_return_value() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
 
-    dbg!(cfg.graph);
-    // intr.exec_code();
-    //
-    // assert!(intr.call_stack.is_empty())
+    assert_eq!((0, 30), host.xycors());
 }
 
 #[test]

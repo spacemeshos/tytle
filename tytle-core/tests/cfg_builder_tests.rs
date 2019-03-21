@@ -172,7 +172,8 @@ fn compile_cfg_graph_make_global_assign_int_expr() {
             add_ins!(),
             int_ins!(5),
             mul_ins!(),
-            store_ins!(1)
+            store_ins!(1),
+            eoc_ins!()
         )
     };
 
@@ -208,7 +209,8 @@ fn compile_cfg_graph_if_stmt_without_else_block() {
             load_ins!(1),
             int_ins!(1),
             add_ins!(),
-            store_ins!(2)
+            store_ins!(2),
+            eoc_ins!()
         ),
         edge_true_jmp!(1, 2),
         edge_always_jmp!(2, 3),
@@ -250,7 +252,8 @@ fn compile_cfg_graph_if_stmt_with_else_block() {
             load_ins!(1),
             int_ins!(1),
             add_ins!(),
-            store_ins!(2)
+            store_ins!(2),
+            eoc_ins!()
         ),
         edge_true_jmp!(1, 2),
         edge_fallback_jmp!(1, 3),
@@ -306,7 +309,8 @@ fn compile_cfg_graph_nested_if_stmts() {
               load_ins!(1),
               load_ins!(2),
               mul_ins!(),     // A * B
-              store_ins!(3)   // C = A * B
+              store_ins!(3),  // C = A * B
+              eoc_ins!()
         ),
         edge_true_jmp!(1, 2),
         edge_fallback_jmp!(1, 4),
@@ -355,7 +359,8 @@ fn compile_cfg_graph_repeat_stmt() {
         ),
         node!(3,
             int_ins!(10),
-            store_ins!(1)
+            store_ins!(1),
+            eoc_ins!()
         ),
         edge_true_jmp!(2, 2),
         edge_fallback_jmp!(2, 3),
@@ -384,7 +389,8 @@ fn compile_cfg_graph_proc_with_no_external_calls() {
     let expected_graph = cfg_graph! {
         node!(1,
             int_ins!(30),
-            store_ins!(2) // C = 30
+            store_ins!(2), // C = 30
+            eoc_ins!()
         ),
         node!(2,
             int_ins!(10),
@@ -426,7 +432,8 @@ fn compile_cfg_graph_proc_with_external_calls() {
             call_ins!(2),  // MYPROC(1, TRUE)
             int_ins!(2),
             bool_ins!(false),
-            call_ins!(2)  // MYPROC(2, FALSE)
+            call_ins!(2),  // MYPROC(2, FALSE)
+            eoc_ins!()
         ),
         node!(2,
             int_ins!(10),
@@ -456,7 +463,8 @@ fn compile_cfg_graph_recursive_procedure() {
             int_ins!(0),
             int_ins!(5),
             int_ins!(1),
-            call_ins!(2)
+            call_ins!(2),
+            eoc_ins!()
         ),
         node!(2,
             load_ins!(2), // I
@@ -509,7 +517,8 @@ fn compile_cfg_graph_mutually_exclusive_procedures() {
     let expected = cfg_graph! {
         node!(1,
             int_ins!(1),
-            call_ins!(2)
+            call_ins!(2),
+            eoc_ins!()
         ),
         node!(2,
             int_ins!(10),

@@ -124,6 +124,13 @@ macro_rules! ret_ins {
 }
 
 #[macro_export]
+macro_rules! eoc_ins {
+    () => {{
+        $crate::ir::CfgInstruction::EOC
+    }};
+}
+
+#[macro_export]
 macro_rules! node {
     ($node_id:expr) => {{
         use $crate::ir::CfgNode;
