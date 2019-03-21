@@ -158,6 +158,19 @@ pub fn interpreter_forward_const_repeat_const_times() {
 }
 
 #[test]
+pub fn interpreter_repeat_one_var_expr() {
+    let code = r#"
+        MAKEGLOBAL X = 2
+        REPEAT (X + 1 + 1) [FORWARD 5]
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 20), host.xycors());
+}
+
+#[test]
 pub fn interpreter_if_true_bool_lit_cond_expr() {
     let code = r#"
         IF 1 < 2 [FORWARD 5]
@@ -179,6 +192,20 @@ pub fn interpreter_if_else_false_bool_lit_cond_expr() {
     intr.exec_code();
 
     assert_eq!((0, 7), host.xycors());
+}
+
+#[test]
+pub fn interpreter_if_cond_var_expr() {
+    let code = r#"
+        MAKEGLOBAL X = 1
+        MAKEGLOBAL Y = X + 1
+        IF X < Y [FORWARD 5]
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 5), host.xycors());
 }
 
 #[test]
