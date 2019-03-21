@@ -12,6 +12,7 @@ pub struct Interpreter<'env, 'cfg, 'host> {
     env: &'env Environment,
     cfg: &'cfg CfgObject,
     host: &'host mut Host,
+    current_proc_id: u64,
 }
 
 impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
@@ -20,6 +21,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // while node having `id = 1` is reserved for the `main`
 
         let main_node_id = cfg.graph.get_entry_node_id();
+        let main_proc_id = cfg.jmp_table[&main_node_id];
 
         let mut intr = Self {
             ip: 0,
@@ -29,6 +31,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             memory: Memory::new(),
             call_stack: CallStack::new(),
             node_id: main_node_id,
+            current_proc_id: main_proc_id,
         };
 
         intr.init_memory();
@@ -148,6 +151,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let proc_id = self.cfg.jmp_table[&callee_id];
         let proc = self.env.symbol_table.get_proc_by_id(proc_id);
 
+        self.current_proc_id = proc_id;
+
         let mut params = Vec::new();
         let nparams = proc.params_types.len();
 
@@ -174,8 +179,12 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_ret(&mut self) {
-        // TODO: handle procs returning non-`Unit` values
-        // let ret_item = self.call_stack.pop_item();
+        let current_proc = self.env.symbol_table.get_proc_by_id(self.current_proc_id);
+
+        let ret_item = match current_proc.return_type {
+            ExpressionType::Unit => None,
+            _ => Some(self.call_stack.pop_item()),
+        };
 
         // unwinding the procedure callstack frame
         self.call_stack.close_stackframe();
@@ -186,6 +195,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // pointing one instruction after the `call`
         self.node_id = ret_node_id;
         self.ip = ret_ip;
+
+        if ret_item.is_some() {
+            self.call_stack.push_item(ret_item.unwrap());
+        }
     }
 
     fn exec_cmd(&mut self, cmd: &Command) {

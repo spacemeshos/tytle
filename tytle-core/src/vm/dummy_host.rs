@@ -20,7 +20,7 @@ impl Host for DummyHost {
             Command::ClearScreen => self.clear_screen(),
             Command::ShowTurtle => self.show_turtle(),
             Command::HideTurtle => self.hide_turtle(),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         };
     }
 
@@ -38,7 +38,7 @@ impl DummyHost {
         }
     }
 
-    pub fn xcor(&self)  {
+    pub fn xcor(&self) {
         let x = self.turtle.xcor();
 
         let line = format!("XCOR = {}", x);

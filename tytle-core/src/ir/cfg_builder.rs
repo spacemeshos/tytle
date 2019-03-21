@@ -24,7 +24,9 @@ impl<'env> CfgBuilder<'env> {
     }
 
     pub fn build(mut self, ast: &Ast) -> CfgObject {
-        let mut node_id = self.cfg_graph.get_entry_node_id();
+        let entry_id = self.cfg_graph.get_entry_node_id();
+
+        let mut node_id = entry_id;
 
         for stmt in &ast.statements {
             node_id = self.build_stmt(node_id, stmt);
@@ -36,11 +38,15 @@ impl<'env> CfgBuilder<'env> {
         // TODO: fix the orphans deletions
         // self.cfg_graph.compact();
 
-        let jmp_table: HashMap<CfgNodeId, u64> = self
+        let mut jmp_table: HashMap<CfgNodeId, u64> = self
             .proc_jmp_table
             .iter()
             .map(|(proc_id, cfg_proc)| (cfg_proc.node_id, *proc_id))
             .collect();
+
+        // adding `main` itself
+        let main_proc = self.env.symbol_table.get_proc_by_name("__main__");
+        jmp_table.insert(entry_id, main_proc.id);
 
         CfgObject {
             graph: self.cfg_graph,

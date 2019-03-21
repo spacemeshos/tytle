@@ -226,6 +226,22 @@ pub fn interpreter_proc_call_with_no_params_and_locals_and_no_return_value() {
 }
 
 #[test]
+pub fn interpreter_proc_call_with_no_params_and_locals_but_with_a_return_value() {
+    let code = r#"
+        TO MYPROC(): INT
+            RETURN 10
+        END
+
+        FORWARD MYPROC()
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 10), host.xycors());
+}
+
+#[test]
 pub fn interpreter_xcor() {
     let code = r#"
         RIGHT 20

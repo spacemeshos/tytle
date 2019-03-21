@@ -404,8 +404,9 @@ fn compile_cfg_graph_proc_with_no_external_calls() {
         )
     };
 
+    // node `1` represents Procedure with `id = 0` (main)
     // node `2` represents Procedure with `id = 1`
-    let expected_jmp_table = hashmap! { 2 => 1 };
+    let expected_jmp_table = hashmap! { 1 => 0, 2 => 1 };
 
     assert_eq!(expected_graph, actual.graph);
     assert_eq!(expected_jmp_table, actual.jmp_table);
@@ -441,7 +442,7 @@ fn compile_cfg_graph_proc_with_external_calls() {
         )
     };
 
-    let expected_jmp_table = hashmap! { 2 => 1 };
+    let expected_jmp_table = hashmap! { 1 => 0, 2 => 1 };
 
     assert_eq!(expected_graph, actual.graph);
     assert_eq!(expected_jmp_table, actual.jmp_table);

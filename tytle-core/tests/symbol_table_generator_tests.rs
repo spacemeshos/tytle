@@ -154,7 +154,10 @@ fn sym_generate_proc_params() {
     let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
 
-    assert_eq!(hashmap! { proc.id => vec![var_a.id, var_a.id + 1, var_a.id + 2] }, env.locals_symbols);
+    assert_eq!(
+        hashmap! { proc.id => vec![var_a.id, var_a.id + 1, var_a.id + 2] },
+        env.locals_symbols
+    );
 }
 
 #[test]
