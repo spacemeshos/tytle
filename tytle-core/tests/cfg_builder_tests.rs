@@ -335,7 +335,7 @@ fn compile_cfg_graph_repeat_stmt() {
             store_ins!(3),  // TMPVAR_B = 1 + 1
             load_ins!(2),
             load_ins!(3),
-            gt_ins!()       // TMPVAR_A < TMPVAR_B
+            lt_ins!()       // TMPVAR_A < TMPVAR_B
         ),
         node!(2,
             int_ins!(10),
@@ -346,7 +346,7 @@ fn compile_cfg_graph_repeat_stmt() {
             store_ins!(2), // TMPVAR_A = TMPVAR_A + 1
             load_ins!(2),
             load_ins!(3),
-            gt_ins!()      // TMPVAR_A < TMPVAR_B
+            lt_ins!()      // TMPVAR_A < TMPVAR_B
         ),
         node!(3,
             int_ins!(10),

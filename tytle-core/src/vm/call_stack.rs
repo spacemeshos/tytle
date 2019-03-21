@@ -1,6 +1,6 @@
 use crate::ir::CfgNodeId;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CallStackItem {
     Int(isize),
     Bool(bool),
@@ -70,6 +70,14 @@ impl CallStackFrame {
         self.items.push(item);
     }
 
+    pub fn load(&mut self, index: usize) -> &CallStackItem {
+        self.items.get(index).unwrap()
+    }
+
+    pub fn store(&mut self, index: usize, item: CallStackItem) {
+        std::mem::replace(&mut self.items[index], item);
+    }
+
     pub fn peek(&self) -> &CallStackItem {
         self.items.last().unwrap()
     }
@@ -91,6 +99,16 @@ impl CallStack {
 
     pub fn is_empty(&self) -> bool {
         self.frames.is_empty()
+    }
+
+    pub fn load_item(&mut self, index: usize) -> &CallStackItem {
+        let frame = self.current_frame_mut();
+        frame.load(index)
+    }
+
+    pub fn store_item(&mut self, index: usize, item: CallStackItem) {
+        let frame = self.current_frame_mut();
+        frame.store(index, item);
     }
 
     pub fn push_item(&mut self, item: CallStackItem) {

@@ -1,3 +1,4 @@
+use crate::ast::expression::ExpressionType;
 use crate::ast::semantic::{Environment, SymbolId, SymbolKind};
 use crate::ast::statement::{Command, Direction};
 use crate::ir::*;
@@ -94,10 +95,11 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
     fn exec_load(&mut self, var_id: SymbolId) {
         let var = self.env.symbol_table.get_var_by_id(var_id);
+        let index = var.index.unwrap();
 
         if var.global {
             // for global variables the rule is: `addr` <=> `global index`
-            let addr = Address(var.index.unwrap());
+            let addr = Address(index);
 
             let value = self.memory.get_global(addr).unwrap();
 
@@ -107,7 +109,9 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
                 MemoryValue::Str(v) => unimplemented!(),
             };
         } else {
-            unimplemented!()
+            let item = self.call_stack.load_item(index);
+            let item_clone = item.clone();
+            self.call_stack.push_item(item_clone);
         }
     }
 
@@ -115,19 +119,18 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let var = self.env.symbol_table.get_var_by_id(var_id);
         let index = var.index.unwrap();
 
-        if var.global {
-            let stack_value = self.call_stack.pop_item();
+        let stack_value = self.call_stack.pop_item();
 
-            let value = match stack_value {
+        if var.global {
+            let mem_value = match stack_value {
                 CallStackItem::Int(v) => MemoryValue::Int(v),
                 CallStackItem::Bool(v) => MemoryValue::Bool(v),
                 _ => unimplemented!(),
             };
 
-            let addr = Address(index);
-            self.memory.set_global(addr, value);
+            self.memory.set_global(Address(index), mem_value);
         } else {
-            unimplemented!()
+            self.call_stack.store_item(index, stack_value);
         }
     }
 
@@ -315,6 +318,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let proc_locals = self.env.locals_symbols.get(&proc_id);
 
         if proc_locals.is_none() {
+            // procedure has no locals (also no params which are treated as locals)
             return;
         }
 
@@ -323,7 +327,14 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         for var_id in proc_locals {
             let var = self.env.symbol_table.get_var_by_id(*var_id);
 
-            dbg!(var);
+            let var_type = var.var_type.as_ref().unwrap();
+
+            match var_type {
+                ExpressionType::Int => self.exec_int(-1),
+                ExpressionType::Bool => self.exec_bool(false),
+                ExpressionType::Str => unimplemented!(),
+                ExpressionType::Unit => panic!("proc can't have a local of type `Unit`"),
+            }
         }
     }
 }
