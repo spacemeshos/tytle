@@ -117,7 +117,7 @@ macro_rules! call_ins {
 }
 
 #[macro_export]
-macro_rules! return_ins {
+macro_rules! ret_ins {
     () => {{
         $crate::ir::CfgInstruction::Return
     }};

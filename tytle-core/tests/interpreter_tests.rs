@@ -209,6 +209,25 @@ pub fn interpreter_if_cond_var_expr() {
 }
 
 #[test]
+pub fn interpreter_proc_call_with_no_params_and_locals_and_no_return_value() {
+    let code = r#"
+        TO MYPROC()
+            FORWARD 10
+            FORWARD 10
+            FORWARD 10
+        END
+        MYPROC()
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+
+    dbg!(cfg.graph);
+    // intr.exec_code();
+    //
+    // assert!(intr.call_stack.is_empty())
+}
+
+#[test]
 pub fn interpreter_xcor() {
     let code = r#"
         RIGHT 20

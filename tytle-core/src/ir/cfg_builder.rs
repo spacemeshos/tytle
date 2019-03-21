@@ -95,7 +95,7 @@ impl<'env> CfgBuilder<'env> {
             // there is no proc CFG node, so we'll allocate one
             proc_node_id = self.cfg_graph.new_node();
 
-            // we explicitly save immediately the cfg proc in order
+            // we explicitly save immediately the CFG proc in order
             // to support recursive procedures
 
             let cfg_proc = CfgProc {
@@ -106,15 +106,19 @@ impl<'env> CfgBuilder<'env> {
             self.proc_jmp_table.insert(proc_id, cfg_proc);
         }
 
-        self.build_block(proc_node_id, &proc_stmt.block);
+        let last_block_node_id = self.build_block(proc_node_id, &proc_stmt.block);
 
-        // marking the cfg proc as built
+        // marking the CFG proc as built
         let cfg_proc = CfgProc {
             node_id: proc_node_id,
             proc_id,
             built: true,
         };
         self.proc_jmp_table.insert(proc_id, cfg_proc);
+
+        // we append a `RETURN` instruction to the end of the procedure
+        // in case the last instruction isn't a `RETURN`
+        self.append_ret(last_block_node_id);
 
         // the empty CFG node `node_id` will be used in the next non-procedure statement
         node_id
@@ -482,5 +486,19 @@ impl<'env> CfgBuilder<'env> {
 
     fn add_edge(&mut self, src_id: CfgNodeId, dst_id: CfgNodeId, jmp_type: CfgJumpType) {
         self.cfg_graph.add_edge(src_id, dst_id, jmp_type);
+    }
+
+    fn append_ret(&mut self, node_id: CfgNodeId) {
+        let node = self.cfg_graph.get_node_mut(node_id);
+
+        let mut append_ret = false;
+
+        if node.is_empty() || *node.insts.last().unwrap() != CfgInstruction::Return {
+            append_ret = true;
+        }
+
+        if append_ret {
+            self.append_inst(node_id, CfgInstruction::Return);
+        }
     }
 }

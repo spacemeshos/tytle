@@ -82,12 +82,17 @@ fn compile_cfg_graph_cmd_ins_macro_sanity() {
 
 #[test]
 fn compile_cfg_graph_return_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::Return, return_ins!());
+    assert_eq!(CfgInstruction::Return, ret_ins!());
 }
 
 #[test]
 fn compile_cfg_graph_call_ins_macro_sanity() {
     assert_eq!(CfgInstruction::Call(10), call_ins!(10));
+}
+
+#[test]
+fn compile_cfg_graph_ret_ins_macro_sanity() {
+    assert_eq!(CfgInstruction::Return, ret_ins!());
 }
 
 #[test]
@@ -389,7 +394,7 @@ fn compile_cfg_graph_proc_with_no_external_calls() {
             load_ins!(3),
             load_ins!(4),
             add_ins!(),     // A + B
-            return_ins!()
+            ret_ins!()
         )
     };
 
@@ -421,11 +426,11 @@ fn compile_cfg_graph_proc_with_external_calls() {
             call_ins!(2),  // MYPROC(1, TRUE)
             int_ins!(2),
             bool_ins!(false),
-            call_ins!(2)   // MYPROC(2, FALSE)
+            call_ins!(2)  // MYPROC(2, FALSE)
         ),
         node!(2,
             int_ins!(10),
-            return_ins!() // RETURN 10
+            ret_ins!()    // RETURN 10
         )
     };
 
@@ -469,13 +474,15 @@ fn compile_cfg_graph_recursive_procedure() {
             add_ins!(),   // I + 1
             mul_ins!(),   // ACC * (I + 1)  => ARG #3
             call_ins!(2), // RECUR_PROC(I + 1, N, ACC * (I + 1))
-            return_ins!() // RETURN RECUR_PROC(I + 1, N, ACC * (I + 1))
+            ret_ins!()    // RETURN RECUR_PROC(I + 1, N, ACC * (I + 1))
         ),
         node!(4,
               load_ins!(4), // ACC
-              return_ins!() // RETURN ACC
+              ret_ins!()    // RETURN ACC
         ),
-        node!(5),
+        node!(5,
+            ret_ins!()
+        ),
         edge_true_jmp!(2, 3),
         edge_fallback_jmp!(2, 4)
     };
@@ -508,13 +515,15 @@ fn compile_cfg_graph_mutually_exclusive_procedures() {
             int_ins!(10),
             int_ins!(1),
             call_ins!(3),  // G(1)
-            add_ins!()     // 10 + G(1)
+            add_ins!(),    // 10 + G(1)
+            ret_ins!()
         ),
         node!(3,
             int_ins!(20),
             int_ins!(2),
-            call_ins!(2), // F(2)
-            mul_ins!()    // 20 * F(2)
+            call_ins!(2),  // F(2)
+            mul_ins!(),    // 20 * F(2)
+            ret_ins!()
         )
     };
 
