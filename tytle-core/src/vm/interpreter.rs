@@ -4,6 +4,15 @@ use crate::ast::statement::{Command, Direction};
 use crate::ir::*;
 use crate::vm::*;
 
+static MAX_STACK_DEPTH: usize = 100;
+
+#[derive(Debug, PartialEq)]
+pub enum InterpreterException {
+    StackOverflow,
+}
+
+pub type InterpreterResult = Result<(), InterpreterException>;
+
 pub struct Interpreter<'env, 'cfg, 'host> {
     pub ip: usize,
     pub node_id: CfgNodeId,
@@ -37,19 +46,19 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         intr
     }
 
-    pub fn exec_code(&mut self) {
+    pub fn exec_code(&mut self) -> InterpreterResult {
         loop {
-            let completed = self.exec_next();
+            let completed = self.exec_next()?;
 
             if completed {
-                return;
+                return Ok(());
             }
         }
 
         assert!(self.call_stack.is_empty());
     }
 
-    pub fn exec_next(&mut self) -> bool {
+    pub fn exec_next(&mut self) -> Result<bool, InterpreterException> {
         let node = self.cfg.graph.get_node(self.node_id);
 
         let inst = node.insts.get(self.ip);
@@ -57,10 +66,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         if inst.is_none() {
             if node.has_outgoing_edges() {
                 self.choose_outgoing_edge();
-                return false;
+                return Ok(false);
             } else {
                 // we've completed program execution
-                return true;
+                return Ok(true);
             }
         }
 
@@ -73,11 +82,11 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
                 // unwinding the last stackframe
                 self.call_stack.close_stackframe();
 
-                return true;
+                return Ok(true);
             }
             CfgInstruction::Call(ref node_id) => {
                 is_call = true;
-                self.exec_call(*node_id);
+                self.exec_call(*node_id)?;
             }
             CfgInstruction::Command(ref cmd) => self.exec_cmd(cmd),
             CfgInstruction::Direction(ref direct) => self.exec_direct(direct),
@@ -98,7 +107,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             self.ip += 1;
         }
 
-        false
+        Ok(false)
     }
 
     fn exec_load(&mut self, var_id: SymbolId) {
@@ -142,7 +151,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         }
     }
 
-    fn exec_call(&mut self, callee_id: CfgNodeId) {
+    fn exec_call(&mut self, callee_id: CfgNodeId) -> InterpreterResult {
         let old_frame = self.call_stack.current_frame_mut();
 
         let proc_id = self.cfg.jmp_table[&callee_id];
@@ -162,8 +171,16 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let ret_addr = CallStackItem::Addr(self.node_id, self.ip);
         old_frame.push(ret_addr);
 
+        // the new callstack frame will exceed the maximum allowed call-stack depth
+        // so we return an error
+
+        if self.call_stack.depth() >= MAX_STACK_DEPTH {
+            return Err(InterpreterException::StackOverflow);
+        }
+
         // callee allocates a new callstack frame
         let new_frame = self.call_stack.open_stackframe(proc_id);
+
         for param in params.iter().rev() {
             new_frame.push(param.clone());
         }
@@ -175,6 +192,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // pointing the next instruction, to the first instruction of the destination CFG node
         self.node_id = callee_id;
         self.ip = 0;
+
+        Ok(())
     }
 
     fn exec_ret(&mut self) {

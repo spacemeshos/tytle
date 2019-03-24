@@ -30,7 +30,7 @@ pub fn interpreter_forward_int_lit_expr() {
     let code = "FORWARD 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 10), host.xycors());
 }
@@ -43,7 +43,7 @@ pub fn interpreter_backward_int_lit_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 5), host.xycors());
 }
@@ -56,7 +56,7 @@ pub fn interpreter_ycor_minimum_is_zero() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 0), host.xycors());
 }
@@ -66,7 +66,7 @@ pub fn interpreter_right_int_lit_expr() {
     let code = "RIGHT 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((10, 0), host.xycors());
 }
@@ -79,7 +79,7 @@ pub fn interpreter_left_int_lit_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((5, 0), host.xycors());
 }
@@ -92,7 +92,7 @@ pub fn interpreter_xcor_minimum_is_zero() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 0), host.xycors());
 }
@@ -102,7 +102,7 @@ pub fn interpreter_setx_int_lit_expr() {
     let code = "SETX 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((10, 0), host.xycors());
 }
@@ -112,7 +112,7 @@ pub fn interpreter_sety_int_lit_expr() {
     let code = "SETY 10";
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 10), host.xycors());
 }
@@ -125,8 +125,7 @@ pub fn interpreter_forward_one_var_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 9), host.xycors());
 }
@@ -140,7 +139,7 @@ pub fn interpreter_forward_two_vars_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 30), host.xycors());
 }
@@ -152,7 +151,7 @@ pub fn interpreter_forward_const_repeat_const_times() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 15), host.xycors());
 }
@@ -165,7 +164,7 @@ pub fn interpreter_repeat_one_var_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 20), host.xycors());
 }
@@ -177,7 +176,7 @@ pub fn interpreter_if_true_bool_lit_cond_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 5), host.xycors());
 }
@@ -189,7 +188,7 @@ pub fn interpreter_if_else_false_bool_lit_cond_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 7), host.xycors());
 }
@@ -203,7 +202,7 @@ pub fn interpreter_if_cond_var_expr() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 5), host.xycors());
 }
@@ -220,7 +219,7 @@ pub fn interpreter_proc_call_with_no_params_and_locals_and_no_return_value() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 30), host.xycors());
 }
@@ -236,7 +235,7 @@ pub fn interpreter_proc_call_with_no_params_and_locals_but_with_a_return_value()
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 10), host.xycors());
 }
@@ -252,7 +251,7 @@ pub fn interpreter_proc_call_with_params_and_no_additional_locals_and_no_return_
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 20), host.xycors());
 }
@@ -268,7 +267,7 @@ pub fn interpreter_proc_call_with_params_and_no_additional_locals_but_with_retur
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 25), host.xycors());
 }
@@ -287,7 +286,7 @@ pub fn interpreter_proc_call_with_params_and_additional_locals_and_return_value(
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 70), host.xycors());
 }
@@ -302,9 +301,24 @@ pub fn interpreter_calculating_factorial_recursively() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!((0, 720), host.xycors());
+}
+
+#[test]
+pub fn interpreter_stack_overflow() {
+    let code = r#"
+        TO OVERFLOW(I: INT): INT
+            RETURN OVERFLOW(I + 1)
+        END
+        OVERFLOW(0)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let res = intr.exec_code();
+
+    assert_eq!(Err(InterpreterException::StackOverflow), res);
 }
 
 #[test]
@@ -315,7 +329,7 @@ pub fn interpreter_xcor() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["XCOR = 20".to_string()], host.get_log());
 }
@@ -328,7 +342,7 @@ pub fn interpreter_ycor() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["YCOR = 30".to_string()], host.get_log());
 }
@@ -340,7 +354,7 @@ pub fn interpreter_pen_up() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["PENUP".to_string()], host.get_log());
 }
@@ -352,7 +366,7 @@ pub fn interpreter_pen_erase() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["PENERASE".to_string()], host.get_log());
 }
@@ -364,7 +378,7 @@ pub fn interpreter_clear() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["CLEAN".to_string()], host.get_log());
 }
@@ -376,7 +390,7 @@ pub fn interpreter_clear_screen() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["CLEARSCREEN".to_string()], host.get_log());
 }
@@ -389,7 +403,7 @@ pub fn interpreter_set_pen_color() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 }
 
 #[test]
@@ -403,7 +417,7 @@ pub fn interpreter_show_turtle() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["SHOWTURTLE".to_string()], host.get_log());
     assert!(host.get_turtle().is_visible());
@@ -416,7 +430,7 @@ pub fn interpreter_hide_turtle() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    intr.exec_code();
+    let _ = intr.exec_code();
 
     assert_eq!(vec!["HIDETURTLE".to_string()], host.get_log());
     assert_eq!(false, host.get_turtle().is_visible());

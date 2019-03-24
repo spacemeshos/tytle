@@ -148,6 +148,10 @@ impl CallStack {
     pub fn current_frame_mut(&mut self) -> &mut CallStackFrame {
         self.frames.last_mut().unwrap()
     }
+
+    pub fn depth(&mut self) -> usize {
+        self.frames.len()
+    }
 }
 
 #[cfg(tests)]
