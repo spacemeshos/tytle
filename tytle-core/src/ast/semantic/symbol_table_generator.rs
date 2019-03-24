@@ -73,6 +73,8 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+        self.proc_locals_index = 0;
+
         self.start_scope();
         Ok(())
     }
@@ -201,8 +203,6 @@ impl SymbolTableGenerator {
                 params_types,
                 return_type,
             };
-
-            self.proc_locals_index = 0; // we reset the new procedure locals counter
 
             self.env.symbol_table.create_proc_symbol(proc);
             proc_stmt.id = Some(id);

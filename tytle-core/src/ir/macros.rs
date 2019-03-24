@@ -124,9 +124,23 @@ macro_rules! ret_ins {
 }
 
 #[macro_export]
+macro_rules! trap_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Trap
+    }};
+}
+
+#[macro_export]
 macro_rules! eoc_ins {
     () => {{
         $crate::ir::CfgInstruction::EOC
+    }};
+}
+
+#[macro_export]
+macro_rules! print_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Print
     }};
 }
 

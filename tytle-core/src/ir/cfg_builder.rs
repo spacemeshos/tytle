@@ -65,7 +65,17 @@ impl<'env> CfgBuilder<'env> {
             Statement::Repeat(repeat_stmt) => self.build_repeat(node_id, repeat_stmt),
             Statement::Procedure(proc_stmt) => self.build_proc(node_id, proc_stmt),
             Statement::Return(return_stmt) => self.build_return(node_id, return_stmt),
+            Statement::Print(expr) => self.build_print(node_id, expr),
         }
+    }
+
+    fn build_print(&mut self, node_id: CfgNodeId, expr: &Expression) -> CfgNodeId {
+        self.build_expr(node_id, expr);
+
+        let node = self.cfg_graph.get_node_mut(node_id);
+        node.append_inst(CfgInstruction::Print);
+
+        node_id
     }
 
     fn build_return(&mut self, node_id: CfgNodeId, return_stmt: &ReturnStmt) -> CfgNodeId {
@@ -134,7 +144,10 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn build_cmd(&mut self, node_id: CfgNodeId, cmd: &Command) -> CfgNodeId {
-        let inst = CfgInstruction::Command(cmd.clone());
+        let inst = match cmd {
+            Command::Trap => CfgInstruction::Trap,
+            _ => CfgInstruction::Command(cmd.clone()),
+        };
 
         self.append_inst(node_id, inst);
 

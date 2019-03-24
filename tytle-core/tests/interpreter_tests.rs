@@ -118,6 +118,29 @@ pub fn interpreter_sety_int_lit_expr() {
 }
 
 #[test]
+pub fn interpreter_print_const_expr() {
+    let code = "PRINT 10";
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let _ = intr.exec_code();
+
+    assert_eq!(vec!["10"], host.get_log());
+}
+
+#[test]
+pub fn interpreter_print_var_expr() {
+    let code = r#"
+       MAKEGLOBAL X = 10
+       PRINT X * X
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let _ = intr.exec_code();
+
+    assert_eq!(vec!["100"], host.get_log());
+}
+
+#[test]
 pub fn interpreter_forward_one_var_expr() {
     let code = r#"
        MAKEGLOBAL X = 1 + 2
@@ -225,6 +248,22 @@ pub fn interpreter_proc_call_with_no_params_and_locals_and_no_return_value() {
 }
 
 #[test]
+pub fn interpreter_print_inside_proc() {
+    let code = r#"
+        TO MYPROC(X: INT)
+            PRINT X + 1
+        END
+
+        MYPROC(100)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let _ = intr.exec_code();
+
+    assert_eq!(vec!["101"], host.get_log());
+}
+
+#[test]
 pub fn interpreter_proc_call_with_no_params_and_locals_but_with_a_return_value() {
     let code = r#"
         TO MYPROC(): INT
@@ -307,6 +346,35 @@ pub fn interpreter_calculating_factorial_recursively() {
 }
 
 #[test]
+pub fn interpreter_mutually_recursive_procedures() {
+    let code = r#"
+        TO F(A: INT): INT
+            PRINT A
+
+            IF A > 10 [
+                RETURN A
+            ][
+                RETURN G(A + 2)
+            ]
+        END
+
+        TO G(B: INT): INT
+            PRINT B
+            RETURN F(2 * B + 3)
+        END
+
+        F(0)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let _ = intr.exec_code();
+
+    let expected = vec!["0", "2", "7", "9", "21"];
+
+    assert_eq!(expected, host.get_log());
+}
+
+#[test]
 pub fn interpreter_stack_overflow() {
     let code = r#"
         TO OVERFLOW(I: INT): INT
@@ -331,7 +399,7 @@ pub fn interpreter_xcor() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["XCOR = 20".to_string()], host.get_log());
+    assert_eq!(vec!["XCOR = 20"], host.get_log());
 }
 
 #[test]
@@ -344,7 +412,7 @@ pub fn interpreter_ycor() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["YCOR = 30".to_string()], host.get_log());
+    assert_eq!(vec!["YCOR = 30"], host.get_log());
 }
 
 #[test]
@@ -356,7 +424,7 @@ pub fn interpreter_pen_up() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["PENUP".to_string()], host.get_log());
+    assert_eq!(vec!["PENUP"], host.get_log());
 }
 
 #[test]
@@ -368,7 +436,7 @@ pub fn interpreter_pen_erase() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["PENERASE".to_string()], host.get_log());
+    assert_eq!(vec!["PENERASE"], host.get_log());
 }
 
 #[test]
@@ -380,7 +448,7 @@ pub fn interpreter_clear() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["CLEAN".to_string()], host.get_log());
+    assert_eq!(vec!["CLEAN"], host.get_log());
 }
 
 #[test]
@@ -392,7 +460,7 @@ pub fn interpreter_clear_screen() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["CLEARSCREEN".to_string()], host.get_log());
+    assert_eq!(vec!["CLEARSCREEN"], host.get_log());
 }
 
 #[test]
@@ -419,7 +487,7 @@ pub fn interpreter_show_turtle() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["SHOWTURTLE".to_string()], host.get_log());
+    assert_eq!(vec!["SHOWTURTLE"], host.get_log());
     assert!(host.get_turtle().is_visible());
 }
 
@@ -432,7 +500,7 @@ pub fn interpreter_hide_turtle() {
     setup_interpreter!(code, env, cfg, host, intr);
     let _ = intr.exec_code();
 
-    assert_eq!(vec!["HIDETURTLE".to_string()], host.get_log());
+    assert_eq!(vec!["HIDETURTLE"], host.get_log());
     assert_eq!(false, host.get_turtle().is_visible());
 }
 

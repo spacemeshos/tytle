@@ -10,6 +10,7 @@ use std::collections::HashSet;
 lazy_static! {
     static ref KEYWORDS: HashSet<&'static str> = {
         let mut kws = HashSet::new();
+        kws.insert("TRAP");
         kws.insert("TRUE");
         kws.insert("FALSE");
         kws.insert("MAKEGLOBAL");
@@ -286,6 +287,8 @@ impl TytleParser {
 
     fn parse_basic_stmt(&self, val: &str, lexer: &mut impl Lexer) -> StatementResult {
         match val {
+            "PRINT" => self.parse_print_stmt(lexer),
+            "TRAP" => self.parse_trap_stmt(lexer),
             "HALT" => self.parse_halt_stmt(lexer),
             "MAKE" => self.parse_make_stmt(lexer),
             "MAKEGLOBAL" => self.parse_make_global_stmt(lexer),
@@ -356,6 +359,24 @@ impl TytleParser {
         let ret_stmt = ReturnStmt::new(None);
 
         let stmt = Statement::Return(ret_stmt);
+        Ok(stmt)
+    }
+
+    fn parse_print_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
+        self.skip_token(lexer); // skipping the `PRINT` token
+
+        let expr = self.parse_expr(lexer)?;
+
+        let stmt = Statement::Print(expr);
+        Ok(stmt)
+    }
+
+    fn parse_trap_stmt(&self, lexer: &mut impl Lexer) -> StatementResult {
+        self.skip_token(lexer); // skipping the `TRAP` token
+
+        let cmd_stmt = Command::Trap;
+
+        let stmt = Statement::Command(cmd_stmt);
         Ok(stmt)
     }
 

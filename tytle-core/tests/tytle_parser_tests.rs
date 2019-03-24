@@ -285,6 +285,37 @@ fn parse_expr_proc_call_as_part_of_expr() {
 }
 
 #[test]
+fn parse_print_const() {
+    let actual = TytleParser.parse("PRINT 10").unwrap();
+
+    let expected = ast! {
+        print_stmt!(int_lit_expr!(10))
+    };
+
+    assert_eq!(expected, actual);
+}
+
+
+#[test]
+fn parse_print_var_expr() {
+    let code = r#"
+        MAKEGLOBAL X = 5
+        PRINT X + 10
+    "#;
+
+    let actual = TytleParser.parse(code).unwrap();
+
+    let expr = binary_expr!("+", boxed_var_lit_expr!("X"), boxed_int_lit_expr!(10));
+
+    let expected = ast! {
+        make_global_stmt!("X", int_lit_expr!(5)),
+        print_stmt!(expr)
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn parse_make_variable_assign_an_integer() {
     let actual = TytleParser.parse("MAKE MYVAR = 2").unwrap();
 
@@ -936,6 +967,16 @@ fn parse_error_proc_param_cannot_be_unit() {
 }
 
 #[test]
+fn parse_error_trap_is_a_reserved_keyword() {
+    assert_reserved_word!("TRAP");
+}
+
+#[test]
+fn parse_error_print_is_a_reserved_keyword() {
+    assert_reserved_word!("PRINT");
+}
+
+#[test]
 fn parse_error_true_is_a_reserved_keyword() {
     assert_reserved_word!("TRUE");
 }
@@ -1058,11 +1099,6 @@ fn parse_error_clean_is_a_reserved_keyword() {
 #[test]
 fn parse_error_clearscreen_is_a_reserved_keyword() {
     assert_reserved_word!("CLEARSCREEN");
-}
-
-#[test]
-fn parse_error_print_is_a_reserved_keyword() {
-    assert_reserved_word!("PRINT");
 }
 
 #[test]

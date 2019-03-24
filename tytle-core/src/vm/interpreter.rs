@@ -4,7 +4,7 @@ use crate::ast::statement::{Command, Direction};
 use crate::ir::*;
 use crate::vm::*;
 
-static MAX_STACK_DEPTH: usize = 100;
+static MAX_STACK_DEPTH: usize = 40;
 
 #[derive(Debug, PartialEq)]
 pub enum InterpreterException {
@@ -77,6 +77,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let mut is_call = false;
 
         match inst {
+            CfgInstruction::Trap => self.exec_trap(),
+            CfgInstruction::Print => self.exec_print(),
             CfgInstruction::EOC => {
                 // reached `EOC` (END-OF-CODE)
                 // unwinding the last stackframe
@@ -168,6 +170,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         });
 
         // pushing the return address to the top of the old stack-frame
+        // reminder: `self.ip` already point to the next node instruction
         let ret_addr = CallStackItem::Addr(self.node_id, self.ip);
         old_frame.push(ret_addr);
 
@@ -219,6 +222,15 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             let ret_value = ret_item.unwrap();
             self.call_stack.push_item(ret_value);
         }
+    }
+
+    fn exec_trap(&mut self) {
+        self.host.exec_trap(self.node_id, self.ip);
+    }
+
+    fn exec_print(&mut self) {
+        let value = self.call_stack.pop_item().to_int();
+        self.host.exec_print(value);
     }
 
     fn exec_cmd(&mut self, cmd: &Command) {

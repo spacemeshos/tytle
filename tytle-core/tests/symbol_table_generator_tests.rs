@@ -240,6 +240,29 @@ fn sym_generate_initializing_a_local_var_with_proc_call_expr() {
 }
 
 #[test]
+fn sym_generate_proc_first_param_always_has_index_zero() {
+    let code = r#"
+            TO F(A: INT): INT
+                RETURN 10
+            END
+
+            TO G(B: INT): INT
+                RETURN 20
+            END
+        "#;
+
+    gen_symbols!(code, env);
+
+    let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
+    let var_a = symbol.unwrap().as_var();
+    assert_eq!(var_a.index, Some(0));
+
+    let symbol = env.symbol_table.lookup(2, "B", &SymbolKind::Var);
+    let var_b = symbol.unwrap().as_var();
+    assert_eq!(var_b.index, Some(0));
+}
+
+#[test]
 fn sym_generate_proc_call_inject_proc_id() {
     let code = r#"
             TO FOO(A: INT)

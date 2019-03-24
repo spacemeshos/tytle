@@ -13,6 +13,7 @@ pub enum Command {
     SetBackgroundColor,
     Wait,
     Stop,
+    Trap,
 }
 
 impl Command {

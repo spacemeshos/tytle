@@ -96,6 +96,11 @@ fn compile_cfg_graph_ret_ins_macro_sanity() {
 }
 
 #[test]
+fn compile_cfg_graph_trap_ins_macro_sanity() {
+    assert_eq!(CfgInstruction::Trap, trap_ins!());
+}
+
+#[test]
 fn compile_cfg_graph_direct_ins_macro_sanity() {
     assert_eq!(
         CfgInstruction::Direction(Direction::Left),
@@ -317,6 +322,46 @@ fn compile_cfg_graph_nested_if_stmts() {
         edge_true_jmp!(2, 3),
         edge_fallback_jmp!(2, 4),
         edge_always_jmp!(3, 4)
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn compile_cfg_graph_trap() {
+    let code = r#"
+        TRAP
+    "#;
+
+    let actual = compile_cfg_graph!(code);
+    let expected = cfg_graph! {
+        node!(1,
+            trap_ins!(),
+            eoc_ins!()
+        )
+    };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn compile_cfg_graph_print() {
+    let code = r#"
+        MAKEGLOBAL X = 10
+        PRINT X + 20
+    "#;
+
+    let actual = compile_cfg_graph!(code);
+    let expected = cfg_graph! {
+        node!(1,
+            int_ins!(10),
+            store_ins!(1),  // X = 10
+            load_ins!(1),
+            int_ins!(20),
+            add_ins!(),    // X + 20
+            print_ins!(),  // PRINT X + 20
+            eoc_ins!()
+        )
     };
 
     assert_eq!(expected, actual);

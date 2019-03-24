@@ -9,6 +9,7 @@ pub enum Statement {
     NOP,
     EOF,
     Expression(Expression),
+    Print(Expression),
     Command(Command),
     Direction(DirectionStmt),
     Make(MakeStmt),

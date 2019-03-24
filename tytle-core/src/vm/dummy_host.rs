@@ -10,6 +10,16 @@ pub struct DummyHost {
 }
 
 impl Host for DummyHost {
+    fn exec_print(&mut self, value: isize) {
+        let msg = format!("{}", value);
+        self.append_log(msg);
+    }
+
+    fn exec_trap(&mut self, node_id: usize, ip: usize) {
+        let msg = format!("trapping at ({}, {})", node_id, ip);
+        self.append_log(msg);
+    }
+
     fn exec_cmd(&mut self, cmd: &Command) {
         match cmd {
             Command::XCor => self.xcor(),

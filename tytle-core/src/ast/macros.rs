@@ -190,6 +190,14 @@ macro_rules! make_stmt {
 }
 
 #[macro_export]
+macro_rules! print_stmt {
+    ($expr:expr) => {{
+        use $crate::ast::statement::Statement;
+        Statement::Print($expr)
+    }};
+}
+
+#[macro_export]
 macro_rules! with_parentheses {
     ($expr:expr) => {{
         use $crate::ast::expression::{Expression, ExpressionAst};
