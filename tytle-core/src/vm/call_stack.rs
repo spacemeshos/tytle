@@ -55,11 +55,15 @@ impl CallStackItem {
 #[derive(Debug)]
 pub struct CallStackFrame {
     items: Vec<CallStackItem>,
+    pub ctx_proc: u64,
 }
 
 impl CallStackFrame {
-    pub fn new() -> Self {
-        Self { items: Vec::new() }
+    pub fn new(ctx_proc: u64) -> Self {
+        Self {
+            items: Vec::new(),
+            ctx_proc,
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -126,8 +130,8 @@ impl CallStack {
         frame.peek()
     }
 
-    pub fn open_stackframe(&mut self) -> &mut CallStackFrame {
-        let mut frame = CallStackFrame::new();
+    pub fn open_stackframe(&mut self, ctx_proc: u64) -> &mut CallStackFrame {
+        let mut frame = CallStackFrame::new(ctx_proc);
         self.frames.push(frame);
 
         self.current_frame_mut()

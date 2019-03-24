@@ -12,7 +12,6 @@ pub struct Interpreter<'env, 'cfg, 'host> {
     env: &'env Environment,
     cfg: &'cfg CfgObject,
     host: &'host mut Host,
-    current_proc_id: u64,
 }
 
 impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
@@ -21,7 +20,6 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         // while node having `id = 1` is reserved for the `main`
 
         let main_node_id = cfg.graph.get_entry_node_id();
-        let main_proc_id = cfg.jmp_table[&main_node_id];
 
         let mut intr = Self {
             ip: 0,
@@ -31,7 +29,6 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             memory: Memory::new(),
             call_stack: CallStack::new(),
             node_id: main_node_id,
-            current_proc_id: main_proc_id,
         };
 
         intr.init_memory();
@@ -151,8 +148,6 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         let proc_id = self.cfg.jmp_table[&callee_id];
         let proc = self.env.symbol_table.get_proc_by_id(proc_id);
 
-        self.current_proc_id = proc_id;
-
         let mut params = Vec::new();
         let nparams = proc.params_types.len();
 
@@ -168,13 +163,13 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         old_frame.push(ret_addr);
 
         // callee allocates a new callstack frame
-        let new_frame = self.call_stack.open_stackframe();
-        for param in params {
-            new_frame.push(param);
+        let new_frame = self.call_stack.open_stackframe(proc_id);
+        for param in params.iter().rev() {
+            new_frame.push(param.clone());
         }
 
         // allocate callee locals (non-params) on the new callstack frame
-        // the first non-local #index is the successor of the last proc param #index
+        // the first non-local #index is the successor of the last proc-param #index
         self.init_proc_locals(proc_id);
 
         // pointing the next instruction, to the first instruction of the destination CFG node
@@ -183,7 +178,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
     }
 
     fn exec_ret(&mut self) {
-        let current_proc = self.env.symbol_table.get_proc_by_id(self.current_proc_id);
+        let current_frame = self.call_stack.current_frame();
+        let current_proc = self.env.symbol_table.get_proc_by_id(current_frame.ctx_proc);
 
         let ret_item = match current_proc.return_type {
             ExpressionType::Unit => None,
@@ -201,7 +197,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         self.ip = ret_ip;
 
         if ret_item.is_some() {
-            self.call_stack.push_item(ret_item.unwrap());
+            let ret_value = ret_item.unwrap();
+            self.call_stack.push_item(ret_value);
         }
     }
 
@@ -248,8 +245,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         match op {
             CfgInstruction::And => self.exec_bool(a.to_bool() && b.to_bool()),
             CfgInstruction::Or => self.exec_bool(a.to_bool() || b.to_bool()),
-            CfgInstruction::GT => self.exec_bool(a.to_int() < b.to_int()),
-            CfgInstruction::LT => self.exec_bool(a.to_int() > b.to_int()),
+            CfgInstruction::GT => self.exec_bool(b.to_int() > a.to_int()),
+            CfgInstruction::LT => self.exec_bool(b.to_int() < a.to_int()),
             _ => panic!("invalid binary-op: `{:?}`", op),
         }
     }
@@ -268,7 +265,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
 
     fn init_callstack(&mut self) {
         assert!(self.call_stack.is_empty());
-        self.call_stack.open_stackframe();
+
+        let main_proc_id = self.cfg.jmp_table[&self.node_id];
+
+        self.call_stack.open_stackframe(main_proc_id);
 
         // allocate `__main__` locals
         let main_proc = self.env.symbol_table.get_proc_by_name("__main__");

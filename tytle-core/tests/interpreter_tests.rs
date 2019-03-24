@@ -293,6 +293,21 @@ pub fn interpreter_proc_call_with_params_and_additional_locals_and_return_value(
 }
 
 #[test]
+pub fn interpreter_calculating_factorial_recursively() {
+    let code = r#"
+        TO FACTORIAL(I: INT, N: INT): INT
+            IF I + 1 > N [RETURN N][RETURN I * FACTORIAL(I + 1, N)]
+        END
+        FORWARD FACTORIAL(1, 6)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 720), host.xycors());
+}
+
+#[test]
 pub fn interpreter_xcor() {
     let code = r#"
         RIGHT 20

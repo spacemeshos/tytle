@@ -324,7 +324,7 @@ impl<'env> CfgBuilder<'env> {
             expr_type: Some(ExpressionType::Int),
         };
         let cond_ast =
-            ExpressionAst::Binary(BinaryOp::LT, Box::new(var_expr_a), Box::new(var_expr_b));
+            ExpressionAst::Binary(BinaryOp::GT, Box::new(var_expr_a), Box::new(var_expr_b));
         let cond_expr = Expression {
             expr_ast: cond_ast,
             expr_type: Some(ExpressionType::Bool),
