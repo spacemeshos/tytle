@@ -58,6 +58,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
                 &proc_param.param_name,
                 Some(param_type),
                 false,
+                true,
                 index,
             )?;
 
@@ -225,7 +226,7 @@ impl SymbolTableGenerator {
         if symbol.is_none() {
             let index = self.env.globals_index;
 
-            let var_id = self.create_var_symbol(ctx_proc, var_name, None, true, index)?;
+            let var_id = self.create_var_symbol(ctx_proc, var_name, None, true, false, index)?;
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -246,7 +247,8 @@ impl SymbolTableGenerator {
         if symbol.is_none() {
             let index = self.proc_locals_index;
 
-            let var_id: u64 = self.create_var_symbol(ctx_proc, var_name, None, false, index)?;
+            let var_id: u64 =
+                self.create_var_symbol(ctx_proc, var_name, None, false, false, index)?;
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -262,6 +264,7 @@ impl SymbolTableGenerator {
         var_name: &str,
         var_type: Option<ExpressionType>,
         is_global: bool,
+        is_param: bool,
         index: u64,
     ) -> Result<SymbolId, AstWalkError> {
         let var_id = self.get_next_id();
@@ -269,6 +272,7 @@ impl SymbolTableGenerator {
         let var = Variable {
             id: var_id,
             global: is_global,
+            param: is_param,
             name: var_name.to_owned(),
             var_type,
             index: Some(index as usize),

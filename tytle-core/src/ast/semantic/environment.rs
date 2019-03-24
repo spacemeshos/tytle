@@ -42,6 +42,7 @@ impl Environment {
             name: var_name.clone(),
             var_type: Some(var_type),
             global: false,
+            param: false,
             index: Some(proc_locals_count),
         };
 

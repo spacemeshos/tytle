@@ -4,6 +4,7 @@ use crate::ast::expression::ExpressionType;
 pub struct Variable {
     pub id: u64,
     pub global: bool,
+    pub param: bool,
     pub name: String,
     pub var_type: Option<ExpressionType>,
 
@@ -14,21 +15,30 @@ pub struct Variable {
 
 impl Variable {
     pub fn build_global(name: &str, id: u64) -> Self {
-        Self::build(name, true, id)
+        Self::build(name, true, false, id)
     }
 
     pub fn build_local(name: &str, id: u64) -> Self {
-        Self::build(name, false, id)
+        Self::build(name, false, false, id)
     }
 
-    pub fn build(name: &str, global: bool, id: u64) -> Self {
+    pub fn build_param(name: &str, id: u64) -> Self {
+        Self::build(name, false, true, id)
+    }
+
+    pub fn build(name: &str, global: bool, param: bool, id: u64) -> Self {
         Self {
             id,
             global,
+            param,
             name: name.to_string(),
             var_type: None,
             index: None,
         }
+    }
+
+    pub fn is_param(&self) -> bool {
+        self.param == true
     }
 
     pub fn set_resolved_type(&mut self, resolved_type: ExpressionType) {

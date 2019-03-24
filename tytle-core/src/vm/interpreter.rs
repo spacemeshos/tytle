@@ -173,6 +173,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             new_frame.push(param);
         }
 
+        // allocate callee locals (non-params) on the new callstack frame
+        // the first non-local #index is the successor of the last proc param #index
+        self.init_proc_locals(proc_id);
+
         // pointing the next instruction, to the first instruction of the destination CFG node
         self.node_id = callee_id;
         self.ip = 0;
@@ -322,9 +326,18 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         }
 
         let proc_locals = proc_locals.unwrap();
+        let nlocals = proc_locals.len();
+
+        let proc = self.env.symbol_table.get_proc_by_id(proc_id);
+        let nparams = proc.params_types.len();
 
         for var_id in proc_locals {
             let var = self.env.symbol_table.get_var_by_id(*var_id);
+
+            // we skip the params since they are allocated as part of the calling-convention
+            if var.is_param() {
+                continue;
+            }
 
             let var_type = var.var_type.as_ref().unwrap();
 

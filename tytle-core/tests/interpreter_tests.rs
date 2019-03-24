@@ -242,6 +242,57 @@ pub fn interpreter_proc_call_with_no_params_and_locals_but_with_a_return_value()
 }
 
 #[test]
+pub fn interpreter_proc_call_with_params_and_no_additional_locals_and_no_return_value() {
+    let code = r#"
+        TO GO_FORWARD(X: INT)
+            FORWARD X + 10
+        END
+
+        GO_FORWARD(10)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 20), host.xycors());
+}
+
+#[test]
+pub fn interpreter_proc_call_with_params_and_no_additional_locals_but_with_return_value() {
+    let code = r#"
+        TO ADD10(X: INT): INT
+            RETURN X + 10
+        END
+
+        FORWARD ADD10(15)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 25), host.xycors());
+}
+
+#[test]
+pub fn interpreter_proc_call_with_params_and_additional_locals_and_return_value() {
+    let code = r#"
+        TO DO_CALC(X: INT): INT
+            MAKELOCAL Y = 20
+            MAKELOCAL Z = 40
+
+            RETURN X + Y + Z
+        END
+
+        FORWARD DO_CALC(10)
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    intr.exec_code();
+
+    assert_eq!((0, 70), host.xycors());
+}
+
+#[test]
 pub fn interpreter_xcor() {
     let code = r#"
         RIGHT 20
