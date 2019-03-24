@@ -4,7 +4,7 @@ use crate::ast::statement::{Command, Direction};
 use crate::ir::*;
 use crate::vm::*;
 
-static MAX_STACK_DEPTH: usize = 40;
+static MAX_STACK_DEPTH: usize = 10_000;
 
 #[derive(Debug, PartialEq)]
 pub enum InterpreterException {
