@@ -1,5 +1,5 @@
 [package]
-name = "tytle-browser"
+name = "tytle_browser"
 version = "0.1.0"
 authors = ["Yaron Wittenstein <yaron.wittenstein@gmail.com>"]
 edition = "2018"
@@ -8,5 +8,5 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-tytle = { path = "../tytle-core" }
+tytle = { path = "../tytle_core" }
 wasm-bindgen = "0.2.39"
