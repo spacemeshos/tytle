@@ -6,7 +6,6 @@ use crate::parser::{Parser, TytleParser};
 
 pub struct SymbolTableGenerator {
     env: Environment,
-    proc_locals_index: u64,
 }
 
 type EnvironmentResult<'a> = Result<Environment, AstWalkError>;
@@ -50,8 +49,10 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
+            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
+            let var_index = self.env.proc_locals_count(proc.id);
+
             let param_type = ExpressionType::from(proc_param.param_type.as_str());
-            let index = self.proc_locals_index;
 
             self.create_var_symbol(
                 ctx_proc,
@@ -59,7 +60,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
                 Some(param_type),
                 false,
                 true,
-                index,
+                var_index,
             )?;
 
             Ok(())
@@ -73,8 +74,6 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
     }
 
     fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
-        self.proc_locals_index = 0;
-
         self.start_scope();
         Ok(())
     }
@@ -129,7 +128,6 @@ impl SymbolTableGenerator {
     pub fn new() -> Self {
         Self {
             env: Environment::new(),
-            proc_locals_index: 0,
         }
     }
 
@@ -245,10 +243,12 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol(var_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let index = self.proc_locals_index;
+            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
+            let var_index = self.env.proc_locals_count(proc.id);
 
             let var_id: u64 =
-                self.create_var_symbol(ctx_proc, var_name, None, false, false, index)?;
+                self.create_var_symbol(ctx_proc, var_name, None, false, false, var_index)?;
+
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -296,8 +296,6 @@ impl SymbolTableGenerator {
 
             let proc_locals_entry = self.env.locals_symbols.entry(proc_id).or_insert(Vec::new());
             proc_locals_entry.push(var_id);
-
-            self.proc_locals_index += 1;
         }
 
         Ok(var_id)

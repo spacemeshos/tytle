@@ -3,8 +3,10 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
   <body>
-    <canvas id="tytle_canvas" width=300 height=300 style="border:1px solid #000000;">
-    </canvas>
+		<div id="canvas-container" style="width: 800px; height:500px; margin: 50px auto;">
+			<canvas id="tytle-canvas" width=800 height=500 style="border:1px solid #000000;">
+			</canvas>
+		</div>
 
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
@@ -30,9 +32,13 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
+          TO DO_WORK(X: INT)
+            FORWARD X
+          END
+          DO_WORK(10 + 10)
           FORWARD 100
-          RIGHT 100
-          BACKWARD 100
+          RIGHT 50
+          FORWARD 100
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

@@ -2,11 +2,16 @@ export class TytleHost {
   constructor() {
     this.x = 0;
     this.y = 0;
+    this.angle = 0;
+
+    var canvas = document.getElementById("tytle-canvas");
+    var ctx = canvas.getContext("2d");
+    ctx.translate(400, 0);
   }
 
   forward(count) {
     const new_y = this.y + count;
-    this.drawUpdate(this.x, this.y, this.x, new_y);
+    this.drawLine(this.angle, this.x, this.y, this.x, new_y);
     this.y = new_y;
   }
 
@@ -17,25 +22,16 @@ export class TytleHost {
       new_y = 0;
     }
 
-    this.drawUpdate(this.x, this.y, this.x, new_y);
+    this.drawLine(this.angle, this.x, this.y, this.x, new_y);
     this.y = new_y;
   }
 
-  left(count) {
-    var new_x = this.x - count;
-
-    if (new_x < 0) {
-      new_x = 0;
-    }
-
-    this.drawUpdate(this.x, this.y, new_x, this.y);
-    this.x = new_x;
+  right(angle) {
+    this.angle = angle;
   }
 
-  right(count) {
-    const new_x = this.x + count;
-    this.drawUpdate(this.x, this.y, new_x, this.y);
-    this.x = new_x;
+  left(angle) {
+    this.angle = 360 - angle;
   }
 
   setx(x) {
@@ -46,8 +42,8 @@ export class TytleHost {
     this.y = y;
   }
 
-  drawUpdate(x0, y0, x1, y1) {
-    var canvas = document.getElementById("tytle_canvas");
+  drawLine(angle, x0, y0, x1, y1) {
+    var canvas = document.getElementById("tytle-canvas");
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = "#FFFFFF";
 

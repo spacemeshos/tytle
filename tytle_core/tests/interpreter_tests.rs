@@ -180,6 +180,23 @@ pub fn interpreter_forward_const_repeat_const_times() {
 }
 
 #[test]
+#[ignore]
+pub fn interpreter_repeat_calling_a_proc() {
+    let code = r#"
+        TO GO_FORWARD(X: INT)
+            FORWARD X
+        END
+        REPEAT 3 [GO_FORWARD(10)]
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    // let res = intr.exec_code();
+    // dbg!(res);
+
+    // assert_eq!((0, 20), host.xycors());
+}
+
+#[test]
 pub fn interpreter_repeat_one_var_expr() {
     let code = r#"
         MAKEGLOBAL X = 2
