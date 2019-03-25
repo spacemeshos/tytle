@@ -3,7 +3,7 @@ use tytle::vm::Host;
 
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/src/tytle_host.js")]
+#[wasm_bindgen(module = "/tytle_host.js")]
 extern "C" {
     type TytleHost;
 
@@ -47,12 +47,11 @@ impl Host for BrowserHost {
 
         match direct {
             Direction::Forward => self.browser.forward(count),
-            _ => unimplemented!(),
-            // Direction::Backward => self.browser.backward(count),
-            // Direction::Left => self.browser.left(count),
-            // Direction::Right => self.browser.right(count),
-            // Direction::SetX => self.browser.setx(count),
-            // Direction::SetY => self.browser.sety(count),
+            Direction::Backward => self.browser.backward(count),
+            Direction::Left => self.browser.left(count),
+            Direction::Right => self.browser.right(count),
+            Direction::SetX => self.browser.setx(count),
+            Direction::SetY => self.browser.sety(count),
         }
     }
 

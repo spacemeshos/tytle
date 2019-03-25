@@ -3,6 +3,9 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
   <body>
+    <canvas id="tytle_canvas" width=300 height=300 style="border:1px solid #000000;">
+    </canvas>
+
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
       // Use ES module import syntax to import functionality from the module
@@ -27,8 +30,9 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          MAKEGLOBAL X = 10
-          FORWARD X + 10
+          FORWARD 100
+          RIGHT 100
+          BACKWARD 100
         `);
 
         // And afterwards we can use all the functionality defined in wasm.
