@@ -32,17 +32,18 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          TO DRAW_SQUARE()
-            REPEAT 4 [
-              FORWARD 50
-              RIGHT 90
-            ]
-          END
-
-          REPEAT 7 [
-            DRAW_SQUARE()
-            FORWARD 50
-          ]
+          LEFT 70
+          FORWARD 70
+          RIGHT 133
+          FORWARD 120
+          LEFT 120
+          FORWARD 120
+          RIGHT 125
+          FORWARD 112
+          LEFT 200
+          FORWARD 133
+          LEFT 78
+          FORWARD 1100
         `);
 
         // And afterwards we can use all the functionality defined in wasm.
