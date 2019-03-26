@@ -35,10 +35,7 @@
           TO DO_WORK(X: INT)
             FORWARD X
           END
-          DO_WORK(10 + 10)
-          FORWARD 100
-          RIGHT 50
-          FORWARD 100
+          REPEAT 5 [DO_WORK(10)]
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

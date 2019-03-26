@@ -94,6 +94,8 @@ impl<'env> CfgBuilder<'env> {
         let proc_id = proc_stmt.id.unwrap();
         let cfg_proc = self.proc_jmp_table.get(&proc_id);
 
+        let parent_proc_id = self.current_proc_id;
+
         self.current_proc_id = proc_id;
 
         let mut proc_node_id;
@@ -138,6 +140,9 @@ impl<'env> CfgBuilder<'env> {
         // we append a `RETURN` instruction to the end of the procedure
         // in case the last instruction isn't a `RETURN`
         self.append_ret(last_block_node_id);
+
+        // restoring the `current_proc_id`
+        self.current_proc_id = parent_proc_id;
 
         // the empty CFG node `node_id` will be used in the next non-procedure statement
         node_id

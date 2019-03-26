@@ -180,7 +180,6 @@ pub fn interpreter_forward_const_repeat_const_times() {
 }
 
 #[test]
-#[ignore]
 pub fn interpreter_repeat_calling_a_proc() {
     let code = r#"
         TO GO_FORWARD(X: INT)
@@ -190,10 +189,9 @@ pub fn interpreter_repeat_calling_a_proc() {
     "#;
 
     setup_interpreter!(code, env, cfg, host, intr);
-    // let res = intr.exec_code();
-    // dbg!(res);
+    let _ = intr.exec_code();
 
-    // assert_eq!((0, 20), host.xycors());
+    assert_eq!((0, 30), host.xycors());
 }
 
 #[test]
