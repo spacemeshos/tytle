@@ -3,13 +3,74 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
   <body>
-		<div id="canvas-container" style="width: 800px; height:500px; margin: 50px auto;">
-			<canvas id="tytle-canvas" width=800 height=500 style="border:1px solid #000000;">
-			</canvas>
-		</div>
+    <style>
+      .nav {
+         background-color: limegreen;
+         list-style-type: none;
+         text-align: center;
+         padding: 0;
+         margin: 0;
+      }
+
+      .nav li {
+        display: inline-block;
+      }
+
+      .main {
+         list-style-type: none;
+         text-align: center;
+         padding: -1000;
+         margin: 100;
+      }
+
+      .main li {
+        display: inline-block;
+      }
+    </style>
+
+    <ul class="nav">
+      <li>
+        <img alt="logo" src="http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png"
+           width=150 height=150>
+
+        <font face="verdana">
+          <h1 font="verdana">Tytle Playground</h1>
+        </font>
+      </li>
+    </ul>
+
+    <ul class="main">
+      <li>
+        <canvas id="tytle-canvas" width=500 height=500 style="border:1px solid #000000;"/>
+      </li>
+
+      <li>
+        <script src="node_modules/codemirror/lib/codemirror.js"></script>
+        <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
+        <style>
+          .CodeMirror {
+            width: 10,
+            height: 10,
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+          }
+        </style>
+      </li>
+    </ul>
 
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
+      var codeConfig = {
+        value: "Hello World",
+        smartIndent: true,
+        identUnit: 4,
+        indentWithTabs: true,
+        rtlMoveVisually: true,
+        lineNumbers: true,
+      };
+
+      var myCodeMirror = CodeMirror(document.body, codeConfig);
+
       // Use ES module import syntax to import functionality from the module
       // that we have compiled.
       //
@@ -32,18 +93,34 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          SETY 200
+          TO TREE(SIZE: INT)
+            IF SIZE < 5 [
+              FORWARD SIZE
+              BACKWARD SIZE
+            ][
+              FORWARD SIZE / 3
+              LEFT 30
+              TREE((2 * SIZE) / 3)
+              RIGHT 30
 
-          TO SQUAGGLE(X: INT, Y: INT)
-            FORWARD X
-            RIGHT X * 3
-            FORWARD 2 * Y
-            RIGHT 2 * X
-            FORWARD Y
-            RIGHT 3 * Y
+              FORWARD SIZE / 6
+
+              RIGHT 25
+              TREE(SIZE / 2)
+              LEFT 25
+
+              FORWARD SIZE / 3
+
+              RIGHT 25
+              TREE(SIZE / 2)
+              LEFT 25
+
+              FORWARD SIZE / 6
+              BACKWARD SIZE
+            ]
           END
 
-          REPEAT 50 [SQUAGGLE(100, 10)]
+          TREE(50)
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

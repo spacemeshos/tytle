@@ -18,6 +18,7 @@ pub enum CfgInstruction {
     EOC,
     Add,
     Mul,
+    Div,
     Not,
     And,
     Or,

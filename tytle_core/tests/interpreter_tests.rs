@@ -154,6 +154,19 @@ pub fn interpreter_forward_one_var_expr() {
 }
 
 #[test]
+pub fn interpreter_forward_div_expr() {
+    let code = r#"
+       MAKEGLOBAL X = 10
+       FORWARD X / 3
+    "#;
+
+    setup_interpreter!(code, env, cfg, host, intr);
+    let _ = intr.exec_code();
+
+    assert_eq!((0, 3), host.xycors());
+}
+
+#[test]
 pub fn interpreter_forward_two_vars_expr() {
     let code = r#"
        MAKEGLOBAL X = 10

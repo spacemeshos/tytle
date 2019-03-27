@@ -38,6 +38,11 @@ fn compile_cfg_graph_mul_ins_macro_sanity() {
 }
 
 #[test]
+fn compile_cfg_graph_div_ins_macro_sanity() {
+    assert_eq!(CfgInstruction::Div, div_ins!());
+}
+
+#[test]
 fn compile_cfg_graph_not_ins_macro_sanity() {
     assert_eq!(CfgInstruction::Not, not_ins!());
 }
@@ -165,7 +170,7 @@ fn compile_cfg_graph_empty_program() {
 #[test]
 fn compile_cfg_graph_make_global_assign_int_expr() {
     let code = r#"
-        MAKEGLOBAL A = (1 + 2) * 5
+        MAKEGLOBAL A = ((1 + 2) * 5) / 2
     "#;
 
     let actual = compile_cfg_graph!(code);
@@ -177,6 +182,8 @@ fn compile_cfg_graph_make_global_assign_int_expr() {
             add_ins!(),
             int_ins!(5),
             mul_ins!(),
+            int_ins!(2),
+            div_ins!(),
             store_ins!(1),
             eoc_ins!()
         )

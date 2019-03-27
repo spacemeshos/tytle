@@ -243,6 +243,7 @@ impl<'env> CfgBuilder<'env> {
         let inst = match bin_op {
             BinaryOp::Add => CfgInstruction::Add,
             BinaryOp::Mul => CfgInstruction::Mul,
+            BinaryOp::Div => CfgInstruction::Div,
             BinaryOp::And => CfgInstruction::And,
             BinaryOp::Or => CfgInstruction::Or,
             BinaryOp::GT => CfgInstruction::GT,

@@ -203,9 +203,48 @@ fn parse_expr_add_and_mul_integers() {
 
 #[test]
 fn parse_expr_mul_integers_without_spaces() {
-    let actual = TytleParser.parse("FORWARD 1 * 2").unwrap();
+    let actual = TytleParser.parse("FORWARD 1*2*3").unwrap();
 
-    let expr = binary_expr!("*", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+    let expr = binary_expr!(
+        "*",
+        boxed_int_lit_expr!(1),
+        boxed_expr! {
+            binary_expr!("*",
+            boxed_int_lit_expr!(2),
+            boxed_int_lit_expr!(3))
+        }
+    );
+
+    let expected = ast! { direct_stmt!(FORWARD, expr) };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_expr_div_integers_without_spaces() {
+    let actual = TytleParser.parse("FORWARD 1/2").unwrap();
+
+    let expr = binary_expr!("/", boxed_int_lit_expr!(1), boxed_int_lit_expr!(2));
+
+    let expected = ast! { direct_stmt!(FORWARD, expr) };
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn parse_expr_mul_and_div_integers() {
+    let actual = TytleParser.parse("FORWARD 2 * 3 / 5").unwrap();
+
+    let expr = binary_expr!(
+        "*",
+        boxed_int_lit_expr!(2),
+        boxed_expr! {
+           binary_expr!("/",
+             boxed_int_lit_expr!(3),
+             boxed_int_lit_expr!(5)
+           )
+        }
+    );
 
     let expected = ast! { direct_stmt!(FORWARD, expr) };
 
@@ -294,7 +333,6 @@ fn parse_print_const() {
 
     assert_eq!(expected, actual);
 }
-
 
 #[test]
 fn parse_print_var_expr() {

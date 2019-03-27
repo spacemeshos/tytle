@@ -92,7 +92,9 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Int(v) => self.exec_int(*v),
             CfgInstruction::Return => self.exec_ret(),
             CfgInstruction::Not => self.exec_not(),
-            CfgInstruction::Add | CfgInstruction::Mul => self.exec_int_binary(inst.clone()),
+            CfgInstruction::Add | CfgInstruction::Mul | CfgInstruction::Div => {
+                self.exec_int_binary(inst.clone())
+            }
             CfgInstruction::Or | CfgInstruction::And | CfgInstruction::GT | CfgInstruction::LT => {
                 self.exec_bool_binary(inst.clone())
             }
@@ -251,6 +253,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         match op {
             CfgInstruction::Add => self.exec_int(a + b),
             CfgInstruction::Mul => self.exec_int(a * b),
+            CfgInstruction::Div => self.exec_int(b / a),
             _ => panic!("invalid binary-op: `{:?}`", op),
         }
     }

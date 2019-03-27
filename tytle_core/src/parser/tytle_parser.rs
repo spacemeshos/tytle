@@ -445,13 +445,13 @@ impl TytleParser {
 
         match tok {
             Token::GT | Token::LT => {
-                let tok_clone = tok.clone();
+                let tok = tok.clone();
 
                 self.skip_token(lexer); // we skip the `> / >= / < / <= / == / !=` token
 
                 let right_expr = self.parse_clause_expr(lexer)?;
 
-                let binary_op = BinaryOp::from(&tok_clone);
+                let binary_op = BinaryOp::from(&tok);
 
                 let ast =
                     ExpressionAst::Binary(binary_op, Box::new(left_expr), Box::new(right_expr));
@@ -464,7 +464,7 @@ impl TytleParser {
     }
 
     fn parse_clause_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
-        let left_expr = self.parse_mul_expr(lexer)?;
+        let left_expr = self.parse_mul_div_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
@@ -483,22 +483,27 @@ impl TytleParser {
         }
     }
 
-    fn parse_mul_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
+    fn parse_mul_div_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let lparen_expr = self.parse_parens_expr(lexer)?;
 
         let (tok, loc) = self.peek_current_token(lexer).unwrap();
 
-        if *tok == Token::MUL {
-            self.skip_token(lexer); // skip the `*`
+        let tok = tok.clone();
 
-            let rparen_expr = self.parse_parens_expr(lexer)?;
-            let ast =
-                ExpressionAst::Binary(BinaryOp::Mul, Box::new(lparen_expr), Box::new(rparen_expr));
+        match tok {
+            Token::MUL | Token::DIV => {
+                self.skip_token(lexer); // skip the `*` or `/`
+                let rparen_expr = self.parse_mul_div_expr(lexer)?;
 
-            let expr = Expression::new(ast);
-            Ok(expr)
-        } else {
-            Ok(lparen_expr)
+                let bin_op = BinaryOp::from(&tok);
+
+                let ast =
+                    ExpressionAst::Binary(bin_op, Box::new(lparen_expr), Box::new(rparen_expr));
+
+                let expr = Expression::new(ast);
+                Ok(expr)
+            }
+            _ => Ok(lparen_expr),
         }
     }
 

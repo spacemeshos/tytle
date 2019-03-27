@@ -37,6 +37,13 @@ macro_rules! mul_ins {
 }
 
 #[macro_export]
+macro_rules! div_ins {
+    () => {{
+        $crate::ir::CfgInstruction::Div
+    }};
+}
+
+#[macro_export]
 macro_rules! not_ins {
     () => {{
         $crate::ir::CfgInstruction::Not

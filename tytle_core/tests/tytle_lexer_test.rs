@@ -226,6 +226,24 @@ fn lexer_mul_op() {
 }
 
 #[test]
+fn lexer_div_op() {
+    let mut lexer = TytleLexer::new("1/2");
+
+    let (tok1, loc1) = lexer.pop_current_token().unwrap();
+    let (tok2, loc2) = lexer.pop_current_token().unwrap();
+    let (tok3, loc3) = lexer.pop_current_token().unwrap();
+
+    assert_eq!(loc1, Location(1, 1));
+    assert_eq!(tok1, Token::VALUE("1".to_string()));
+
+    assert_eq!(loc2, Location(1, 2));
+    assert_eq!(tok2, Token::DIV);
+
+    assert_eq!(loc3, Location(1, 3));
+    assert_eq!(tok3, Token::VALUE("2".to_string()));
+}
+
+#[test]
 fn lexer_parentheses() {
     let mut lexer = TytleLexer::new("(111)");
 

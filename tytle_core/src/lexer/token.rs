@@ -5,6 +5,7 @@ pub enum Token {
 
     MUL,
     ADD,
+    DIV,
 
     LPAREN, // (
     RPAREN, // )

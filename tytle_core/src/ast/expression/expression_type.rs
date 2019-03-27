@@ -26,7 +26,7 @@ impl From<&str> for ExpressionType {
 impl From<&BinaryOp> for ExpressionType {
     fn from(bin_op: &BinaryOp) -> ExpressionType {
         match bin_op {
-            BinaryOp::Add | BinaryOp::Mul => ExpressionType::Int,
+            BinaryOp::Add | BinaryOp::Mul | BinaryOp::Div => ExpressionType::Int,
             BinaryOp::GT | BinaryOp::LT => ExpressionType::Bool,
             _ => panic!(format!(
                 "can't convert binary operator `{:?}` to an expression type",
@@ -75,6 +75,11 @@ mod tests {
     #[test]
     fn binary_op_mul_to_expr_type_int() {
         assert_eq!(ExpressionType::from(&BinaryOp::Mul), ExpressionType::Int);
+    }
+
+    #[test]
+    fn binary_op_div_to_expr_type_int() {
+        assert_eq!(ExpressionType::from(&BinaryOp::Div), ExpressionType::Int);
     }
 
     #[test]

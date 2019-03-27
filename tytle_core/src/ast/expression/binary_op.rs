@@ -6,6 +6,7 @@ pub enum BinaryOp {
     Or,
     Add,
     Mul,
+    Div,
     GT,
     LT,
 }
@@ -17,6 +18,7 @@ impl From<&str> for BinaryOp {
             "OR" => BinaryOp::Or,
             "+" => BinaryOp::Add,
             "*" => BinaryOp::Mul,
+            "/" => BinaryOp::Div,
             ">" => BinaryOp::GT,
             "<" => BinaryOp::LT,
             _ => panic!("Invalid binary operator: `{:?}`", tok),
@@ -31,6 +33,7 @@ impl From<&Token> for BinaryOp {
             Token::OR => BinaryOp::Or,
             Token::ADD => BinaryOp::Add,
             Token::MUL => BinaryOp::Mul,
+            Token::DIV => BinaryOp::Div,
             Token::GT => BinaryOp::GT,
             Token::LT => BinaryOp::LT,
             _ => panic!("Invalid binary operator: `{:?}`", tok),
@@ -52,6 +55,12 @@ mod tests {
     fn binary_op_mul() {
         assert_eq!(BinaryOp::from("*"), BinaryOp::Mul);
         assert_eq!(BinaryOp::from(&Token::MUL), BinaryOp::Mul);
+    }
+
+    #[test]
+    fn binary_op_div() {
+        assert_eq!(BinaryOp::from("/"), BinaryOp::Div);
+        assert_eq!(BinaryOp::from(&Token::DIV), BinaryOp::Div);
     }
 
     #[test]

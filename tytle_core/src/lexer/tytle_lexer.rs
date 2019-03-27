@@ -100,7 +100,7 @@ impl<'a> Lexer for TytleLexer<'a> {
                         self.location.increment_column();
                         break;
                     }
-                    '+' | '*' => {
+                    '+' | '*' | '/' => {
                         self.push_token(&mut token);
                         self.push_op(ch);
                         self.location.increment_column();
@@ -185,6 +185,7 @@ impl<'a> TytleLexer<'a> {
         let token = match op {
             '+' => Token::ADD,
             '*' => Token::MUL,
+            '/' => Token::DIV,
             _ => panic!(),
         };
         self.tokens_buffer.push_back((token, self.location));
