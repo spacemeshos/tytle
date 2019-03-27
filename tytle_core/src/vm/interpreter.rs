@@ -1,8 +1,4 @@
-use crate::ast::expression::ExpressionType;
-use crate::ast::semantic::{Environment, SymbolId, SymbolKind};
-use crate::ast::statement::{Command, Direction};
-use crate::ir::*;
-use crate::vm::*;
+use crate::prelude::*;
 
 static MAX_STACK_DEPTH: usize = 10_000;
 

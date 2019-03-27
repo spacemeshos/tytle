@@ -32,18 +32,18 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          LEFT 70
-          FORWARD 70
-          RIGHT 133
-          FORWARD 120
-          LEFT 120
-          FORWARD 120
-          RIGHT 125
-          FORWARD 112
-          LEFT 200
-          FORWARD 133
-          LEFT 78
-          FORWARD 1100
+          SETY 200
+
+          TO SQUAGGLE(X: INT, Y: INT)
+            FORWARD X
+            RIGHT X * 3
+            FORWARD 2 * Y
+            RIGHT 2 * X
+            FORWARD Y
+            RIGHT 3 * Y
+          END
+
+          REPEAT 50 [SQUAGGLE(100, 10)]
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

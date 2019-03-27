@@ -27,6 +27,30 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn sety(this: &TytleHost, count: i32);
+
+    #[wasm_bindgen(method)]
+    fn show_turtle(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn hide_turtle(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn pen_up(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn pen_down(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn pen_erase(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn clean(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn clear_screen(this: &TytleHost);
+
+    #[wasm_bindgen(method)]
+    fn print(this: &TytleHost, msg: &str);
 }
 
 pub struct BrowserHost {
@@ -56,7 +80,18 @@ impl Host for BrowserHost {
     }
 
     fn exec_cmd(&mut self, cmd: &Command) {
-        // TODO
+        match cmd {
+            Command::ShowTurtle => self.browser.show_turtle(),
+            Command::HideTurtle => self.browser.hide_turtle(),
+            Command::PenUp => self.browser.pen_up(),
+            Command::PenDown => self.browser.pen_down(),
+            Command::PenErase => self.browser.pen_erase(),
+            Command::Clean => self.browser.clean(),
+            Command::ClearScreen => self.browser.clear_screen(),
+            _ => {
+                // TOO
+            }
+        }
     }
 
     fn exec_trap(&mut self, node: usize, ip: usize) {
@@ -64,6 +99,7 @@ impl Host for BrowserHost {
     }
 
     fn exec_print(&mut self, value: isize) {
-        // TODO
+        let msg = format!("[PRINT] {}", value);
+        self.browser.print(&msg);
     }
 }

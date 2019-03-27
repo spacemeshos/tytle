@@ -1,8 +1,10 @@
 export class TytleHost {
   constructor() {
     this.degree = 0;
-    this.x      = 400;
-    this.y      = 500;
+    this.setx(400);
+    this.sety(500);
+    this.pen_down();
+    this.show_turtle();
   }
 
   forward(count) {
@@ -14,11 +16,12 @@ export class TytleHost {
     const new_y = this.y - dy * count;
     const new_x = this.x - dx * count;
 
-    this.drawLine(this.x, this.y, new_x, new_y);
+    this._drawLine(this.x, this.y, new_x, new_y);
 
     this.x = new_x;
     this.y = new_y;
   }
+
   backward(count) {
     this.forward((-1) * count);
   }
@@ -40,16 +43,61 @@ export class TytleHost {
     this.y = y;
   }
 
-  drawLine(x0, y0, x1, y1) {
-    var canvas = document.getElementById("tytle-canvas");
+  show_turtle() {
+    this.visible = true;
+  }
+
+  hide_turtle() {
+    this.visible = false;
+  }
+
+  pen_up() {
+    this.pen_state = 'UP';
+  }
+
+  pen_down() {
+    this.pen_state = 'DOWN';
+  }
+
+  pen_erase() {
+    this.pen_state = 'ERASE';
+  }
+
+  clean() {
+  }
+
+  clearScreen() {
+    var canvas = this._getCanvas();
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  _drawLine(x0, y0, x1, y1) {
+    var canvas = this._getCanvas();
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = "#FFFFFF";
 
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.stroke();
+    switch (this.pen_state) {
+      case 'DOWN':
+        console.log('PEN IS DOWN');
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+        break;
+      case 'UP':
+        console.log('PEN IS UP');
+        ctx.moveTo(x1, y1);
+        break;
+      case 'ERASE':
+        console.log('PEN ERASE');
+        ctx.fillStyle = "#000000";
+        break;
+    };
 
     console.log(`moved (${x0}, ${y0}) -> (${x1}, ${y1})`);
+  }
+
+  _getCanvas() {
+    return document.getElementById("tytle-canvas")
   }
 }

@@ -2,16 +2,11 @@
 #![allow(unused)]
 extern crate tytle;
 
-use tytle::ast::semantic::{AstTypeCheck, SymbolTableGenerator};
-use tytle::ir::CfgBuilder;
-use tytle::parser::{Parser, TytleParser};
-use tytle::vm::Interpreter;
+use tytle::prelude::*;
+use wasm_bindgen::prelude::*;
 
 mod host;
-
 use host::BrowserHost;
-
-use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
