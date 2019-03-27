@@ -2,12 +2,12 @@ use crate::ast::semantic::*;
 use crate::ast::Ast;
 use crate::ast::{expression::*, statement::*};
 
-pub struct AstTypeCheck<'a> {
-    env: &'a mut Environment,
+pub struct AstTypeCheck<'env> {
+    env: &'env mut Environment,
 }
 
-impl<'a> AstTypeCheck<'a> {
-    pub fn new(env: &'a mut Environment) -> Self {
+impl<'env> AstTypeCheck<'env> {
+    pub fn new(env: &'env mut Environment) -> Self {
         Self { env }
     }
 
@@ -16,7 +16,7 @@ impl<'a> AstTypeCheck<'a> {
     }
 }
 
-impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
+impl<'env> AstWalker<'env> for AstTypeCheck<'env> {
     fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr: &LiteralExpr = expr.as_lit_expr();
 
@@ -220,7 +220,7 @@ impl<'a> AstWalker<'a> for AstTypeCheck<'a> {
     }
 }
 
-impl<'a> AstTypeCheck<'a> {
+impl<'env> AstTypeCheck<'env> {
     fn typecheck_var_declare(&mut self, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
         let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id);

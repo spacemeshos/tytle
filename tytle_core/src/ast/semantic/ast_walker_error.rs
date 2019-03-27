@@ -17,13 +17,47 @@ pub enum AstWalkError {
     VariableTypeMissing(String),
     NotBooleanExpr(String),
     NotIntExpr(String),
-    Custom { message: String },
 }
 
-impl AstWalkError {
-    pub fn new(message: &str) -> Self {
-        AstWalkError::Custom {
-            message: message.to_owned(),
+impl ToString for AstWalkError {
+    fn to_string(&self) -> String {
+        match self {
+            AstWalkError::DuplicateGlobalVar(var) => format!("Duplicate global var: `{}`", var),
+            AstWalkError::DuplicateProc(proc) => format!("Duplicate procedure: `{}`", proc),
+            AstWalkError::DuplicateProcLocalVar(local) => {
+                format!("Duplicate procedure local: `{}`", local)
+            }
+            AstWalkError::DuplicateProcParam(proc, param) => format!(
+                "Duplicate procedure param: `{}` (procedure: `{}`)",
+                param, proc
+            ),
+            AstWalkError::MissingVarDeclaration(var) => {
+                format!("Missing variable declaration for `{}`", var)
+            }
+            AstWalkError::ProcNotAllowedToDeclareGlobals(proc) => format!(
+                "Procedure not allowed to declare globals (procedure `{}`)",
+                proc
+            ),
+            AstWalkError::InvalidReturnType(expected, actual) => format!(
+                "Invalid return type. expected: `{}`, actual: `{}`",
+                expected.to_string(),
+                actual.to_string()
+            ),
+            AstWalkError::LocalsNotAllowedUnderRootScope(var) => format!(
+                "Local aren't allowed under the main procedure (variable: `{}`)",
+                var
+            ),
+            AstWalkError::TypeMismatch(expected, actual) =>
+                format!("Type mismatch. expected: `{}`, actual: `{}`", expected.to_string(), actual.to_string()),
+            AstWalkError::InvalidBinaryOp(bin_op, ltype, rtype) =>
+                format!("Invalid binary operator `{}`(left expression-type: `{}`, right expression-type: `{}`", bin_op.to_string(), ltype.to_string(), rtype.to_string()),
+            AstWalkError::InvalidProcCallArgsCount(proc, expected, actual) => {
+                format!("Prcedure call wrong number of arguments for `{}` (expected: {}, actual: {})", proc, expected, actual)
+            },
+            AstWalkError::VariableTypeMissing(var) => format!("Missing type for variable: `{}`", var),
+            AstWalkError::NotBooleanExpr(expr) => format!("Expression `{}` isn't a Boolean expression", expr),
+            AstWalkError::NotIntExpr(expr) => format!("Expression `{}` isn't an Integer expression", expr),
+            AstWalkError::InvalidProcCallArgType(arg_index, expected, actual) => unimplemented!()
         }
     }
 }

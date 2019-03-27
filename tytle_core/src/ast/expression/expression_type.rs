@@ -36,6 +36,19 @@ impl From<&BinaryOp> for ExpressionType {
     }
 }
 
+impl ToString for ExpressionType {
+    fn to_string(&self) -> String {
+        let s = match *self {
+            ExpressionType::Int => "Integer",
+            ExpressionType::Str => "String",
+            ExpressionType::Bool => "Boolean",
+            ExpressionType::Unit => "()",
+        };
+
+        s.to_string()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,5 +103,25 @@ mod tests {
     #[test]
     fn binary_op_lt_to_expr_type_bool() {
         assert_eq!(ExpressionType::from(&BinaryOp::LT), ExpressionType::Bool);
+    }
+
+    #[test]
+    fn expr_type_int_to_str() {
+        assert_eq!("Integer", ExpressionType::Int.to_string());
+    }
+
+    #[test]
+    fn expr_type_str_to_str() {
+        assert_eq!("String", ExpressionType::Str.to_string());
+    }
+
+    #[test]
+    fn expr_type_bool_to_str() {
+        assert_eq!("Boolean", ExpressionType::Bool.to_string());
+    }
+
+    #[test]
+    fn expr_type_unit_to_str() {
+        assert_eq!("()", ExpressionType::Unit.to_string());
     }
 }

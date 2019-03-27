@@ -41,6 +41,22 @@ impl From<&Token> for BinaryOp {
     }
 }
 
+impl ToString for BinaryOp {
+    fn to_string(&self) -> String {
+        let s = match *self {
+            BinaryOp::And => "AND",
+            BinaryOp::Or => "OR",
+            BinaryOp::Add => "+",
+            BinaryOp::Mul => "*",
+            BinaryOp::Div => "/",
+            BinaryOp::GT => ">",
+            BinaryOp::LT => "<",
+        };
+
+        s.to_string()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,41 +65,48 @@ mod tests {
     fn binary_op_add() {
         assert_eq!(BinaryOp::from("+"), BinaryOp::Add);
         assert_eq!(BinaryOp::from(&Token::ADD), BinaryOp::Add);
+        assert_eq!("+", BinaryOp::Add.to_string());
     }
 
     #[test]
     fn binary_op_mul() {
         assert_eq!(BinaryOp::from("*"), BinaryOp::Mul);
         assert_eq!(BinaryOp::from(&Token::MUL), BinaryOp::Mul);
+        assert_eq!("*", BinaryOp::Mul.to_string());
     }
 
     #[test]
     fn binary_op_div() {
         assert_eq!(BinaryOp::from("/"), BinaryOp::Div);
         assert_eq!(BinaryOp::from(&Token::DIV), BinaryOp::Div);
+        assert_eq!("/", BinaryOp::Div.to_string());
     }
 
     #[test]
     fn binary_op_gt() {
         assert_eq!(BinaryOp::from(">"), BinaryOp::GT);
         assert_eq!(BinaryOp::from(&Token::GT), BinaryOp::GT);
+        assert_eq!(">", BinaryOp::GT.to_string());
     }
 
     #[test]
     fn binary_op_lt() {
         assert_eq!(BinaryOp::from("<"), BinaryOp::LT);
         assert_eq!(BinaryOp::from(&Token::LT), BinaryOp::LT);
+        assert_eq!("<", BinaryOp::LT.to_string());
     }
 
     #[test]
     fn binary_op_and() {
         assert_eq!(BinaryOp::from("AND"), BinaryOp::And);
         assert_eq!(BinaryOp::from(&Token::AND), BinaryOp::And);
+        assert_eq!("AND", BinaryOp::And.to_string());
     }
 
     #[test]
     fn binary_op_or() {
         assert_eq!(BinaryOp::from("OR"), BinaryOp::Or);
         assert_eq!(BinaryOp::from(&Token::OR), BinaryOp::Or);
+        assert_eq!("OR", BinaryOp::Or.to_string());
     }
 }
