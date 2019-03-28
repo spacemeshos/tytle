@@ -16,7 +16,7 @@ impl<'env> AstTypeCheck<'env> {
     }
 }
 
-impl<'env> AstWalker<'env> for AstTypeCheck<'env> {
+impl<'env> AstWalker for AstTypeCheck<'env> {
     fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr: &LiteralExpr = expr.as_lit_expr();
 

@@ -679,21 +679,21 @@ impl TytleParser {
         }
     }
 
-    fn peek_current_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
+    fn peek_current_token<'lex>(&self, lexer: &'lex impl Lexer) -> Option<&'lex (Token, Location)> {
         lexer.peek_current_token()
     }
 
-    fn peek_next_token<'a>(&self, lexer: &'a impl Lexer) -> Option<&'a (Token, Location)> {
+    fn peek_next_token<'lex>(&self, lexer: &'lex impl Lexer) -> Option<&'lex (Token, Location)> {
         lexer.peek_next_token()
     }
 
-    fn peek_current_token_clone<'a>(&self, lexer: &'a impl Lexer) -> Token {
+    fn peek_current_token_clone<'lex>(&self, lexer: &'lex impl Lexer) -> Token {
         let (token, _) = lexer.peek_current_token().unwrap();
 
         token.clone()
     }
 
-    fn peek_next_token_clone<'a>(&self, lexer: &'a impl Lexer) -> Token {
+    fn peek_next_token_clone<'lex>(&self, lexer: &'lex impl Lexer) -> Token {
         let (token, _) = lexer.peek_next_token().unwrap();
 
         token.clone()

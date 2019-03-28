@@ -8,9 +8,9 @@ pub struct SymbolTableGenerator {
     env: Environment,
 }
 
-type EnvironmentResult<'a> = Result<Environment, AstWalkError>;
+type EnvironmentResult = Result<Environment, AstWalkError>;
 
-impl<'a> AstWalker<'a> for SymbolTableGenerator {
+impl AstWalker for SymbolTableGenerator {
     fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         if self.env.symbol_table.is_inner_scope() {
             let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var_name.to_string());
