@@ -1,7 +1,7 @@
 use crate::ast::semantic::{SymbolId, SymbolKind, Variable};
 use std::collections::HashMap;
 
-pub type ScopeId = u64;
+pub type ScopeId = usize;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scope {

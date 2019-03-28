@@ -5,9 +5,9 @@ use std::collections::{HashMap, HashSet};
 pub struct SymbolTable {
     symbols: HashMap<SymbolId, Symbol>,
     scopes: HashMap<ScopeId, Scope>,
-    depth_scopes_stack: HashMap<u64, Vec<ScopeId>>,
+    depth_scopes_stack: HashMap<usize, Vec<ScopeId>>,
     next_scope_id: ScopeId,
-    next_scope_depth: u64,
+    next_scope_depth: usize,
 }
 
 impl SymbolTable {
@@ -176,17 +176,17 @@ impl SymbolTable {
         symbol.unwrap().as_proc()
     }
 
-    pub fn get_current_scope_id(&self) -> u64 {
+    pub fn get_current_scope_id(&self) -> usize {
         self.next_scope_id - 1
     }
 
-    pub fn get_next_scope_parent_id(&self) -> Option<u64> {
+    pub fn get_next_scope_parent_id(&self) -> Option<usize> {
         match self.next_scope_depth {
             0 => None, // root scope
             _ => {
                 let parent_scope_depth = self.next_scope_depth - 1;
                 let stack = self.depth_scopes_stack.get(&parent_scope_depth).unwrap();
-                let pscope_id: u64 = *stack.last().unwrap();
+                let pscope_id = *stack.last().unwrap();
 
                 Some(pscope_id)
             }
@@ -197,7 +197,7 @@ impl SymbolTable {
         let scope_depth = self.next_scope_depth - 1;
 
         let stack = self.depth_scopes_stack.get(&scope_depth).unwrap();
-        let scope_id: u64 = *stack.last().unwrap();
+        let scope_id: usize = *stack.last().unwrap();
 
         self.scopes.get(&scope_id).unwrap()
     }
