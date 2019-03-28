@@ -93,12 +93,7 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          TO FOO(X: INT): INT
-            MAKELOCAL Y = 100
-            RETURN X * Y
-          END
-
-          FORWARD FOO(2)
+          FORWARD FACTORIAL(1, 4)
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

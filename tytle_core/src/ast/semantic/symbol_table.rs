@@ -152,10 +152,10 @@ impl SymbolTable {
     }
 
     pub fn create_var_symbol(&mut self, var: Variable) {
-        let mut var_sym = self.lookup(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
+        let var_sym = self.lookup(self.get_current_scope_id(), &var.name, &SymbolKind::Var);
 
         if var_sym.is_some() {
-            panic!("variable {} already exists under the scope", var.name);
+            panic!("Variable `{}` already exists under the scope", var.name);
         }
 
         self.store_var(var);
@@ -165,7 +165,7 @@ impl SymbolTable {
         let proc_sym = self.lookup(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
 
         if proc_sym.is_some() {
-            panic!("procedure {} already exists under the scope", proc.name);
+            panic!("Procedure `{}` already exists under the scope", proc.name);
         }
 
         self.store_proc(proc);

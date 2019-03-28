@@ -1,0 +1,7 @@
+TO FACTORIAL(I: INT, N: INT): INT
+  IF I > N [
+    RETURN N
+  ][
+    RETURN I * FACTORIAL(I + 1, N)
+  ]
+END
