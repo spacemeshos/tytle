@@ -15,8 +15,8 @@ Tytle is a variant of the [Logo Programming Language](https://en.wikipedia.org/w
 ```zsh
 git clone https://github.com/spacemeshos/tytle
 ```
-* Make sure you have *Rust* installed. If not, please take a look here: [https://rustup.rs/]()
-* Make sure you have *npm* installed. If not, please take a look here: [https://nodejs.org/en/]()
+* Make sure you have *Rust* installed. If not, please take a look here: https://rustup.rs/
+* Make sure you have *npm* installed. If not, please take a look here: https://nodejs.org/
 * Build & Run:
 
 ```zsh
