@@ -23,7 +23,7 @@ git clone https://github.com/spacemeshos/tytle
 cd tytle_browser
 ./build.sh
 ```
-* Open your browser at [http://0.0.0.0:8000/]()
+* Open your browser at http://0.0.0.0:8000/
 * Start playing
 
 
