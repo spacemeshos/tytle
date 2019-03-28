@@ -2,10 +2,10 @@
 
 ## The Typed-Turtle Programming Language
 
-![](http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png)
 
+<img src="http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png" height=150 weight=150">
 
-## What's _tytle_?
+## What's _Tytle_?
 Tytle is a variant of the [Logo Programming Language](https://en.wikipedia.org/wiki/Logo_(programming_language)) written in *Rust* and targeted to run in the browser
 
 
@@ -15,8 +15,11 @@ Tytle is a variant of the [Logo Programming Language](https://en.wikipedia.org/w
 ```zsh
 git clone https://github.com/spacemeshos/tytle
 ```
-* Make sure you have *Rust* installed. If not, please take a look here: https://rustup.rs/
-* Make sure you have *npm* installed. If not, please take a look here: https://nodejs.org/
+* Make sure you have [Rust](https://rustup.rs/) installed
+* Make sure you have [npm](https://nodejs.org/) installed
+* Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+* Make sure you have *python3* installed *it's for spinning a local web-server to host `index.html`)
+if you want another web-server, then just replace the `python3 -m http.server` line inside `build.sh` with something else
 * Build & Run:
 
 ```zsh
@@ -29,11 +32,11 @@ cd tytle_browser
 
 ## Roadmap
 * [x] Interpreter
-* [ ] Native Compiler (compiling `tytle` programs directly to `WASM`)
+* [ ] Native Compiler (compiling programs directly to `WASM`)
 * [ ] Having many turtles (Object-Oriented)
 * [ ] String Primitive
 * [ ] List Data-Structure
 * [ ] HashMap Data-Structure
 
 ## License
-The `tytle` project is licensed under Apache License, Version 2.0
+The `Tytle` project is licensed under Apache License, Version 2.0
