@@ -94,9 +94,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             CfgInstruction::Add | CfgInstruction::Mul | CfgInstruction::Div => {
                 self.exec_int_binary(inst.clone())
             }
-            CfgInstruction::Or | CfgInstruction::And | CfgInstruction::GT | CfgInstruction::LT => {
-                self.exec_bool_binary(inst.clone())
-            }
+            CfgInstruction::Or
+            | CfgInstruction::And
+            | CfgInstruction::GreaterThan
+            | CfgInstruction::LessThan => self.exec_bool_binary(inst.clone()),
             CfgInstruction::Load(var_id) => self.exec_load(*var_id),
             CfgInstruction::Store(var_id) => self.exec_store(*var_id),
             CfgInstruction::Str(_) => unimplemented!(),
@@ -274,8 +275,8 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         match op {
             CfgInstruction::And => self.exec_bool(a.to_bool() && b.to_bool()),
             CfgInstruction::Or => self.exec_bool(a.to_bool() || b.to_bool()),
-            CfgInstruction::GT => self.exec_bool(b.to_int() > a.to_int()),
-            CfgInstruction::LT => self.exec_bool(b.to_int() < a.to_int()),
+            CfgInstruction::GreaterThan => self.exec_bool(b.to_int() > a.to_int()),
+            CfgInstruction::LessThan => self.exec_bool(b.to_int() < a.to_int()),
             _ => panic!("invalid binary-op: `{:?}`", op),
         }
     }

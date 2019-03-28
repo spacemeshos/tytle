@@ -7,8 +7,8 @@ pub enum BinaryOp {
     Add,
     Mul,
     Div,
-    GT,
-    LT,
+    GreaterThan,
+    LessThan,
 }
 
 impl From<&str> for BinaryOp {
@@ -19,8 +19,8 @@ impl From<&str> for BinaryOp {
             "+" => BinaryOp::Add,
             "*" => BinaryOp::Mul,
             "/" => BinaryOp::Div,
-            ">" => BinaryOp::GT,
-            "<" => BinaryOp::LT,
+            ">" => BinaryOp::GreaterThan,
+            "<" => BinaryOp::LessThan,
             _ => panic!("Invalid binary operator: `{:?}`", tok),
         }
     }
@@ -34,8 +34,8 @@ impl From<&Token> for BinaryOp {
             Token::ADD => BinaryOp::Add,
             Token::MUL => BinaryOp::Mul,
             Token::DIV => BinaryOp::Div,
-            Token::GT => BinaryOp::GT,
-            Token::LT => BinaryOp::LT,
+            Token::GT => BinaryOp::GreaterThan,
+            Token::LT => BinaryOp::LessThan,
             _ => panic!("Invalid binary operator: `{:?}`", tok),
         }
     }
@@ -49,8 +49,8 @@ impl ToString for BinaryOp {
             BinaryOp::Add => "+",
             BinaryOp::Mul => "*",
             BinaryOp::Div => "/",
-            BinaryOp::GT => ">",
-            BinaryOp::LT => "<",
+            BinaryOp::GreaterThan => ">",
+            BinaryOp::LessThan => "<",
         };
 
         s.to_string()
@@ -84,16 +84,16 @@ mod tests {
 
     #[test]
     fn binary_op_gt() {
-        assert_eq!(BinaryOp::from(">"), BinaryOp::GT);
-        assert_eq!(BinaryOp::from(&Token::GT), BinaryOp::GT);
-        assert_eq!(">", BinaryOp::GT.to_string());
+        assert_eq!(BinaryOp::from(">"), BinaryOp::GreaterThan);
+        assert_eq!(BinaryOp::from(&Token::GT), BinaryOp::GreaterThan);
+        assert_eq!(">", BinaryOp::GreaterThan.to_string());
     }
 
     #[test]
     fn binary_op_lt() {
-        assert_eq!(BinaryOp::from("<"), BinaryOp::LT);
-        assert_eq!(BinaryOp::from(&Token::LT), BinaryOp::LT);
-        assert_eq!("<", BinaryOp::LT.to_string());
+        assert_eq!(BinaryOp::from("<"), BinaryOp::LessThan);
+        assert_eq!(BinaryOp::from(&Token::LT), BinaryOp::LessThan);
+        assert_eq!("<", BinaryOp::LessThan.to_string());
     }
 
     #[test]

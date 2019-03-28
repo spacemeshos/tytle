@@ -114,8 +114,8 @@ impl PrettyPrintAst {
             BinaryOp::Or => " OR ",
             BinaryOp::Add => " + ",
             BinaryOp::Mul => " * ",
-            BinaryOp::GT => " > ",
-            BinaryOp::LT => " < ",
+            BinaryOp::GreaterThan => " > ",
+            BinaryOp::LessThan => " < ",
             _ => unimplemented!(),
         };
 

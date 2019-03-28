@@ -22,6 +22,6 @@ pub enum CfgInstruction {
     Not,
     And,
     Or,
-    GT,
-    LT,
+    GreaterThan,
+    LessThan,
 }

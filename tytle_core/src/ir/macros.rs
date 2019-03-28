@@ -67,14 +67,14 @@ macro_rules! or_ins {
 #[macro_export]
 macro_rules! gt_ins {
     () => {{
-        $crate::ir::CfgInstruction::GT
+        $crate::ir::CfgInstruction::GreaterThan
     }};
 }
 
 #[macro_export]
 macro_rules! lt_ins {
     () => {{
-        $crate::ir::CfgInstruction::LT
+        $crate::ir::CfgInstruction::LessThan
     }};
 }
 

@@ -1,7 +1,6 @@
+mod block_stmt;
 mod command;
 mod direction;
-
-mod block_stmt;
 mod direction_stmt;
 mod if_stmt;
 mod make_stmt;

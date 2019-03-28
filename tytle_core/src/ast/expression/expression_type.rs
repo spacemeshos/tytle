@@ -27,9 +27,9 @@ impl From<&BinaryOp> for ExpressionType {
     fn from(bin_op: &BinaryOp) -> ExpressionType {
         match bin_op {
             BinaryOp::Add | BinaryOp::Mul | BinaryOp::Div => ExpressionType::Int,
-            BinaryOp::GT | BinaryOp::LT => ExpressionType::Bool,
+            BinaryOp::GreaterThan | BinaryOp::LessThan => ExpressionType::Bool,
             _ => panic!(format!(
-                "can't convert binary operator `{:?}` to an expression type",
+                "Can't convert binary operator `{:?}` to an expression type",
                 bin_op
             )),
         }
@@ -97,12 +97,18 @@ mod tests {
 
     #[test]
     fn binary_op_gt_to_expr_type_bool() {
-        assert_eq!(ExpressionType::from(&BinaryOp::GT), ExpressionType::Bool);
+        assert_eq!(
+            ExpressionType::from(&BinaryOp::GreaterThan),
+            ExpressionType::Bool
+        );
     }
 
     #[test]
     fn binary_op_lt_to_expr_type_bool() {
-        assert_eq!(ExpressionType::from(&BinaryOp::LT), ExpressionType::Bool);
+        assert_eq!(
+            ExpressionType::from(&BinaryOp::LessThan),
+            ExpressionType::Bool
+        );
     }
 
     #[test]

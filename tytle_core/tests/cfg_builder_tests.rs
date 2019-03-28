@@ -59,12 +59,12 @@ fn compile_cfg_graph_or_ins_macro_sanity() {
 
 #[test]
 fn compile_cfg_graph_gt_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::GT, gt_ins!());
+    assert_eq!(CfgInstruction::GreaterThan, gt_ins!());
 }
 
 #[test]
 fn compile_cfg_graph_lt_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::LT, lt_ins!());
+    assert_eq!(CfgInstruction::LessThan, lt_ins!());
 }
 
 #[test]

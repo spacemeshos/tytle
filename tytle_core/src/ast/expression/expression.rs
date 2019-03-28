@@ -16,9 +16,9 @@ impl Expression {
     }
 
     pub fn with_parentheses(expr_ast: ExpressionAst) -> Self {
-        let inner_expr = Self::new(expr_ast);
+        let expr = Self::new(expr_ast);
 
-        let ast = ExpressionAst::Parentheses(Box::new(inner_expr));
+        let ast = ExpressionAst::Parentheses(Box::new(expr));
         Self::new(ast)
     }
 
@@ -33,30 +33,30 @@ impl Expression {
 impl Expression {
     pub fn as_lit_expr_mut(&mut self) -> &mut LiteralExpr {
         match self.expr_ast {
-            ExpressionAst::Literal(ref mut lit_expr) => lit_expr,
+            ExpressionAst::Literal(ref mut expr) => expr,
             _ => panic!("expected a literal expression. got: `{:?}`", self.expr_ast),
         }
     }
 
     pub fn as_lit_expr(&self) -> &LiteralExpr {
         match &self.expr_ast {
-            ExpressionAst::Literal(lit_expr) => lit_expr,
+            ExpressionAst::Literal(expr) => expr,
             _ => panic!("expected a literal expression. got: `{:?}`", self.expr_ast),
         }
     }
 
     pub fn as_not_expr(&self) -> &Expression {
         match &self.expr_ast {
-            ExpressionAst::Not(inner_expr) => inner_expr,
-            _ => panic!("expected a not expression. got: `{:?}`", self.expr_ast),
+            ExpressionAst::Not(expr) => expr,
+            _ => panic!("expected a *not* expression. got: `{:?}`", self.expr_ast),
         }
     }
 
     pub fn as_parentheses_expr(&self) -> &Expression {
         match &self.expr_ast {
-            ExpressionAst::Parentheses(inner_expr) => inner_expr,
+            ExpressionAst::Parentheses(expr) => expr,
             _ => panic!(
-                "expected a expression surrounded by parentheses. got: `{:?}`",
+                "expected an expression surrounded by parentheses. got: `{:?}`",
                 self.expr_ast
             ),
         }

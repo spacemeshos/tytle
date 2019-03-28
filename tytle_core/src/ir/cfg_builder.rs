@@ -246,8 +246,8 @@ impl<'env> CfgBuilder<'env> {
             BinaryOp::Div => CfgInstruction::Div,
             BinaryOp::And => CfgInstruction::And,
             BinaryOp::Or => CfgInstruction::Or,
-            BinaryOp::GT => CfgInstruction::GT,
-            BinaryOp::LT => CfgInstruction::LT,
+            BinaryOp::LessThan => CfgInstruction::LessThan,
+            BinaryOp::GreaterThan => CfgInstruction::GreaterThan,
         };
 
         self.append_inst(node_id, inst);
@@ -340,8 +340,11 @@ impl<'env> CfgBuilder<'env> {
             expr_ast: ExpressionAst::Literal(var_lit_b),
             expr_type: Some(ExpressionType::Int),
         };
-        let cond_ast =
-            ExpressionAst::Binary(BinaryOp::LT, Box::new(var_expr_a), Box::new(var_expr_b));
+        let cond_ast = ExpressionAst::Binary(
+            BinaryOp::LessThan,
+            Box::new(var_expr_a),
+            Box::new(var_expr_b),
+        );
         let cond_expr = Expression {
             expr_ast: cond_ast,
             expr_type: Some(ExpressionType::Bool),

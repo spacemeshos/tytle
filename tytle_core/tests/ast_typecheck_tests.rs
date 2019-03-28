@@ -172,8 +172,11 @@ fn ast_typecheck_error_cannot_order_bools() {
             MAKEGLOBAL A = TRUE > FALSE
         "#;
 
-    let expected =
-        AstWalkError::InvalidBinaryOp(BinaryOp::GT, ExpressionType::Bool, ExpressionType::Bool);
+    let expected = AstWalkError::InvalidBinaryOp(
+        BinaryOp::GreaterThan,
+        ExpressionType::Bool,
+        ExpressionType::Bool,
+    );
 
     assert_type_err!(expected, code);
 }
@@ -185,7 +188,7 @@ fn ast_typecheck_error_cannot_order_strings() {
         "#;
 
     let expected =
-        AstWalkError::InvalidBinaryOp(BinaryOp::LT, ExpressionType::Str, ExpressionType::Str);
+        AstWalkError::InvalidBinaryOp(BinaryOp::LessThan, ExpressionType::Str, ExpressionType::Str);
 
     assert_type_err!(expected, code);
 }

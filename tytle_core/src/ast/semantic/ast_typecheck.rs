@@ -24,15 +24,14 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
             LiteralExpr::Bool(_) => ExpressionType::Bool,
             LiteralExpr::Int(_) => ExpressionType::Int,
             LiteralExpr::Str(_) => ExpressionType::Str,
-            LiteralExpr::Var(var_name, var_id_wrapped) => {
-                let var_id = var_id_wrapped.unwrap();
-                let var: &Variable = self.env.symbol_table.get_var_by_id(var_id);
+            LiteralExpr::Var(var_name, var_id) => {
+                let var = self.env.symbol_table.get_var_by_id(var_id.unwrap());
 
                 if let Some(ref var_type) = var.var_type {
                     var_type.to_owned()
                 } else {
                     panic!(format!(
-                        "variable `{}`, type couldn't be inferred",
+                        "Variable `{}`, type couldn't be inferred",
                         var_name
                     ))
                 }
@@ -70,13 +69,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
     fn on_proc_call_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (proc_name, proc_args_exprs, _proc_id) = expr.as_proc_call_expr();
 
-        let root_scope_id = 0;
-        let symbol =
-            self.env
-                .symbol_table
-                .lookup_recur(root_scope_id, proc_name, &SymbolKind::Proc);
-
-        let proc: &Procedure = symbol.unwrap().as_proc();
+        let proc = self.env.symbol_table.get_proc_by_name(proc_name);
 
         let expected_params_types = proc.params_types.clone();
         let expected_args_count = expected_params_types.len();
@@ -145,8 +138,8 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
             panic!()
         }
 
-        let expr_type: ExpressionType = make_stmt.expr.expr_type.as_ref().unwrap().to_owned();
-        let var_type: ExpressionType = var.var_type.clone().unwrap();
+        let expr_type = make_stmt.expr.expr_type.as_ref().unwrap().to_owned();
+        let var_type = var.var_type.clone().unwrap();
 
         if expr_type != var_type {
             let err = AstWalkError::TypeMismatch(var_type, expr_type);
@@ -197,14 +190,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
     }
 
     fn on_ret_stmt(&mut self, ctx_proc: &str, ret_stmt: &mut ReturnStmt) -> AstWalkResult {
-        let root_scope_id = 0;
-
-        let symbol = self
-            .env
-            .symbol_table
-            .lookup_recur(root_scope_id, ctx_proc, &SymbolKind::Proc);
-
-        let proc: &Procedure = symbol.unwrap().as_proc();
+        let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
 
         let actual_ret_type = if ret_stmt.expr.is_some() {
             let ret_expr = ret_stmt.expr.as_ref().unwrap();
@@ -274,7 +260,7 @@ impl<'env> AstTypeCheck<'env> {
                     Ok(())
                 }
             }
-            BinaryOp::GT | BinaryOp::LT => {
+            BinaryOp::GreaterThan | BinaryOp::LessThan => {
                 if expr_type != ExpressionType::Int {
                     let err = AstWalkError::InvalidBinaryOp(
                         bin_op.clone(),
