@@ -2,8 +2,7 @@
 
 ## The Typed-Turtle Programming Language
 
-
-<img src="http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png" height=150 weight=150">
+![](http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png)
 
 ## What's _Tytle_?
 Tytle is a variant of the [Logo Programming Language](https://en.wikipedia.org/wiki/Logo_(programming_language)) written in *Rust* and targeted to run in the browser
