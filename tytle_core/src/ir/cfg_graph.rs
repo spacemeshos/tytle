@@ -1,6 +1,6 @@
 use crate::ast::semantic::SymbolId;
-use crate::ir::{CfgEdge, CfgInstruction, CfgNode};
-use std::collections::{HashMap, HashSet};
+use crate::ir::CfgNode;
+use std::collections::HashMap;
 
 pub type CfgNodeId = usize;
 
@@ -81,10 +81,10 @@ impl CfgGraph {
 
     // used for testing when manually building a graph
     pub fn add_edge(&mut self, src_id: CfgNodeId, dst_id: CfgNodeId, jmp_type: CfgJumpType) {
-        let mut src_node = self.get_node_mut(src_id);
+        let src_node = self.get_node_mut(src_id);
         src_node.add_outgoing_edge(dst_id, jmp_type);
 
-        let mut dst_node = self.get_node_mut(dst_id);
+        let dst_node = self.get_node_mut(dst_id);
         dst_node.add_incoming_edge(src_id, jmp_type);
     }
 
@@ -144,10 +144,11 @@ impl CfgGraph {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ir::CfgInstruction;
 
     #[test]
     fn cfg_graph_node_is_empty() {
-        let mut node = CfgNode::new(1);
+        let node = CfgNode::new(1);
         assert!(node.is_empty());
 
         let mut cfg_graph = CfgGraph::new();
@@ -195,7 +196,7 @@ mod tests {
 
     #[test]
     fn cfg_build_orphan_node() {
-        let mut node = CfgNode::new(1);
+        let node = CfgNode::new(1);
         assert!(node.is_orphan());
 
         let mut cfg_graph = CfgGraph::new();

@@ -1,5 +1,4 @@
 use crate::ast::statement::{Command, Direction};
-use crate::ir::CfgNodeId;
 
 pub trait Host {
     fn exec_cmd(&mut self, cmd: &Command);

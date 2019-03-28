@@ -1,7 +1,5 @@
 use crate::ast::expression::ExpressionType;
 use crate::ast::semantic::{IdGenerator, SymbolId, SymbolTable, Variable};
-
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 pub struct Environment {
@@ -38,8 +36,6 @@ impl Environment {
         let id: SymbolId = self.id_generator.get_next_id();
         let var_name = format!("$TMP{}", id.0);
 
-        let proc_locals = self.locals_symbols.entry(proc_id).or_insert(Vec::new());
-
         let var_index = self.proc_locals_count(proc_id);
 
         let var = Variable {
@@ -48,7 +44,7 @@ impl Environment {
             var_type: Some(var_type),
             global: false,
             param: false,
-            index: Some(var_index as usize),
+            index: Some(var_index),
         };
 
         self.symbol_table.create_var_symbol(var);

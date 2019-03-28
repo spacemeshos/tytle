@@ -2,8 +2,6 @@ use crate::ast::semantic::*;
 use crate::ast::Ast;
 use crate::ast::{expression::*, statement::*};
 
-use crate::parser::{Parser, TytleParser};
-
 pub struct SymbolTableGenerator {
     env: Environment,
 }
@@ -11,7 +9,7 @@ pub struct SymbolTableGenerator {
 type EnvironmentResult = Result<Environment, AstWalkError>;
 
 impl AstWalker for SymbolTableGenerator {
-    fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, _ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         if self.env.symbol_table.is_inner_scope() {
             let err = AstWalkError::ProcNotAllowedToDeclareGlobals(make_stmt.var_name.to_string());
             Err(err)
@@ -24,7 +22,7 @@ impl AstWalker for SymbolTableGenerator {
         self.create_local_var_symbol(ctx_proc, make_stmt)
     }
 
-    fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, _ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var = self.get_var_symbol(&make_stmt.var_name)?;
 
         make_stmt.var_id = Some(var.id);
@@ -32,8 +30,8 @@ impl AstWalker for SymbolTableGenerator {
         Ok(())
     }
 
-    fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
-        let (proc_name, proc_args, proc_id_option) = expr.as_proc_call_expr_mut();
+    fn on_proc_call_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+        let (proc_name, _proc_args, proc_id_option) = expr.as_proc_call_expr_mut();
 
         let proc: &Procedure = self
             .try_get_symbol_recur(&proc_name, SymbolKind::Proc)
@@ -73,20 +71,20 @@ impl AstWalker for SymbolTableGenerator {
         }
     }
 
-    fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_start(&mut self, _ctx_proc: &str, _proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.start_scope();
         Ok(())
     }
 
-    fn on_proc_end(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_end(&mut self, _ctx_proc: &str, _proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
 
     fn on_block_stmt_start(
         &mut self,
-        ctx_proc: &str,
-        block_stmt: &mut BlockStatement,
+        _ctx_proc: &str,
+        _block_stmt: &mut BlockStatement,
     ) -> AstWalkResult {
         self.start_scope();
         Ok(())
@@ -94,14 +92,14 @@ impl AstWalker for SymbolTableGenerator {
 
     fn on_block_stmt_end(
         &mut self,
-        ctx_proc: &str,
-        block_stmt: &mut BlockStatement,
+        _ctx_proc: &str,
+        _block_stmt: &mut BlockStatement,
     ) -> AstWalkResult {
         self.end_scope();
         Ok(())
     }
 
-    fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_literal_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr: &mut LiteralExpr = expr.as_lit_expr_mut();
 
         match lit_expr {

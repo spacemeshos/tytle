@@ -95,7 +95,7 @@ impl<'env> CfgBuilder<'env> {
 
         self.current_proc_id = proc_id;
 
-        let mut proc_node_id;
+        let proc_node_id;
 
         if cfg_proc.is_some() {
             let cfg_proc = cfg_proc.unwrap();
@@ -202,18 +202,16 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn build_proc_call_expr(&mut self, node_id: CfgNodeId, expr: &Expression) {
-        let (proc_name, proc_args_exprs, proc_id_option) = expr.as_proc_call_expr();
+        let (_proc_name, proc_args_exprs, proc_id_option) = expr.as_proc_call_expr();
 
         for proc_arg_expr in proc_args_exprs {
             self.build_expr(node_id, proc_arg_expr);
         }
 
         let proc_id = proc_id_option.unwrap();
-        let mut cfg_proc = self.proc_jmp_table.get(&proc_id);
+        let cfg_proc = self.proc_jmp_table.get(&proc_id);
 
-        let mut jmp_node_id;
-
-        if cfg_proc.is_none() {
+        let jmp_node_id = if cfg_proc.is_none() {
             let proc_node_id = self.cfg_graph.new_node();
 
             let cfg_proc = CfgProc {
@@ -223,10 +221,10 @@ impl<'env> CfgBuilder<'env> {
             };
             self.proc_jmp_table.insert(proc_id, cfg_proc);
 
-            jmp_node_id = proc_node_id;
+            proc_node_id
         } else {
-            jmp_node_id = cfg_proc.unwrap().node_id;
-        }
+            cfg_proc.unwrap().node_id
+        };
 
         self.append_inst(node_id, CfgInstruction::Call(jmp_node_id));
     }
@@ -319,7 +317,6 @@ impl<'env> CfgBuilder<'env> {
             .new_tmp_var(self.current_proc_id, ExpressionType::Int);
 
         // MAKE TMPVAR_A = 0
-        let expr = &repeat_stmt.count_expr;
         let zero_lit = LiteralExpr::Int(0);
         let zero_expr = Expression {
             expr_type: Some(ExpressionType::Int),
@@ -334,7 +331,6 @@ impl<'env> CfgBuilder<'env> {
         let var_lit_a = LiteralExpr::Var(var_name_a, Some(var_id_a));
         let var_lit_b = LiteralExpr::Var(var_name_b, Some(var_id_b));
         let var_lit_a_clone = var_lit_a.clone();
-        let var_lit_b_clone = var_lit_b.clone();
 
         let var_expr_a = Expression {
             expr_ast: ExpressionAst::Literal(var_lit_a),

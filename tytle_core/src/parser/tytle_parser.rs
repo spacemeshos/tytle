@@ -51,12 +51,6 @@ pub type ExpressionResult = Result<Expression, ParseError>;
 
 pub struct TytleParser;
 
-impl TytleParser {
-    fn new() -> Self {
-        Self {}
-    }
-}
-
 impl Parser for TytleParser {
     fn parse(&mut self, code: &str) -> ParserResult {
         let mut lexer = TytleLexer::new(code);
@@ -92,7 +86,7 @@ impl TytleParser {
             return Ok(Statement::EOF);
         }
 
-        let (token, location) = tok_loc.unwrap();
+        let (token, _location) = tok_loc.unwrap();
 
         match token {
             Token::EOF => Ok(Statement::EOF),
@@ -156,7 +150,7 @@ impl TytleParser {
         self.expect_token(lexer, Token::LPAREN)?;
 
         while !completed {
-            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+            let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::RPAREN {
                 self.skip_token(lexer); // skipping the `)`
@@ -184,12 +178,12 @@ impl TytleParser {
             }
         }
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         let return_type = if *tok == Token::COLON {
             self.skip_token(lexer); // skipping the `:`
 
-            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+            let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::NEWLINE {
                 return Err(ParseError::MissingProcReturnType);
@@ -200,7 +194,7 @@ impl TytleParser {
                 return_type
             }
         } else {
-            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+            let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == Token::NEWLINE {
                 "UNIT".to_string() // a Procedure with no return value
@@ -236,7 +230,7 @@ impl TytleParser {
         let tok_loc = self.peek_current_token(lexer);
 
         if tok_loc.is_some() {
-            let (tok, loc) = tok_loc.unwrap();
+            let (tok, _loc) = tok_loc.unwrap();
 
             if *tok == Token::LBRACKET {
                 let block_stmt = self.parse_block_stmt(lexer, borders.clone())?;
@@ -274,7 +268,7 @@ impl TytleParser {
 
             block.add_statement(stmt);
 
-            let (tok, loc) = self.peek_current_token(lexer).unwrap();
+            let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
             if *tok == end_tok {
                 self.skip_token(lexer); // skipping the block `ending token`
@@ -333,7 +327,7 @@ impl TytleParser {
     fn build_make_stmt(&self, lexer: &mut impl Lexer, kind: MakeStmtKind) -> StatementResult {
         self.skip_token(lexer); // skipping the `MAKE/MAKEGLOBAL/MAKELOCAL` token
 
-        let mut var_name = self.expect_value(lexer)?;
+        let var_name = self.expect_value(lexer)?;
 
         self.validate_name(var_name.as_str())?;
 
@@ -399,7 +393,7 @@ impl TytleParser {
     fn parse_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_and_expr(lexer)?;
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::OR => {
@@ -420,7 +414,7 @@ impl TytleParser {
     fn parse_and_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_cmp_expr(lexer)?;
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::AND => {
@@ -441,7 +435,7 @@ impl TytleParser {
     fn parse_cmp_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_clause_expr(lexer)?;
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::GT | Token::LT => {
@@ -466,7 +460,7 @@ impl TytleParser {
     fn parse_clause_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let left_expr = self.parse_mul_div_expr(lexer)?;
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         if *tok == Token::ADD {
             self.skip_token(lexer); // we skip the `+` token
@@ -486,7 +480,7 @@ impl TytleParser {
     fn parse_mul_div_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
         let lparen_expr = self.parse_parens_expr(lexer)?;
 
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         let tok = tok.clone();
 
@@ -508,7 +502,7 @@ impl TytleParser {
     }
 
     fn parse_parens_expr(&self, lexer: &mut impl Lexer) -> ExpressionResult {
-        let (tok, loc) = self.peek_current_token(lexer).unwrap();
+        let (tok, _loc) = self.peek_current_token(lexer).unwrap();
 
         match tok {
             Token::LPAREN => {
@@ -608,7 +602,7 @@ impl TytleParser {
     fn parse_literal_expr(&self, lexer: &mut impl Lexer) -> Result<LiteralExpr, ParseError> {
         let pair = self.pop_current_token(lexer);
 
-        let (tok, loc) = pair.unwrap();
+        let (tok, _loc) = pair.unwrap();
 
         if let Token::VALUE(v) = tok {
             match v.parse::<usize>() {
@@ -639,23 +633,8 @@ impl TytleParser {
         }
     }
 
-    fn expect_newline(&self, lexer: &mut impl Lexer) -> Result<(), ParseError> {
-        let tok_loc = self.pop_current_token(lexer);
-
-        if tok_loc.is_some() {
-            let (tok, loc) = tok_loc.unwrap();
-
-            match tok {
-                Token::EOF | Token::NEWLINE => return Ok(()),
-                _ => return Err(ParseError::NewLineExpected),
-            }
-        }
-
-        Ok(())
-    }
-
     fn expect_value(&self, lexer: &mut impl Lexer) -> Result<String, ParseError> {
-        let (token, loc) = self.pop_current_token(lexer).unwrap();
+        let (token, _loc) = self.pop_current_token(lexer).unwrap();
 
         if let Token::VALUE(v) = token {
             Ok(v)
@@ -665,7 +644,7 @@ impl TytleParser {
     }
 
     fn expect_token(&self, lexer: &mut impl Lexer, expected: Token) -> Result<(), ParseError> {
-        let (actual, loc) = self.pop_current_token(lexer).unwrap();
+        let (actual, _loc) = self.pop_current_token(lexer).unwrap();
 
         if actual == expected {
             Ok(())
@@ -689,12 +668,6 @@ impl TytleParser {
 
     fn peek_current_token_clone<'lex>(&self, lexer: &'lex impl Lexer) -> Token {
         let (token, _) = lexer.peek_current_token().unwrap();
-
-        token.clone()
-    }
-
-    fn peek_next_token_clone<'lex>(&self, lexer: &'lex impl Lexer) -> Token {
-        let (token, _) = lexer.peek_next_token().unwrap();
 
         token.clone()
     }

@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused)]
 extern crate tytle;
 
 use tytle::prelude::*;
@@ -39,5 +37,5 @@ pub fn execute(code: &str) {
 
     let mut intr = Interpreter::new(&cfg, &env, &mut host);
 
-    intr.exec_code();
+    let _ = intr.exec_code();
 }

@@ -47,11 +47,10 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             let completed = self.exec_next()?;
 
             if completed {
+                assert!(self.call_stack.is_empty());
                 return Ok(());
             }
         }
-
-        assert!(self.call_stack.is_empty());
     }
 
     pub fn exec_next(&mut self) -> Result<bool, InterpreterException> {
@@ -100,7 +99,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             }
             CfgInstruction::Load(var_id) => self.exec_load(*var_id),
             CfgInstruction::Store(var_id) => self.exec_store(*var_id),
-            CfgInstruction::Str(v) => unimplemented!(),
+            CfgInstruction::Str(_) => unimplemented!(),
         };
 
         if is_call == false {
@@ -123,7 +122,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
             match value {
                 MemoryValue::Int(v) => self.exec_int(*v),
                 MemoryValue::Bool(v) => self.exec_bool(*v),
-                MemoryValue::Str(v) => unimplemented!(),
+                MemoryValue::Str(_) => unimplemented!(),
             };
         } else {
             let item = self.call_stack.load_item(index);
@@ -356,10 +355,6 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         }
 
         let proc_locals = proc_locals.unwrap();
-        let nlocals = proc_locals.len();
-
-        let proc = self.env.symbol_table.get_proc_by_id(proc_id);
-        let nparams = proc.params_types.len();
 
         for var_id in proc_locals {
             let var = self.env.symbol_table.get_var_by_id(*var_id);

@@ -1,6 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused)]
-
 #[macro_use]
 extern crate lazy_static;
 

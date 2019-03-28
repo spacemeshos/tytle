@@ -1,4 +1,4 @@
-use crate::ast::semantic::{SymbolId, SymbolKind, Variable};
+use crate::ast::semantic::{SymbolId, SymbolKind};
 use std::collections::HashMap;
 
 pub type ScopeId = usize;

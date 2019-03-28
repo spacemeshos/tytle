@@ -1,8 +1,6 @@
-use std::default::Default;
-use std::fmt;
-
 use crate::ast::semantic::SymbolId;
 use crate::ast::statement::BlockStatement;
+use std::default::Default;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcParam {

@@ -1,5 +1,5 @@
 use crate::ast::semantic::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct SymbolTable {
@@ -162,7 +162,7 @@ impl SymbolTable {
     }
 
     pub fn create_proc_symbol(&mut self, proc: Procedure) {
-        let mut proc_sym = self.lookup(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
+        let proc_sym = self.lookup(self.next_scope_depth, &proc.name, &SymbolKind::Proc);
 
         if proc_sym.is_some() {
             panic!("procedure {} already exists under the scope", proc.name);
@@ -246,7 +246,7 @@ impl SymbolTable {
         let mut scope_id = start_scope_id;
 
         loop {
-            let mut scope = self.get_scope(scope_id);
+            let scope = self.get_scope(scope_id);
 
             let var = self.lookup(scope.id, sym_name, sym_kind);
             if var.is_some() {
@@ -270,7 +270,7 @@ impl SymbolTable {
         let mut scope_id = start_scope_id;
 
         loop {
-            let mut scope = self.get_scope(scope_id);
+            let scope = self.get_scope(scope_id);
 
             let var = self.lookup(scope.id, sym_name, sym_kind);
             if var.is_some() {

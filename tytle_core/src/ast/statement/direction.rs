@@ -24,7 +24,6 @@ impl From<&str> for Direction {
 
 #[cfg(test)]
 mod tests {
-    #[macro_use]
     use super::*;
 
     #[test]

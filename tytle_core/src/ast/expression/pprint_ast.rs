@@ -53,7 +53,6 @@ impl PrettyPrintAst {
             ExpressionAst::ProcCall(_, _, _) => Self::pp_proc_call_expr(buffer, expr),
             ExpressionAst::Not(_) => Self::pp_not_expr(buffer, expr),
             ExpressionAst::Parentheses(_) => Self::pp_parentheses_expr(buffer, expr),
-            _ => unimplemented!(),
         };
     }
 
@@ -123,12 +122,12 @@ impl PrettyPrintAst {
         buffer.push(s.to_string());
     }
 
-    fn pp_command(buffer: &mut Vec<String>, cmd: &Command) {
+    fn pp_command(_buffer: &mut Vec<String>, _cmd: &Command) {
         unimplemented!()
         // TODO: command into string
     }
 
-    fn pp_direction_stmt(buffer: &mut Vec<String>, direct_stmt: &DirectionStmt) {
+    fn pp_direction_stmt(_buffer: &mut Vec<String>, _direct_stmt: &DirectionStmt) {
         unimplemented!()
         // TODO: direction into string
     }
@@ -160,11 +159,11 @@ impl PrettyPrintAst {
         Self::pp_block_stmt(buffer, &repeat_stmt.block);
     }
 
-    fn pp_proc_stmt(buffer: &mut Vec<String>, proc_stmt: &ProcedureStmt) {
+    fn pp_proc_stmt(_buffer: &mut Vec<String>, _proc_stmt: &ProcedureStmt) {
         unimplemented!()
     }
 
-    fn pp_ret_stmt(buffer: &mut Vec<String>, ret_stmt: &ReturnStmt) {
+    fn pp_ret_stmt(_buffer: &mut Vec<String>, _ret_stmt: &ReturnStmt) {
         unimplemented!()
     }
 

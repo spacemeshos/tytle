@@ -1,4 +1,4 @@
-use crate::ast::expression::{BinaryOp, Expression, ExpressionType, LiteralExpr};
+use crate::ast::expression::{BinaryOp, Expression, LiteralExpr};
 use crate::ast::semantic::SymbolId;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -13,6 +13,7 @@ pub enum ExpressionAst {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::expression::ExpressionType;
 
     fn assert_expr_equal(expr: &Expression, expected: ExpressionType, actual: ExpressionType) {
         if expected != actual {

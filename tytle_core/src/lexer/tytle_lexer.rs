@@ -7,7 +7,6 @@ use std::collections::VecDeque;
 use std::str::Chars;
 
 pub struct TytleLexer<'lex> {
-    code_size: usize,
     code_chars: Chars<'lex>,
     location: Location,
     reached_eof: bool,
@@ -19,7 +18,6 @@ impl<'lex> TytleLexer<'lex> {
         let mut lexer = Self {
             location: Location::default(),
             code_chars: code.chars(),
-            code_size: code.len(),
             reached_eof: false,
             tokens_buffer: Default::default(),
         };
@@ -175,10 +173,6 @@ impl<'lex> TytleLexer<'lex> {
             .push_back((Token::NEWLINE, self.location));
 
         self.location.next_line();
-    }
-
-    fn push_mul(&mut self) {
-        self.tokens_buffer.push_back((Token::MUL, self.location));
     }
 
     fn push_op(&mut self, op: char) {

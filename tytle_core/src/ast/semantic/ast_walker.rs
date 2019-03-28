@@ -1,5 +1,5 @@
 use crate::ast::expression::*;
-use crate::ast::semantic::{AstWalkError, SymbolId};
+use crate::ast::semantic::AstWalkError;
 use crate::ast::statement::*;
 use crate::ast::Ast;
 
@@ -114,8 +114,8 @@ pub trait AstWalker {
     fn walk_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         match expr.expr_ast {
             ExpressionAst::Literal(_) => self.on_literal_expr(ctx_proc, expr),
-            ExpressionAst::ProcCall(ref call_name, ref mut call_params, ref mut call_proc_id) => {
-                self.walk_proc_call_expr(ctx_proc, call_name, call_params, call_proc_id)?;
+            ExpressionAst::ProcCall(ref call_name, ref mut call_params, ref mut _call_proc_id) => {
+                self.walk_proc_call_expr(ctx_proc, call_name, call_params)?;
 
                 self.on_proc_call_expr(ctx_proc, expr)
             }
@@ -143,7 +143,6 @@ pub trait AstWalker {
         ctx_proc: &str,
         call_name: &str,
         call_params: &mut Vec<Expression>,
-        call_proc_id: &mut Option<SymbolId>,
     ) -> AstWalkResult {
         self.on_proc_call_expr_start(ctx_proc, call_name)?;
 
@@ -188,120 +187,124 @@ pub trait AstWalker {
     }
 
     // hooks
-    fn on_proc_start(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_start(&mut self, _ctx_proc: &str, _proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_proc_end(&mut self, ctx_proc: &str, proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
+    fn on_proc_end(&mut self, _ctx_proc: &str, _proc_stmt: &mut ProcedureStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_proc_param(&mut self, ctx_proc: &str, proc_param: &mut ProcParam) -> AstWalkResult {
+    fn on_proc_param(&mut self, _ctx_proc: &str, _proc_param: &mut ProcParam) -> AstWalkResult {
         Ok(())
     }
 
     // block
     fn on_block_stmt_start(
         &mut self,
-        ctx_proc: &str,
-        block_stmt: &mut BlockStatement,
+        _ctx_proc: &str,
+        _block_stmt: &mut BlockStatement,
     ) -> AstWalkResult {
         Ok(())
     }
 
     fn on_block_stmt_end(
         &mut self,
-        ctx_proc: &str,
-        block_stmt: &mut BlockStatement,
+        _ctx_proc: &str,
+        _block_stmt: &mut BlockStatement,
     ) -> AstWalkResult {
         Ok(())
     }
 
     // expression
-    fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_literal_expr(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_proc_call_expr(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_binary_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_binary_expr(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_not_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_not_expr(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_parentheses_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_parentheses_expr(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_expr_stmt(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_expr_stmt(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 
     // procedure call
-    fn on_proc_call_expr_start(&mut self, ctx_proc: &str, call_proc_name: &str) -> AstWalkResult {
+    fn on_proc_call_expr_start(&mut self, _ctx_proc: &str, _call_proc_name: &str) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_proc_call_expr_end(&mut self, ctx_proc: &str, proc_name: &str) -> AstWalkResult {
+    fn on_proc_call_expr_end(&mut self, _ctx_proc: &str, _proc_name: &str) -> AstWalkResult {
         Ok(())
     }
 
     fn on_proc_call_param_expr_start(
         &mut self,
-        ctx_proc: &str,
-        param_expr: &mut Expression,
+        _ctx_proc: &str,
+        _param_expr: &mut Expression,
     ) -> AstWalkResult {
         Ok(())
     }
 
     fn on_proc_call_param_expr_end(
         &mut self,
-        ctx_proc: &str,
-        param_expr: &mut Expression,
+        _ctx_proc: &str,
+        _param_expr: &mut Expression,
     ) -> AstWalkResult {
         Ok(())
     }
 
     // `MAKE` statements
-    fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, _ctx_proc: &str, _make_stmt: &mut MakeStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_make_local_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_local_stmt(&mut self, _ctx_proc: &str, _make_stmt: &mut MakeStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, _ctx_proc: &str, _make_stmt: &mut MakeStmt) -> AstWalkResult {
         Ok(())
     }
 
     // misc
-    fn on_if_stmt(&mut self, ctx_proc: &str, if_stmt: &mut IfStmt) -> AstWalkResult {
+    fn on_if_stmt(&mut self, _ctx_proc: &str, _if_stmt: &mut IfStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_repeat_stmt(&mut self, ctx_proc: &str, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+    fn on_repeat_stmt(&mut self, _ctx_proc: &str, _repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_ret_stmt(&mut self, ctx_proc: &str, return_stmt: &mut ReturnStmt) -> AstWalkResult {
+    fn on_ret_stmt(&mut self, _ctx_proc: &str, _return_stmt: &mut ReturnStmt) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_command(&mut self, ctx_proc: &str, cmd: &mut Command) -> AstWalkResult {
+    fn on_command(&mut self, _ctx_proc: &str, _cmd: &mut Command) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_direct_stmt(&mut self, ctx_proc: &str, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
+    fn on_direct_stmt(
+        &mut self,
+        _ctx_proc: &str,
+        _direct_stmt: &mut DirectionStmt,
+    ) -> AstWalkResult {
         Ok(())
     }
 
-    fn on_print(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_print(&mut self, _ctx_proc: &str, _expr: &mut Expression) -> AstWalkResult {
         Ok(())
     }
 }

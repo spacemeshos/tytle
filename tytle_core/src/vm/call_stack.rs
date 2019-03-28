@@ -132,7 +132,7 @@ impl CallStack {
     }
 
     pub fn open_stackframe(&mut self, ctx_proc: SymbolId) -> &mut CallStackFrame {
-        let mut frame = CallStackFrame::new(ctx_proc);
+        let frame = CallStackFrame::new(ctx_proc);
         self.frames.push(frame);
 
         self.current_frame_mut()

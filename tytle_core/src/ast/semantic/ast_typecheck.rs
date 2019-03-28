@@ -17,7 +17,7 @@ impl<'env> AstTypeCheck<'env> {
 }
 
 impl<'env> AstWalker for AstTypeCheck<'env> {
-    fn on_literal_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_literal_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let lit_expr: &LiteralExpr = expr.as_lit_expr();
 
         let expr_type = match lit_expr {
@@ -44,7 +44,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_parentheses_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_parentheses_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let inner_expr = expr.as_parentheses_expr();
 
         // we copy the inner expresison to the outer parentheses expression
@@ -53,7 +53,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_not_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_not_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let inner_expr = expr.as_not_expr();
 
         if inner_expr.expr_type != Some(ExpressionType::Bool) {
@@ -67,7 +67,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_proc_call_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_proc_call_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (proc_name, proc_args_exprs, _proc_id) = expr.as_proc_call_expr();
 
         let root_scope_id = 0;
@@ -118,7 +118,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_binary_expr(&mut self, ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
+    fn on_binary_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
         let (bin_op, lexpr, rexpr) = expr.as_binary_expr();
 
         self.do_binary_expr_typecheck(bin_op, lexpr, rexpr)?;
@@ -129,15 +129,15 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
     }
 
     // `MAKE` statements
-    fn on_make_global_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_global_stmt(&mut self, _ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.typecheck_var_declare(make_stmt)
     }
 
-    fn on_make_local_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_local_stmt(&mut self, _ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         self.typecheck_var_declare(make_stmt)
     }
 
-    fn on_make_assign_stmt(&mut self, ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
+    fn on_make_assign_stmt(&mut self, _ctx_proc: &str, make_stmt: &mut MakeStmt) -> AstWalkResult {
         let var_id = make_stmt.var_id.unwrap();
         let var: &mut Variable = self.env.symbol_table.get_var_by_id_mut(var_id);
 
@@ -156,7 +156,11 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_direct_stmt(&mut self, ctx_proc: &str, direct_stmt: &mut DirectionStmt) -> AstWalkResult {
+    fn on_direct_stmt(
+        &mut self,
+        _ctx_proc: &str,
+        direct_stmt: &mut DirectionStmt,
+    ) -> AstWalkResult {
         let expr_type = &direct_stmt.expr.expr_type;
 
         if *expr_type != Some(ExpressionType::Int) {
@@ -168,7 +172,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_if_stmt(&mut self, ctx_proc: &str, if_stmt: &mut IfStmt) -> AstWalkResult {
+    fn on_if_stmt(&mut self, _ctx_proc: &str, if_stmt: &mut IfStmt) -> AstWalkResult {
         let cond_expr = &if_stmt.cond_expr;
 
         if cond_expr.expr_type != Some(ExpressionType::Bool) {
@@ -180,7 +184,7 @@ impl<'env> AstWalker for AstTypeCheck<'env> {
         Ok(())
     }
 
-    fn on_repeat_stmt(&mut self, ctx_proc: &str, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
+    fn on_repeat_stmt(&mut self, _ctx_proc: &str, repeat_stmt: &mut RepeatStmt) -> AstWalkResult {
         let count_expr = &repeat_stmt.count_expr;
 
         if count_expr.expr_type != Some(ExpressionType::Int) {

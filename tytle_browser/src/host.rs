@@ -101,7 +101,7 @@ impl Host for BrowserHost {
         }
     }
 
-    fn exec_trap(&mut self, node: usize, ip: usize) {
+    fn exec_trap(&mut self, _node: usize, _ip: usize) {
         // TODO
     }
 

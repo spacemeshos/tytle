@@ -10,7 +10,7 @@ pub struct DummyHost {
 }
 
 impl Host for DummyHost {
-    fn compilation_error(&mut self, error: &str) {}
+    fn compilation_error(&mut self, _error: &str) {}
 
     fn exec_print(&mut self, value: isize) {
         let msg = format!("{}", value);

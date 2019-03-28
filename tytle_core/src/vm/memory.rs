@@ -1,5 +1,5 @@
 use crate::ast::expression::ExpressionType;
-use crate::ast::semantic::{Environment, SymbolId};
+use crate::ast::semantic::Environment;
 use crate::vm::{Address, MemoryValue, Pen, Turtle};
 
 use std::collections::HashMap;
