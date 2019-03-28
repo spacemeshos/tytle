@@ -17,8 +17,8 @@ git clone https://github.com/spacemeshos/tytle
 * Make sure you have [Rust](https://rustup.rs/) installed
 * Make sure you have [npm](https://nodejs.org/) installed
 * Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-* Make sure you have *python3* installed *it's for spinning a local web-server to host `index.html`)
-if you want another web-server, then just replace the `python3 -m http.server` line inside `build.sh` with something else
+* Make sure you have *python3* installed *it's for spinning a local web-server to host `index.html`) <br>
+if you want another web-server, then just edit the `python3 -m http.server` in `build.sh` 
 * Build & Run:
 
 ```zsh

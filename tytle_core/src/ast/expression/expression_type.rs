@@ -16,7 +16,7 @@ impl From<&str> for ExpressionType {
             "BOOL" => ExpressionType::Bool,
             "" | "UNIT" => ExpressionType::Unit,
             _ => panic!(format!(
-                "can't convert string `{}` to an expression type",
+                "Can't convert string `{}` to an expression type",
                 type_str
             )),
         }
@@ -75,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "can't convert string `str` to an expression type")]
+    #[should_panic(expected = "Can't convert string `str` to an expression type")]
     fn invalid_str_to_expr_type_should_panic() {
         ExpressionType::from("str");
     }

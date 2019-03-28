@@ -285,9 +285,9 @@ fn sym_generate_proc_call_inject_proc_id() {
     let mut called = false;
 
     if let Statement::Expression(proc_call_expr) = proc_call_stmt {
-        let (_, _, proc_id_option) = proc_call_expr.as_proc_call_expr();
+        let (_, _, proc_id) = proc_call_expr.as_proc_call_expr();
 
-        assert_eq!(proc.id, proc_id_option.unwrap());
+        assert_eq!(proc.id, *proc_id.unwrap());
 
         called = true;
     }

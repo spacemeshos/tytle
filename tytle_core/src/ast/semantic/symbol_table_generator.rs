@@ -31,14 +31,11 @@ impl AstWalker for SymbolTableGenerator {
     }
 
     fn on_proc_call_expr(&mut self, _ctx_proc: &str, expr: &mut Expression) -> AstWalkResult {
-        let (proc_name, _proc_args, proc_id_option) = expr.as_proc_call_expr_mut();
+        let (proc_name, _proc_args, proc_id) = expr.as_proc_call_expr_mut();
 
-        let proc: &Procedure = self
-            .try_get_symbol_recur(&proc_name, SymbolKind::Proc)
-            .unwrap()
-            .as_proc();
+        let proc = self.env.symbol_table.get_proc_by_name(&proc_name);
 
-        proc_id_option.replace(proc.id);
+        proc_id.replace(proc.id);
 
         Ok(())
     }
@@ -47,9 +44,6 @@ impl AstWalker for SymbolTableGenerator {
         let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
-            let var_index = self.env.proc_locals_count(proc.id);
-
             let param_type = ExpressionType::from(proc_param.param_type.as_str());
 
             self.create_var_symbol(
@@ -58,7 +52,6 @@ impl AstWalker for SymbolTableGenerator {
                 Some(param_type),
                 false,
                 true,
-                var_index,
             )?;
 
             Ok(())
@@ -191,17 +184,11 @@ impl SymbolTableGenerator {
                 .map(|param| ExpressionType::from(param.param_type.as_str()))
                 .collect::<Vec<ExpressionType>>();
 
-            let id = self.get_next_id();
+            let proc_id = self
+                .env
+                .create_proc(&proc_stmt.name, params_types, return_type);
 
-            let proc = Procedure {
-                id,
-                name: proc_stmt.name.to_owned(),
-                params_types,
-                return_type,
-            };
-
-            self.env.symbol_table.create_proc_symbol(proc);
-            proc_stmt.id = Some(id);
+            proc_stmt.id = Some(proc_id);
 
             Ok(())
         } else {
@@ -220,9 +207,8 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol_recur(var_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let index = self.env.globals_index;
+            let var_id = self.create_var_symbol(ctx_proc, var_name, None, true, false)?;
 
-            let var_id = self.create_var_symbol(ctx_proc, var_name, None, true, false, index)?;
             make_stmt.var_id = Some(var_id);
 
             Ok(())
@@ -241,11 +227,7 @@ impl SymbolTableGenerator {
         let symbol = self.try_get_symbol(var_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
-            let var_index = self.env.proc_locals_count(proc.id);
-
-            let var_id =
-                self.create_var_symbol(ctx_proc, var_name, None, false, false, var_index)?;
+            let var_id = self.create_var_symbol(ctx_proc, var_name, None, false, false)?;
 
             make_stmt.var_id = Some(var_id);
 
@@ -263,37 +245,16 @@ impl SymbolTableGenerator {
         var_type: Option<ExpressionType>,
         is_global: bool,
         is_param: bool,
-        index: usize,
     ) -> Result<SymbolId, AstWalkError> {
-        let var_id = self.get_next_id();
-
-        let var = Variable {
-            id: var_id,
-            global: is_global,
-            param: is_param,
-            name: var_name.to_owned(),
-            var_type,
-            index: Some(index),
-        };
-
-        self.env.symbol_table.create_var_symbol(var);
+        let var_id = self.env.id_generator.get_next_id();
 
         if is_global {
-            let global_id = self.env.globals_index;
-
-            self.env.globals_index += 1;
-            self.env.globals_symbols.insert(global_id, var_id);
+            self.env.create_global_var(var_id, var_name, var_type);
         } else {
-            let proc = self
-                .env
-                .symbol_table
-                .lookup(0, ctx_proc, &SymbolKind::Proc)
-                .unwrap()
-                .as_proc();
-            let proc_id = proc.id;
+            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
 
-            let proc_locals_entry = self.env.locals_symbols.entry(proc_id).or_insert(Vec::new());
-            proc_locals_entry.push(var_id);
+            self.env
+                .create_local_var(proc.id, var_id, var_name, var_type, is_param);
         }
 
         Ok(var_id)
@@ -322,15 +283,7 @@ impl SymbolTableGenerator {
     }
 
     fn generate_main_symbol(&mut self) {
-        let id = self.get_next_id();
-        let proc = Procedure::new("__main__", id);
-
-        self.env.main_proc_id = Some(id);
-
-        self.env.symbol_table.create_proc_symbol(proc);
-    }
-
-    fn get_next_id(&mut self) -> SymbolId {
-        self.env.id_generator.get_next_id()
+        self.env
+            .create_proc("__main__", vec![], ExpressionType::Unit);
     }
 }

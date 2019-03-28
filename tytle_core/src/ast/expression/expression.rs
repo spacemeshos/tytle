@@ -80,10 +80,10 @@ impl Expression {
         }
     }
 
-    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>, &Option<SymbolId>) {
+    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>, Option<&SymbolId>) {
         match &self.expr_ast {
             ExpressionAst::ProcCall(proc_name, proc_args_exprs, proc_id) => {
-                (proc_name, proc_args_exprs, proc_id)
+                (proc_name, proc_args_exprs, proc_id.as_ref())
             }
             _ => panic!(
                 "expected a procedure call expression. got: `{:?}`",

@@ -30,7 +30,7 @@ pub enum Token {
 
 impl ToString for Token {
     fn to_string(&self) -> String {
-        let s = match *self {
+        let s = match self {
             Token::EOF => "End of file",
             Token::NEWLINE => "\n",
             Token::MUL => "*",
@@ -48,7 +48,7 @@ impl ToString for Token {
             Token::AND => "AND",
             Token::OR => "OR",
             Token::NOT => "NOT",
-            Token::VALUE(ref s) => s,
+            Token::VALUE(s) => s,
         };
 
         s.to_string()

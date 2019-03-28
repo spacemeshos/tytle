@@ -202,13 +202,13 @@ impl<'env> CfgBuilder<'env> {
     }
 
     fn build_proc_call_expr(&mut self, node_id: CfgNodeId, expr: &Expression) {
-        let (_proc_name, proc_args_exprs, proc_id_option) = expr.as_proc_call_expr();
+        let (_proc_name, proc_args_exprs, proc_id) = expr.as_proc_call_expr();
 
         for proc_arg_expr in proc_args_exprs {
             self.build_expr(node_id, proc_arg_expr);
         }
 
-        let proc_id = proc_id_option.unwrap();
+        let proc_id = *proc_id.unwrap();
         let cfg_proc = self.proc_jmp_table.get(&proc_id);
 
         let jmp_node_id = if cfg_proc.is_none() {
@@ -267,7 +267,9 @@ impl<'env> CfgBuilder<'env> {
             LiteralExpr::Bool(v) => self.append_bool_lit(node_id, *v),
             LiteralExpr::Int(v) => self.append_int_lit(node_id, *v),
             LiteralExpr::Str(v) => self.append_str_lit(node_id, v),
-            LiteralExpr::Var(_, var_id) => self.append_var_lit(node_id, var_id),
+            LiteralExpr::Var(_, ref var_id) => {
+                self.append_var_lit(node_id, var_id.as_ref().unwrap())
+            }
         }
     }
 
@@ -283,9 +285,8 @@ impl<'env> CfgBuilder<'env> {
         self.append_inst(node_id, CfgInstruction::Str(lit.to_string()));
     }
 
-    fn append_var_lit(&mut self, node_id: CfgNodeId, lit: &Option<SymbolId>) {
-        let var_id = lit.as_ref().unwrap();
-        let inst = CfgInstruction::Load(*var_id);
+    fn append_var_lit(&mut self, node_id: CfgNodeId, var_id: &SymbolId) {
+        let inst = CfgInstruction::Load(var_id.clone());
 
         self.append_inst(node_id, inst);
     }
@@ -311,10 +312,10 @@ impl<'env> CfgBuilder<'env> {
         // allocating temporary variables: `TMPVAR_A` and `TMPVAR_B`
         let (var_id_a, var_name_a) = self
             .env
-            .new_tmp_var(self.current_proc_id, ExpressionType::Int);
+            .create_tmp_var(self.current_proc_id, ExpressionType::Int);
         let (var_id_b, var_name_b) = self
             .env
-            .new_tmp_var(self.current_proc_id, ExpressionType::Int);
+            .create_tmp_var(self.current_proc_id, ExpressionType::Int);
 
         // MAKE TMPVAR_A = 0
         let zero_lit = LiteralExpr::Int(0);
