@@ -81,14 +81,16 @@ macro_rules! lt_ins {
 #[macro_export]
 macro_rules! store_ins {
     ($symbol_id:expr) => {{
-        $crate::ir::CfgInstruction::Store($symbol_id)
+        use $crate::ast::semantic::SymbolId;
+        $crate::ir::CfgInstruction::Store(SymbolId($symbol_id))
     }};
 }
 
 #[macro_export]
 macro_rules! load_ins {
     ($symbol_id:expr) => {{
-        $crate::ir::CfgInstruction::Load($symbol_id)
+        use $crate::ast::semantic::SymbolId;
+        $crate::ir::CfgInstruction::Load(SymbolId($symbol_id))
     }};
 }
 

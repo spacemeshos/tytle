@@ -1,3 +1,4 @@
+use crate::ast::semantic::SymbolId;
 use crate::ir::{CfgEdge, CfgInstruction, CfgNode};
 use std::collections::{HashMap, HashSet};
 
@@ -19,7 +20,7 @@ pub enum CfgElement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct CfgProc {
     pub node_id: CfgNodeId,
-    pub proc_id: u64,
+    pub proc_id: SymbolId,
     pub built: bool,
 }
 
@@ -158,7 +159,7 @@ mod tests {
     #[test]
     fn cfg_graph_node_is_not_empty() {
         let mut node = CfgNode::new(1);
-        node.append_inst(CfgInstruction::Load(1));
+        node.append_inst(CfgInstruction::Load(SymbolId(1)));
 
         assert!(!node.is_empty());
 
@@ -183,7 +184,7 @@ mod tests {
     #[test]
     fn cfg_graph_node_does_not_ends_with_return() {
         let mut node = CfgNode::new(1);
-        node.append_inst(CfgInstruction::Load(1));
+        node.append_inst(CfgInstruction::Load(SymbolId(1)));
         assert!(!node.ends_with_return());
 
         let mut cfg_graph = CfgGraph::new();

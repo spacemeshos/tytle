@@ -7,15 +7,15 @@ use std::collections::HashMap;
 pub struct Environment {
     pub symbol_table: SymbolTable,
     pub id_generator: IdGenerator,
-    pub globals_index: u64,
+    pub globals_index: usize,
 
     // used for allocating globals
-    pub globals_symbols: HashMap<u64, SymbolId>,
+    pub globals_symbols: HashMap<usize, SymbolId>,
 
     // used for allocating procs-locals
-    pub locals_symbols: HashMap<u64, Vec<SymbolId>>,
+    pub locals_symbols: HashMap<SymbolId, Vec<SymbolId>>,
 
-    pub main_proc_id: Option<u64>,
+    pub main_proc_id: Option<SymbolId>,
 }
 
 impl Environment {
@@ -30,9 +30,13 @@ impl Environment {
         }
     }
 
-    pub fn new_tmp_var(&mut self, proc_id: SymbolId, var_type: ExpressionType) -> (u64, String) {
-        let id = self.id_generator.get_next_id();
-        let var_name = format!("$TMP{}", id);
+    pub fn new_tmp_var(
+        &mut self,
+        proc_id: SymbolId,
+        var_type: ExpressionType,
+    ) -> (SymbolId, String) {
+        let id: SymbolId = self.id_generator.get_next_id();
+        let var_name = format!("$TMP{}", id.0);
 
         let proc_locals = self.locals_symbols.entry(proc_id).or_insert(Vec::new());
 
@@ -55,14 +59,13 @@ impl Environment {
         (id, var_name)
     }
 
-    pub fn proc_locals_count(&self, proc_id: SymbolId) -> u64 {
+    pub fn proc_locals_count(&self, proc_id: SymbolId) -> usize {
         let entry = self.locals_symbols.get(&proc_id);
 
         if entry.is_none() {
-            return 0
-        }
-        else {
-            entry.unwrap().len() as u64
+            return 0;
+        } else {
+            entry.unwrap().len()
         }
     }
 }

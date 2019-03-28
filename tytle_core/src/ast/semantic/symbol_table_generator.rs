@@ -246,7 +246,7 @@ impl SymbolTableGenerator {
             let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
             let var_index = self.env.proc_locals_count(proc.id);
 
-            let var_id: u64 =
+            let var_id =
                 self.create_var_symbol(ctx_proc, var_name, None, false, false, var_index)?;
 
             make_stmt.var_id = Some(var_id);
@@ -265,7 +265,7 @@ impl SymbolTableGenerator {
         var_type: Option<ExpressionType>,
         is_global: bool,
         is_param: bool,
-        index: u64,
+        index: usize,
     ) -> Result<SymbolId, AstWalkError> {
         let var_id = self.get_next_id();
 
@@ -275,7 +275,7 @@ impl SymbolTableGenerator {
             param: is_param,
             name: var_name.to_owned(),
             var_type,
-            index: Some(index as usize),
+            index: Some(index),
         };
 
         self.env.symbol_table.create_var_symbol(var);
@@ -332,7 +332,7 @@ impl SymbolTableGenerator {
         self.env.symbol_table.create_proc_symbol(proc);
     }
 
-    fn get_next_id(&mut self) -> u64 {
+    fn get_next_id(&mut self) -> SymbolId {
         self.env.id_generator.get_next_id()
     }
 }

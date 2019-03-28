@@ -5,8 +5,8 @@ pub use std::collections::HashMap;
 pub struct CfgBuilder<'env> {
     cfg_graph: CfgGraph,
     env: &'env mut Environment,
-    proc_jmp_table: HashMap<u64, CfgProc>,
-    current_proc_id: u64,
+    current_proc_id: SymbolId,
+    proc_jmp_table: HashMap<SymbolId, CfgProc>,
 }
 
 impl<'env> CfgBuilder<'env> {
@@ -35,10 +35,7 @@ impl<'env> CfgBuilder<'env> {
         // appending `EOC` to the end of `main`
         self.append_eoc(node_id);
 
-        // TODO: fix the orphans deletions
-        // self.cfg_graph.compact();
-
-        let mut jmp_table: HashMap<CfgNodeId, u64> = self
+        let mut jmp_table: HashMap<CfgNodeId, SymbolId> = self
             .proc_jmp_table
             .iter()
             .map(|(proc_id, cfg_proc)| (cfg_proc.node_id, *proc_id))
@@ -177,7 +174,12 @@ impl<'env> CfgBuilder<'env> {
         self.build_assign(node_id, var_id, expr)
     }
 
-    fn build_assign(&mut self, node_id: CfgNodeId, var_id: u64, expr: &Expression) -> CfgNodeId {
+    fn build_assign(
+        &mut self,
+        node_id: CfgNodeId,
+        var_id: SymbolId,
+        expr: &Expression,
+    ) -> CfgNodeId {
         self.build_expr(node_id, expr);
 
         let inst = CfgInstruction::Store(var_id);

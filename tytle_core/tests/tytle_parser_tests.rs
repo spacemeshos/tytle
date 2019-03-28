@@ -1010,7 +1010,9 @@ fn parse_error_unexpected_lit() {
             1 + [
         "#;
 
-    let expected = ParseError::Syntax { message: "Invalid syntax: `[`".to_string() };
+    let expected = ParseError::Syntax {
+        message: "Invalid syntax: `[`".to_string(),
+    };
 
     assert_parse_err!(expected, code);
 }

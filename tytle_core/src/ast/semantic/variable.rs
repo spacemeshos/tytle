@@ -1,8 +1,9 @@
 use crate::ast::expression::ExpressionType;
+use crate::ast::semantic::SymbolId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
-    pub id: u64,
+    pub id: SymbolId,
     pub global: bool,
     pub param: bool,
     pub name: String,
@@ -14,19 +15,19 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn build_global(name: &str, id: u64) -> Self {
+    pub fn build_global(name: &str, id: SymbolId) -> Self {
         Self::build(name, true, false, id)
     }
 
-    pub fn build_local(name: &str, id: u64) -> Self {
+    pub fn build_local(name: &str, id: SymbolId) -> Self {
         Self::build(name, false, false, id)
     }
 
-    pub fn build_param(name: &str, id: u64) -> Self {
+    pub fn build_param(name: &str, id: SymbolId) -> Self {
         Self::build(name, false, true, id)
     }
 
-    pub fn build(name: &str, global: bool, param: bool, id: u64) -> Self {
+    pub fn build(name: &str, global: bool, param: bool, id: SymbolId) -> Self {
         Self {
             id,
             global,
@@ -56,7 +57,7 @@ mod tests {
 
     #[test]
     fn setting_to_a_variable_the_same_primitive_type_twice() {
-        let mut var = Variable::build_global("A", 1);
+        let mut var = Variable::build_global("A", SymbolId(1));
 
         var.set_resolved_type(ExpressionType::Int);
         var.set_resolved_type(ExpressionType::Int);
@@ -67,7 +68,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Type mismatch for variable `A`")]
     fn error_when_variable_type_mismatch() {
-        let mut var = Variable::build_global("A", 1);
+        let mut var = Variable::build_global("A", SymbolId(1));
 
         var.set_resolved_type(ExpressionType::Int);
         var.set_resolved_type(ExpressionType::Str);

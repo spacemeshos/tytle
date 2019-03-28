@@ -69,15 +69,15 @@ fn sym_generate_ast_records_var_global_index() {
 
     assert_eq!(var.global, true);
     assert_eq!(var.name, "B".to_string());
-    assert_eq!(var.id, 2);
+    assert_eq!(var.id, SymbolId(2));
 
-    let lit_expr = LiteralExpr::Var("A".to_string(), Some(1));
+    let lit_expr = LiteralExpr::Var("A".to_string(), Some(SymbolId(1)));
     let expr_ast = ExpressionAst::Literal(lit_expr);
 
     let make_stmt = MakeStmt {
         kind: MakeStmtKind::Global,
         var_name: "B".to_string(),
-        var_id: Some(2),
+        var_id: Some(SymbolId(2)),
         expr: Expression {
             expr_ast,
             expr_type: None,
@@ -88,8 +88,10 @@ fn sym_generate_ast_records_var_global_index() {
 
     assert_eq!(expected, actual_ast.statements[1]);
 
+    let a = var.id.0;
+
     assert_eq!(
-        hashmap! { 0 => var.id - 1, 1 => var.id },
+        hashmap! { 0 => SymbolId(a - 1), 1 => SymbolId(a) },
         env.globals_symbols
     );
 }
@@ -154,8 +156,10 @@ fn sym_generate_proc_params() {
     let symbol = env.symbol_table.lookup(1, "A", &SymbolKind::Var);
     let var_a = symbol.unwrap().as_var();
 
+    let a = var_a.id.0;
+
     assert_eq!(
-        hashmap! { proc.id => vec![var_a.id, var_a.id + 1, var_a.id + 2] },
+        hashmap! { proc.id => vec![SymbolId(a), SymbolId(a + 1), SymbolId(a + 2)] },
         env.locals_symbols
     );
 }

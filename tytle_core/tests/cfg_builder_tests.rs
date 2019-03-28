@@ -69,14 +69,14 @@ fn compile_cfg_graph_lt_ins_macro_sanity() {
 
 #[test]
 fn compile_cfg_graph_load_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::Load(100), load_ins!(100));
-    assert_eq!(CfgInstruction::Load(200), load_ins!(200));
+    assert_eq!(CfgInstruction::Load(SymbolId(100)), load_ins!(100));
+    assert_eq!(CfgInstruction::Load(SymbolId(200)), load_ins!(200));
 }
 
 #[test]
 fn compile_cfg_graph_store_ins_macro_sanity() {
-    assert_eq!(CfgInstruction::Store(100), store_ins!(100));
-    assert_eq!(CfgInstruction::Store(200), store_ins!(200));
+    assert_eq!(CfgInstruction::Store(SymbolId(100)), store_ins!(100));
+    assert_eq!(CfgInstruction::Store(SymbolId(200)), store_ins!(200));
 }
 
 #[test]
@@ -458,7 +458,7 @@ fn compile_cfg_graph_proc_with_no_external_calls() {
 
     // node `1` represents Procedure with `id = 0` (main)
     // node `2` represents Procedure with `id = 1`
-    let expected_jmp_table = hashmap! { 1 => 0, 2 => 1 };
+    let expected_jmp_table = hashmap! { 1 => SymbolId(0), 2 => SymbolId(1) };
 
     assert_eq!(expected_graph, actual.graph);
     assert_eq!(expected_jmp_table, actual.jmp_table);
@@ -494,7 +494,7 @@ fn compile_cfg_graph_proc_with_external_calls() {
         )
     };
 
-    let expected_jmp_table = hashmap! { 1 => 0, 2 => 1 };
+    let expected_jmp_table = hashmap! { 1 => SymbolId(0), 2 => SymbolId(1) };
 
     assert_eq!(expected_graph, actual.graph);
     assert_eq!(expected_jmp_table, actual.jmp_table);

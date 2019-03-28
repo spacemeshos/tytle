@@ -347,7 +347,7 @@ impl<'env, 'cfg, 'host> Interpreter<'env, 'cfg, 'host> {
         self.ip = 0;
     }
 
-    fn init_proc_locals(&mut self, proc_id: u64) {
+    fn init_proc_locals(&mut self, proc_id: SymbolId) {
         let proc_locals = self.env.locals_symbols.get(&proc_id);
 
         if proc_locals.is_none() {

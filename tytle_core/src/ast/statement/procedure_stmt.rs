@@ -1,6 +1,7 @@
 use std::default::Default;
 use std::fmt;
 
+use crate::ast::semantic::SymbolId;
 use crate::ast::statement::BlockStatement;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,7 +12,7 @@ pub struct ProcParam {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcedureStmt {
-    pub id: Option<u64>,
+    pub id: Option<SymbolId>,
     pub name: String,
     pub params: Vec<ProcParam>,
     pub return_type: String,

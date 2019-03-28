@@ -1,9 +1,10 @@
 use crate::ast::expression::{BinaryOp, Expression, ExpressionType, LiteralExpr};
+use crate::ast::semantic::SymbolId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionAst {
     Literal(LiteralExpr),
-    ProcCall(String, Vec<Expression>, Option<u64>),
+    ProcCall(String, Vec<Expression>, Option<SymbolId>),
     Binary(BinaryOp, Box<Expression>, Box<Expression>),
     Parentheses(Box<Expression>),
     Not(Box<Expression>),

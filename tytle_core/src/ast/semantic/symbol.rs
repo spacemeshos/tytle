@@ -1,6 +1,14 @@
 use crate::ast::semantic::{Procedure, Variable};
+use std::fmt;
 
-pub type SymbolId = u64;
+#[derive(Debug, Hash, Copy, Clone, PartialEq, Eq)]
+pub struct SymbolId(pub usize);
+
+impl fmt::Display for SymbolId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "#{}", self.0)
+    }
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Symbol {
@@ -70,16 +78,16 @@ mod tests {
 
     #[test]
     fn as_var_when_symbol_is_a_variable() {
-        let var = Variable::build_global("A", 1);
+        let var = Variable::build_global("A", SymbolId(1));
         let symbol = Symbol::Var(var);
 
-        assert_eq!(*symbol.as_var(), Variable::build_global("A", 1));
+        assert_eq!(*symbol.as_var(), Variable::build_global("A", SymbolId(1)));
     }
 
     #[test]
     #[should_panic(expected = "expected symbol `MYPROC` to be a Variable")]
     fn error_as_var_when_symbol_is_not_a_variable() {
-        let proc = Procedure::new("MYPROC", 0);
+        let proc = Procedure::new("MYPROC", SymbolId(0));
         let symbol = Symbol::Proc(proc);
 
         symbol.as_var();
@@ -87,16 +95,16 @@ mod tests {
 
     #[test]
     fn as_proc_when_symbol_is_a_procedure() {
-        let proc = Procedure::new("MYPROC", 0);
+        let proc = Procedure::new("MYPROC", SymbolId(0));
         let symbol = Symbol::Proc(proc);
 
-        assert_eq!(*symbol.as_proc(), Procedure::new("MYPROC", 0));
+        assert_eq!(*symbol.as_proc(), Procedure::new("MYPROC", SymbolId(0)));
     }
 
     #[test]
     #[should_panic(expected = "expected symbol `A` to be a Procedure")]
     fn error_as_proc_when_symbol_is_not_a_variable() {
-        let var = Variable::build_global("A", 1);
+        let var = Variable::build_global("A", SymbolId(1));
         let symbol = Symbol::Var(var);
 
         symbol.as_proc();

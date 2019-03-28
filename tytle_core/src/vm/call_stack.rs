@@ -1,3 +1,4 @@
+use crate::ast::semantic::SymbolId;
 use crate::ir::CfgNodeId;
 
 #[derive(Debug, Clone)]
@@ -55,11 +56,11 @@ impl CallStackItem {
 #[derive(Debug)]
 pub struct CallStackFrame {
     items: Vec<CallStackItem>,
-    pub ctx_proc: u64,
+    pub ctx_proc: SymbolId,
 }
 
 impl CallStackFrame {
-    pub fn new(ctx_proc: u64) -> Self {
+    pub fn new(ctx_proc: SymbolId) -> Self {
         Self {
             items: Vec::new(),
             ctx_proc,
@@ -130,7 +131,7 @@ impl CallStack {
         frame.peek()
     }
 
-    pub fn open_stackframe(&mut self, ctx_proc: u64) -> &mut CallStackFrame {
+    pub fn open_stackframe(&mut self, ctx_proc: SymbolId) -> &mut CallStackFrame {
         let mut frame = CallStackFrame::new(ctx_proc);
         self.frames.push(frame);
 

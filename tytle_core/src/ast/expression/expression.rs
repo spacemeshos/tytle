@@ -1,4 +1,5 @@
 use crate::ast::expression::*;
+use crate::ast::semantic::SymbolId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
@@ -70,7 +71,7 @@ impl Expression {
 
     pub fn as_proc_call_expr_mut(
         &mut self,
-    ) -> (&mut String, &mut Vec<Expression>, &mut Option<u64>) {
+    ) -> (&mut String, &mut Vec<Expression>, &mut Option<SymbolId>) {
         match &mut self.expr_ast {
             ExpressionAst::ProcCall(proc_name, proc_args_exprs, proc_id) => {
                 return (proc_name, proc_args_exprs, proc_id);
@@ -79,7 +80,7 @@ impl Expression {
         }
     }
 
-    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>, &Option<u64>) {
+    pub fn as_proc_call_expr(&self) -> (&String, &Vec<Expression>, &Option<SymbolId>) {
         match &self.expr_ast {
             ExpressionAst::ProcCall(proc_name, proc_args_exprs, proc_id) => {
                 (proc_name, proc_args_exprs, proc_id)
