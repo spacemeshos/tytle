@@ -2,12 +2,12 @@
 
 ## The Typed-Turtle Programming Language
 
-![](http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png =150x150) 
+![](http://icons.iconarchive.com/icons/martin-berube/flat-animal/256/turtle-icon.png)
 
 
 ## What's _tytle_?
 Tytle is a variant of the [Logo Programming Language](https://en.wikipedia.org/wiki/Logo_(programming_language)) written in *Rust* and targeted to run in the browser
-  
+
 
 
 ## Installation
@@ -28,7 +28,7 @@ cd tytle_browser
 
 
 ## Roadmap
-* [~] Interpreter
+* [x] Interpreter
 * [ ] Native Compiler (compiling `tytle` programs directly to `WASM`)
 * [ ] Having many turtles (Object-Oriented)
 * [ ] String Primitive
