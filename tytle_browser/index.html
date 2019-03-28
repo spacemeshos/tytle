@@ -93,34 +93,12 @@
         await init('./pkg/tytle_browser_bg.wasm');
 
         execute(`
-          TO TREE(SIZE: INT)
-            IF SIZE < 5 [
-              FORWARD SIZE
-              BACKWARD SIZE
-            ][
-              FORWARD SIZE / 3
-              LEFT 30
-              TREE((2 * SIZE) / 3)
-              RIGHT 30
-
-              FORWARD SIZE / 6
-
-              RIGHT 25
-              TREE(SIZE / 2)
-              LEFT 25
-
-              FORWARD SIZE / 3
-
-              RIGHT 25
-              TREE(SIZE / 2)
-              LEFT 25
-
-              FORWARD SIZE / 6
-              BACKWARD SIZE
-            ]
+          TO FOO(X: INT): INT
+            MAKELOCAL Y = 100
+            RETURN X * Y
           END
 
-          TREE(50)
+          FORWARD FOO(2)
         `);
 
         // And afterwards we can use all the functionality defined in wasm.

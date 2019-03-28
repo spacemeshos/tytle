@@ -49,7 +49,7 @@ impl<'a> AstWalker<'a> for SymbolTableGenerator {
         let symbol = self.try_get_symbol(&proc_param.param_name, SymbolKind::Var);
 
         if symbol.is_none() {
-            let proc = self.env.symbol_table.get_proc_by_name(&ctx_proc);
+            let proc = self.env.symbol_table.get_proc_by_name(ctx_proc);
             let var_index = self.env.proc_locals_count(proc.id);
 
             let param_type = ExpressionType::from(proc_param.param_type.as_str());

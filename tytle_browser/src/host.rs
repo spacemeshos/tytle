@@ -51,6 +51,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn print(this: &TytleHost, msg: &str);
+
+    #[wasm_bindgen(method)]
+    fn compilation_error(this: &TytleHost, error: &str);
 }
 
 pub struct BrowserHost {
@@ -66,6 +69,10 @@ impl BrowserHost {
 }
 
 impl Host for BrowserHost {
+    fn compilation_error(&mut self, error: &str) {
+        self.browser.compilation_error(error);
+    }
+
     fn exec_direct(&mut self, direct: &Direction, count: isize) {
         let count = count as i32;
 

@@ -72,6 +72,10 @@ export class TytleHost {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  compilation_error(msg) {
+    console.log("[COMPILE ERROR]", msg);
+  }
+
   _drawLine(x0, y0, x1, y1) {
     var canvas = this._getCanvas();
     var ctx = canvas.getContext("2d");
@@ -79,22 +83,19 @@ export class TytleHost {
 
     switch (this.pen_state) {
       case 'DOWN':
-        console.log('PEN IS DOWN');
         ctx.moveTo(x0, y0);
         ctx.lineTo(x1, y1);
         ctx.stroke();
         break;
       case 'UP':
-        console.log('PEN IS UP');
         ctx.moveTo(x1, y1);
         break;
       case 'ERASE':
-        console.log('PEN ERASE');
         ctx.fillStyle = "#000000";
         break;
     };
 
-    console.log(`moved (${x0}, ${y0}) -> (${x1}, ${y1})`);
+    // console.log(`moved (${x0}, ${y0}) -> (${x1}, ${y1})`);
   }
 
   _getCanvas() {

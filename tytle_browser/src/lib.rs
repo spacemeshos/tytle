@@ -15,23 +15,28 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn execute(code: &str) {
-    let mut ast = TytleParser.parse(code).unwrap();
+    let mut host = BrowserHost::new();
+    let parse_res = TytleParser.parse(code);
 
+    if let Err(err) = parse_res {
+        host.compilation_error(&err.to_string());
+        return;
+    }
+
+    let mut ast = parse_res.unwrap();
     let generator = SymbolTableGenerator::new();
     let mut env = generator.generate(&mut ast).unwrap();
     let mut type_checker = AstTypeCheck::new(&mut env);
 
-    let res = type_checker.check(&mut ast);
-
-    if res.is_err() {
-        compilation_error(":(");
+    let type_res = type_checker.check(&mut ast);
+    if let Err(err) = type_res {
+        host.compilation_error(&err.to_string());
         return;
     }
 
-    let builder = CfgBuilder::new(&mut env);
-    let cfg = builder.build(&ast);
+    let cfg_builder = CfgBuilder::new(&mut env);
+    let cfg = cfg_builder.build(&ast);
 
-    let mut host = BrowserHost::new();
     let mut intr = Interpreter::new(&cfg, &env, &mut host);
 
     intr.exec_code();

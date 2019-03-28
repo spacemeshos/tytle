@@ -57,7 +57,20 @@ impl ToString for AstWalkError {
             AstWalkError::VariableTypeMissing(var) => format!("Missing type for variable: `{}`", var),
             AstWalkError::NotBooleanExpr(expr) => format!("Expression `{}` isn't a Boolean expression", expr),
             AstWalkError::NotIntExpr(expr) => format!("Expression `{}` isn't an Integer expression", expr),
-            AstWalkError::InvalidProcCallArgType(arg_index, expected, actual) => unimplemented!()
+            AstWalkError::InvalidProcCallArgType(arg_index, expected, actual) =>
+                format!("expected the {} argument to be `{}` (actual: `{}`)", self.indexify_arg(*arg_index), expected.to_string(), actual.to_string())
+        }
+    }
+}
+
+impl AstWalkError {
+    fn indexify_arg(&self, index: usize) -> String {
+        match index {
+            1 => "first".to_string(),
+            2 => "second".to_string(),
+            3 => "third".to_string(),
+            4 => "fourth".to_string(),
+            _ => format!("{}-ith", index),
         }
     }
 }

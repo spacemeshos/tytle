@@ -1005,6 +1005,17 @@ fn parse_error_proc_param_cannot_be_unit() {
 }
 
 #[test]
+fn parse_error_unexpected_lit() {
+    let code = r#"
+            1 + [
+        "#;
+
+    let expected = ParseError::Syntax { message: "Invalid syntax: `[`".to_string() };
+
+    assert_parse_err!(expected, code);
+}
+
+#[test]
 fn parse_error_trap_is_a_reserved_keyword() {
     assert_reserved_word!("TRAP");
 }

@@ -622,7 +622,7 @@ impl TytleParser {
                             "TRUE" => LiteralExpr::Bool(true),
                             "FALSE" => LiteralExpr::Bool(false),
                             _ => {
-                                // we'll fill-in the variable `global id` when we'll generate the symbol table
+                                // we'll fill-in the variable `Global id` when we'll generate the symbol table
                                 let var_global_id = None;
                                 LiteralExpr::Var(v.to_string(), var_global_id)
                             }
@@ -633,7 +633,9 @@ impl TytleParser {
                 }
             }
         } else {
-            panic!();
+            let message = format!("Invalid syntax: `{}`", tok.to_string());
+            let err = ParseError::Syntax { message };
+            Err(err)
         }
     }
 
