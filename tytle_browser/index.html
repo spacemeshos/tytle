@@ -14,7 +14,6 @@
 
       .nav li {
         display: inline-block;
-        border-style: solid;
       }
 
       .main {
@@ -25,7 +24,6 @@
       }
 
       .main li {
-        border-style: solid;
         display: inline-block;
       }
     </style>
@@ -43,10 +41,9 @@
 
     <ul class="main">
       <li>
-        <canvas id="tytle-canvas" width=500 height=500 style="border:1px solid #000000;"/>
+        <canvas id="tytle-canvas" width=800 height=800 style="border:1px solid #000000;"/>
       </li>
       <li>
-        <button id="play" onclick="play()">Play</button>
       </li>
       <li>
         <script src="node_modules/codemirror/lib/codemirror.js"></script>
@@ -73,8 +70,6 @@
         lineNumbers: true,
       };
 
-      window.codeMirror = CodeMirror(document.body, codeConfig);
-
       // Use ES module import syntax to import functionality from the module
       // that we have compiled.
       //
@@ -97,18 +92,12 @@
 
         await init('./pkg/tytle_browser_bg.wasm');
 
-        self.execute = execute;
+        execute(`
+        `);
 
         // And afterwards we can use all the functionality defined in wasm.
       }
       run();
-    </script>
-
-    <script type="text/javascript">
-      function play() {
-        var code = window.codeMirror.getValue();
-        self.execute(code);
-      }
     </script>
   </body>
 </html>

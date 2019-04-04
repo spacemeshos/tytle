@@ -2,7 +2,7 @@ export class TytleHost {
   constructor() {
     this.degree = 0;
     this.setx(400);
-    this.sety(500);
+    this.sety(800);
     this.pen_down();
     this.show_turtle();
   }
